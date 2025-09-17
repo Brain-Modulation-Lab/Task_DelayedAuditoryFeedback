@@ -18,9 +18,9 @@ volumeMax = 1;
 %% trigger codes
 TRIG_ITI = 1; %%%% send this when stim is removed at end of trial
 TRIG_VISUAL = 2;
-TRIG_TRIAL = 4; %%% send this before fix cross at beginning of trial
+TRIG_TRIAL = 4; %%% 
 TRIG_DAF = 8;
-TRIG_KEY = 16; %%% send this 
+TRIG_KEY = 16;
 
 %% Load sentences and block randomization (with preallocation)
 T = readtable([dirs.projrepo, filesep, 'stimuli', filesep, 'daf_sentences.tsv'],...
