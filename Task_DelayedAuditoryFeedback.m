@@ -35,6 +35,8 @@ blockDelays = delayOptions(delayIdxGrid(:)); % [nSentences*numel(delayOptions) x
 blockNtrials = numel(blockSentIdx); % Number of trials per block
 nTrials = op.n_blocks * blockNtrials; % Total number of trials
 
+trials = table([1:nTrials]',cell(nTrials,1),'VariableNames',{'trialnum','sentence'});
+
 % Preallocate arrays for all trials
 trialSentIdx = zeros(nTrials, 1); % Sentence indices for all trials
 trialDelays = zeros(nTrials, 1); % Delay values for all trials
