@@ -35,7 +35,8 @@ blockDelays = delayOptions(delayIdxGrid(:)); % [nSentences*numel(delayOptions) x
 blockNtrials = numel(blockSentIdx); % Number of trials per block
 nTrials = op.n_blocks * blockNtrials; % Total number of trials
 
-trials = table([1:nTrials]',cell(nTrials,1),'VariableNames',{'trialnum','sentence'});
+trials = table([1:nTrials]',    cell(nTrials,1), nan(nTrials,1),  nan(nTrials,1),   'VariableNames',...
+               {'trialnum',     'sentence',  'sentence_idx',    'delay'});
 
 % Preallocate arrays for all trials
 trialSentIdx = zeros(nTrials, 1); % Sentence indices for all trials
@@ -50,6 +51,10 @@ for b = 1:op.n_blocks
     trialBlock(trialRange)   = b;
     trialCounter = trialCounter + blockNtrials;
 end
+
+trials.sentence = trialSentIdx; 
+trials.delay = trialDelays; 
+trials.block_id = trialBlock; 
 
 % Assign catch trials randomly across all trials
 nCatch = round(nTrials * catchRatio);

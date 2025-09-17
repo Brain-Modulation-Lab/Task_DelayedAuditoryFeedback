@@ -18,9 +18,9 @@ volumeMax = 1;
 %% trigger codes
 TRIG_ITI = 1; %%%% send this when stim is removed at end of trial
 TRIG_VISUAL = 2;
-TRIG_TRIAL = 4; %%% 
+TRIG_TRIAL = 4; %%% send this before fix cross at beginning of trial
 TRIG_DAF = 8;
-TRIG_KEY = 16;
+TRIG_KEY = 16; %%% send this 
 
 %% Load sentences and block randomization (with preallocation)
 T = readtable([dirs.projrepo, filesep, 'stimuli', filesep, 'daf_sentences.tsv'],...
@@ -35,6 +35,9 @@ blockDelays = delayOptions(delayIdxGrid(:)); % [nSentences*numel(delayOptions) x
 blockNtrials = numel(blockSentIdx); % Number of trials per block
 nTrials = op.n_blocks * blockNtrials; % Total number of trials
 
+trials = table([1:nTrials]',    cell(nTrials,1), nan(nTrials,1),  nan(nTrials,1),   'VariableNames',...
+               {'trialnum',     'sentence',  'sentence_idx',    'delay'});
+
 % Preallocate arrays for all trials
 trialSentIdx = zeros(nTrials, 1); % Sentence indices for all trials
 trialDelays = zeros(nTrials, 1); % Delay values for all trials
@@ -48,6 +51,10 @@ for b = 1:op.n_blocks
     trialBlock(trialRange)   = b;
     trialCounter = trialCounter + blockNtrials;
 end
+
+trials.sentence = trialSentIdx; 
+trials.delay = trialDelays; 
+trials.block_id = trialBlock; 
 
 % Assign catch trials randomly across all trials
 nCatch = round(nTrials * catchRatio);
