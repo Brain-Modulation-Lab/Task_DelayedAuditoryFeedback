@@ -14,7 +14,7 @@ cfg.DB_SENTENCES_TSV = 'daf_sentences.tsv';
 
 cfg.DAF.delay_options_ms = [150];
 cfg.DAF.catch_ratio = 0.0;
-cfg.DAF.max_delay_ms = 1000;
+cfg.DAF.max_delay_ms = 1000; % if this is set much above 1000ms, it can cause lag / other problems
 cfg.bg_color = [255 255 255];
 
 cfg.HOST_AUDIO_API_NAME = 'Windows WASAPI';
