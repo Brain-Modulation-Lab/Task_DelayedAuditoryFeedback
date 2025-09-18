@@ -247,7 +247,7 @@ runStartTime = GetSecs();
                 if strlength(nxt) <= cfg.stim_max_char_per_line
                     cur = nxt;
                 else
-                    if strlength(cur)>0, lines(end+1) = cur; end %#ok<AGROW>
+                    if strlength(cur)>0, lines(end+1) = cur; end
                     cur = w(ii);
                 end
             end
@@ -265,9 +265,10 @@ runStartTime = GetSecs();
 
         % ITI with Fixation cross
         Screen('FillRect', window, cfg.bg_color);
-        DrawFormattedText(window, '*', 'center', 'center', [0 0 0]);
+        DrawFormattedText(window, '*', 'center', 'center', fixcolor);
         flipSyncState = ~flipSyncState;
         [itiFixOnTime, ~] = Screen('Flip', window);
+        DAF_Trials.start_time(idxTrial) = baseClock + seconds(itiFixOnTime - baseGetSecs);
         ItiDuration = ITI_S(1) + (ITI_S(2) - ITI_S(1)) .* rand(1);
         code = TRIG_ITI;
         log_event(eventFile, cfg.DIGOUT, itiFixOnTime, ItiDuration, [], trialType, [], code, 'ITI Fixation', flipSyncState);
