@@ -331,6 +331,7 @@ runStartTime = GetSecs();
                 PsychPortAudio('FillBuffer', pa_slave3, audioOut); % Output to slave device buffer
                 
                 % Record lag for diagnostics
+                %%%  AM note: this the extra lag we don't want (on top of the implemented delay)
                 lag = max((GetSecs - tStart)*1000 - (cfg.audio_frame_size/cfg.audio_sample_rate*1000), 0);
                 lagBuffer(lagIndex) = lag;
                 lagIndex = mod(lagIndex, 5000) + 1;
