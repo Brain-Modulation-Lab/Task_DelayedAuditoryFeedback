@@ -13,9 +13,7 @@ cfg.DATA_TYPE = 'task'; %BIDS data type 'beh' for behavioral and task data.
 % Task metadata
 cfg.TASK = 'daf';
 cfg.TASK_VERSION = 1;
-cfg.TASK_FUNCTION = 'task_daf.m';
-
-cfg.DAF_SENTENCES_TSV = 'daf_sentences.tsv';
+cfg.TASK_FUNCTION = 'Task_DelayedAuditoryFeedback.m';
 
 % cfg parameters
 cfg.n_blocks = 1; % Number of blocks
@@ -29,11 +27,10 @@ cfg.text_stim_dur = 12.0; % Duration for which sentence is displayed and spoken 
 cfg.iti = 2.0; % Inter-trial interval (seconds)
 cfg.stim_font_size = 65; 
 cfg.stim_max_char_per_line = 38; % wrap text at this length
-
-% delayOptions = [0, 100, 150, 200]; % DAF delay condoitions in ms
 cfg.delayOptions = 150; % DAF delay conditions in ms (MAX IS 1000ms)
 cfg.maxAllowedDelay_ms = 1000;
-if any(delayOptions > maxAllowedDelay_ms)
+cfg.bg_color = [255 255 255]; % white (for PTB OpenWindow)
+if any(cfg.delayOptions > cfg.maxAllowedDelay_ms)
     error('One or more delayOptions exceed the maximum allowed delay of %d ms.', cfg.maxAllowedDelay_ms);
 end
 cfg.catchRatio = 0; % catchRatio = 1/6; % Fraction of catch (no-speak) trials 
@@ -43,13 +40,13 @@ cfg.HOST_AUDIO_API_NAME = 'Windows WASAPI';
 
 % Paths and configurations
 if strcmpi('BML-ALIENWARE',getenv('COMPUTERNAME'))
-    cfg.PATH_TASK = 'D:\docs\code\stut_obs\Task_DelayedAuditoryFeedback';
-    cfg.PATH_SOURCEDATA = 'C:\ieeg_stut'; %source data root folder 
+    cfg.PATH_TASK = 'D:\docs\code\Brain-Modulation-Lab\Task_DelayedAuditoryFeedback';
+    cfg.PATH_SOURCEDATA = 'C:\Documents'; %source data root folder 
     cfg.AUDIO_DEVICE = 'Speakers/Headphones (Realtek(R) Audio)';
     cfg.HOST_AUDIO_API_NAME = 'Windows WASAPI';
 elseif strcmpi('BML-ALIENWARE2',getenv('COMPUTERNAME'))
-    cfg.PATH_TASK = 'D:\docs\code\stut_obs\Task_DelayedAuditoryFeedback';
-    cfg.PATH_SOURCEDATA = 'C:\ieeg_stut'; %source data root folder 
+    cfg.PATH_TASK = 'D:\docs\code\Brain-Modulation-Lab\Task_DelayedAuditoryFeedback';
+    cfg.PATH_SOURCEDATA = 'C:\Documents'; %source data root folder 
     cfg.AUDIO_DEVICE = 'Speakers (Realtek(R) Audio)';
     cfg.HOST_AUDIO_API_NAME = 'Windows WASAPI';
 else
@@ -132,10 +129,6 @@ cfg.LOG_FILENAME = [cfg.PATH_LOG filesep cfg.BASE_NAME 'log.txt'];
 cfg.EVENT_FILENAME = [cfg.PATH_LOG filesep cfg.BASE_NAME 'events.tsv'];
 cfg.TRIAL_FILENAME = [cfg.PATH_LOG filesep cfg.BASE_NAME 'trials.tsv']; % randomized trials info
 
-%% creating trials table
-DAF_Trials = create_trials_table(cfg);
-cfg.TRIAL_TABLE = DAF_Trials;
-
 %% Starting diary
 %open diary for this run (saves PTB initialization output)
 diary(cfg.LOG_FILENAME);
@@ -164,9 +157,6 @@ cfg.DIGOUT = digout;
 
 %% Launching the task
 fprintf('Launching task'); 
-
-%saving trials table
-writetable(DAF_Trials,cfg.TRIAL_FILENAME,'Delimiter','\t','FileType','text');
 
 % Saving task function in log folder for documentation
 task_function = [pwd filesep cfg.TASK_FUNCTION];
