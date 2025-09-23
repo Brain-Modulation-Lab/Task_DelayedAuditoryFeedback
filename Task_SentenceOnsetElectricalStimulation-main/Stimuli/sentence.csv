@@ -1,0 +1,9 @@
+sentence_id,sentence,file_audio,file_text,group_id,item_id
+1,Glue the sheet to the dark blue background ,PNF133_01-02_70dB.wav,01-02.txt,1,2
+2,There are more than two factors here ,PNF133_09-03_70dB.wav,09-03.txt,9,3
+3,The plant grew large and green in the window ,PNF133_31-02_70dB.wav,31-02.txt,31,2
+4,Fill the ink jar with sticky glue ,PNF133_33-01_70dB.wav,33-01.txt,33,1
+5,Oats are a food eaten by horse and man ,PNF133_50-02_70dB.wav,50-02.txt,50,2
+6,There are many ways to do these things ,PNF133_50-05_70dB.wav,50-05.txt,50,5
+7,They sang the same tunes at each party ,PNF133_65-03_70dB.wav,65-03.txt,65,3
+8,The roof should be tilted at a sharp slant ,PNF133_66-02_70dB.wav,66-02.txt,66,2

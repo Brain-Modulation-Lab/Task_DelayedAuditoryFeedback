@@ -1,0 +1,21 @@
+trial_id	block_id	sentence_id	noise_type	sentence	file_audio	file_text
+1	1	8	0	There are many ways to do these things 	PNF133_50-05_70dB.wav	50-05.txt
+2	1	3	0	The plant grew large and green in the window 	PNF133_31-02_70dB.wav	31-02.txt
+3	1	9	0	They sang the same tunes at each party 	PNF133_65-03_70dB.wav	65-03.txt
+4	1	6	0	He offered proof in the form of a large chart 	PNF133_49-05_70dB.wav	49-05.txt
+5	1	7	0	Oats are a food eaten by horse and man 	PNF133_50-02_70dB.wav	50-02.txt
+6	1	10	0	The roof should be tilted at a sharp slant 	PNF133_66-02_70dB.wav	66-02.txt
+7	1	5	0	Code is used when secrets are sent 	PNF133_34-10_70dB.wav	34-10.txt
+8	1	1	0	Glue the sheet to the dark blue background 	PNF133_01-02_70dB.wav	01-02.txt
+9	1	2	0	There are more than two factors here 	PNF133_09-03_70dB.wav	09-03.txt
+10	1	4	0	Fill the ink jar with sticky glue 	PNF133_33-01_70dB.wav	33-01.txt
+11	2	3	1	The plant grew large and green in the window 	PNF133_31-02_70dB.wav	31-02.txt
+12	2	10	1	The roof should be tilted at a sharp slant 	PNF133_66-02_70dB.wav	66-02.txt
+13	2	4	1	Fill the ink jar with sticky glue 	PNF133_33-01_70dB.wav	33-01.txt
+14	2	7	1	Oats are a food eaten by horse and man 	PNF133_50-02_70dB.wav	50-02.txt
+15	2	9	1	They sang the same tunes at each party 	PNF133_65-03_70dB.wav	65-03.txt
+16	2	8	1	There are many ways to do these things 	PNF133_50-05_70dB.wav	50-05.txt
+17	2	1	1	Glue the sheet to the dark blue background 	PNF133_01-02_70dB.wav	01-02.txt
+18	2	5	1	Code is used when secrets are sent 	PNF133_34-10_70dB.wav	34-10.txt
+19	2	6	1	He offered proof in the form of a large chart 	PNF133_49-05_70dB.wav	49-05.txt
+20	2	2	1	There are more than two factors here 	PNF133_09-03_70dB.wav	09-03.txt

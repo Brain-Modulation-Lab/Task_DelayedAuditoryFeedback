@@ -1,5 +1,19 @@
-% Launcher script for DAF Task
+% Launcher script for DAF     
+%%
 clear;
+
+AssertOpenGL;
+KbName('UnifyKeyNames');
+ 
+% --- Safe local PTB prefs (TEMP for laptop testing) ---
+Screen('Preference','SkipSyncTests', 1);         % disable sync for windowed laptop testing
+Screen('Preference','VisualDebugLevel', 1);      % fewer splash flashes
+Screen('Preference','Verbosity', 3);             % standard logs
+PsychDebugWindowConfiguration;                    % opens windowed + alpha layer
+ 
+ListenChar(0);            % do NOT capture keyboard globally
+ShowCursor;               % keep cursor visible
+Priority(0);              % no realtime priority in local test
 
 %% Parameter settings
 % Creating configuration structure
@@ -12,24 +26,28 @@ cfg.DATA_TYPE = 'task'; %BIDS data type 'beh' for behavioral and task data.
 
 % Task metadata
 cfg.TASK = 'daf';
-cfg.TASK_VERSION = 1;
+cfg.TASK_VERSION = 1;   
 cfg.TASK_FUNCTION = 'Task_DelayedAuditoryFeedback.m';
 
 % cfg parameters
 cfg.n_blocks = 1; % Number of blocks
+cfg.max_trials = 30; % trial cap
 cfg.pause_between_blocks = 0; % Set to true to require keypress between blocks
-cfg.audio_sample_rate = 44100; % Audio sample rate in Hz
-cfg.audio_frame_size = 128; % Number of samples processed per audio frame
-cfg.audio_playback_gain = 15; % Output gain for delayed signal... might want to run volume calibration for each subject
+cfg.audio_frame_size = 128   ; % Number of samples processed per audio frame
+cfg.audio_playback_gain = 1 ; % Output gain for delayed signal... might want to run volume calibration for each subject
 cfg.fix_cross_dur = 0.; % Duration of fixation cue (seconds)
 cfg.delay_dur = 0.; % Pause between fixation and sentence onset (seconds)
 cfg.text_stim_dur = 12.0; % Duration for which sentence is displayed and spoken (seconds)
 cfg.iti = 2.0; % Inter-trial interval (seconds)
 cfg.stim_font_size = 65; 
-cfg.stim_max_char_per_line = 38; % wrap text at this length
+cfg.stim_max_char_per_line = 38; % wrap text at this length 
+cfg.daf_sentences = 'daf_sentences.tsv';
+cfg.LOCAL_TEST = true; % Set to true to skip hardware dependent parts
+cfg.LAG_DIAGNOSTICS = true;  
+
+% delayOptions = [0, 100, 150, 200]; % DAF delay condoitions in ms
 cfg.delayOptions = 150; % DAF delay conditions in ms (MAX IS 1000ms)
 cfg.maxAllowedDelay_ms = 1000;
-cfg.bg_color = [255 255 255]; % white (for PTB OpenWindow)
 if any(cfg.delayOptions > cfg.maxAllowedDelay_ms)
     error('One or more delayOptions exceed the maximum allowed delay of %d ms.', cfg.maxAllowedDelay_ms);
 end
@@ -39,16 +57,22 @@ cfg.catchRatio = 0; % catchRatio = 1/6; % Fraction of catch (no-speak) trials
 cfg.HOST_AUDIO_API_NAME = 'Windows WASAPI';
 
 % Paths and configurations
-if strcmpi('BML-ALIENWARE',getenv('COMPUTERNAME'))
-    cfg.PATH_TASK = 'D:\docs\code\Brain-Modulation-Lab\Task_DelayedAuditoryFeedback';
-    cfg.PATH_SOURCEDATA = 'C:\Documents'; %source data root folder 
+if strcmpi(getenv('COMPUTERNAME'),'BML-ALIENWARE')
+    cfg.PATH_TASK = 'D:\docs\code\stut_obs\Task_DelayedAuditoryFeedback';
+    cfg.PATH_SOURCEDATA = 'C:\ieeg_stut'; %source data root folder 
     cfg.AUDIO_DEVICE = 'Speakers/Headphones (Realtek(R) Audio)';
     cfg.HOST_AUDIO_API_NAME = 'Windows WASAPI';
-elseif strcmpi('BML-ALIENWARE2',getenv('COMPUTERNAME'))
-    cfg.PATH_TASK = 'D:\docs\code\Brain-Modulation-Lab\Task_DelayedAuditoryFeedback';
-    cfg.PATH_SOURCEDATA = 'C:\Documents'; %source data root folder 
+elseif strcmpi(getenv('COMPUTERNAME'),'BML-ALIENWARE2')
+    cfg.PATH_TASK = 'D:\docs\code\stut_obs\Task_DelayedAuditoryFeedback';
+    cfg.PATH_SOURCEDATA = 'C:\ieeg_stut'; %source data root folder 
     cfg.AUDIO_DEVICE = 'Speakers (Realtek(R) Audio)';
     cfg.HOST_AUDIO_API_NAME = 'Windows WASAPI';
+elseif ismac
+    cfg.PATH_TASK = '/Users/samhansen/Documents/Matlab/Task_DelayedAuditoryFeedback';
+    cfg.PATH_SOURCEDATA = '/Users/samhansen/Documents/Matlab/Task_DelayedAuditoryFeedback/stimuli'; %adjust as needed
+    cfg.AUDIO_DEVICE_OUT = 'MacBook Pro Speakers';
+    cfg.AUDIO_DEVICE_IN  = 'MacBook Pro Microphone';
+    cfg.HOST_AUDIO_API_NAME = 'CoreAudio'; 
 else
     cfg.PATH_TASK = '~/git/Task_DelayedAuditoryFeedback'; 
     cfg.PATH_SOURCEDATA = '~/Data/DBS/sourcedata'; %source data root folder 
@@ -62,17 +86,16 @@ cfg.GO_BEEP_AMP = 0.5;
 cfg.KEYBOARD_ID = []; % prefered keyboard 
 
 %calibration_beeps(cfg)
+
 %% Initialize external audio recording from USB interface 
-if isempty(gcp())
-    parpool('local', 1);
-    wait(); 
+if ~cfg.LOCAL_TEST
+    if isempty(gcp()), parpool('local',1); end 
+    workerQueueConstant = parallel.pool.Constant(@parallel.pool.PollableDataQueue);
+    workerQueueClient = fetchOutputs(parfeval(@(x) x.Value, 1, workerQueueConstant));
+else
+    workerQueueConstant = [];
+    workerQueueClient   = [];
 end
-
-% Get the worker to construct a data queue on which it can receive messages from the client
-workerQueueConstant = parallel.pool.Constant(@parallel.pool.PollableDataQueue);
-
-% Get the worker to send the queue object back to the client
-workerQueueClient = fetchOutputs(parfeval(@(x) x.Value, 1, workerQueueConstant));
 
 %% Warnings
 warning('on','all'); %enabling warnings
@@ -141,15 +164,16 @@ disp(cfg)
 cfg.AUDIO_FILENAME = [cfg.PATH_AUDIO filesep cfg.BASE_NAME(1:end-1) '.wav'];
 
 % Get the worker to start waiting for messages
-filename = cfg.AUDIO_FILENAME;
+filename = cfg.AUDIO_FILENAME; 
 % TODO check that @record_audio_preop is on the path
-if ~(exist('record_audio_preop')==2)
-    error('record_audio_preop() function not found. Add it to the MATLAB path.'); 
+if ~cfg.LOCAL_TEST
+    if ~(exist('record_audio_preop','file')==2)
+        error('record_audio_preop() not found on path.'); 
+    end
+    future = parfeval(@record_audio_preop, 1, filename, workerQueueConstant);
+    future.Diary;
+    onCleanupTasks{6} = onCleanup(@() send(workerQueueClient, 'stop'));
 end
-future = parfeval(@record_audio_preop, 1, filename, workerQueueConstant);
-future.Diary
-
-onCleanupTasks{6} = onCleanup(@() send(workerQueueClient, 'stop'));
 
 %% No ripple system
 digout = 0;
@@ -161,8 +185,8 @@ fprintf('Launching task');
 % Saving task function in log folder for documentation
 task_function = [pwd filesep cfg.TASK_FUNCTION];
 if ~isfile(task_function)
-    clear onCleanupTasks
-    error('%s.m should be in current working directory',cfg.TASK_FUNCTION);
+     clear onCleanupTasks
+    error('%s should be in current working directory',cfg.TASK_FUNCTION);
 end
 copyfile(task_function,[cfg.PATH_LOG filesep cfg.BASE_NAME 'script.m']);
 

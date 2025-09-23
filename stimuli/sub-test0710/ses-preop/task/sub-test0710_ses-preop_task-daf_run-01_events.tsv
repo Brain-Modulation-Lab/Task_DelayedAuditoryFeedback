@@ -1,0 +1,7 @@
+onset	duration	sample	trial_type	stim_file	value	event_code
+48822.928003	0.000000	0	"n/a"	"n/a"	32768	"Instructions"
+48824.715362	2.104682	0	"speech"	"n/a"	1	"Trial Onset"
+48826.831367	0.000000	0	"speech"	"Whistling winds whipped through weathered shutters during stormy nights. Curious cats carefully climbed over slippery ceramic roof tiles."	32770	"Visual Onset"
+48838.840022	0.000000	0	"speech"	"n/a"	2	"Visual Off"
+48838.883701	2.127343	0	"speech"	"n/a"	32769	"Trial Onset"
+48841.022287	0.000000	0	"speech"	"Sparkling streams splashed softly against smooth limestone river rocks. Playful pandas picked perfectly ripe bamboo shoots for breakfast."	2	"Visual Onset"
