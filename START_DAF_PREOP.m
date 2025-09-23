@@ -42,7 +42,7 @@ cfg.iti = 2.0; % Inter-trial interval (seconds)
 cfg.stim_font_size = 65; 
 cfg.stim_max_char_per_line = 38; % wrap text at this length 
 cfg.daf_sentences = 'daf_sentences.tsv';
-cfg.LOCAL_TEST = true; % Set to true to skip hardware dependent parts
+cfg.no_audio_debug_mode = true; % Set to true to skip hardware dependent parts
 cfg.LAG_DIAGNOSTICS = true;  
 
 % delayOptions = [0, 100, 150, 200]; % DAF delay condoitions in ms
