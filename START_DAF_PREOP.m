@@ -44,6 +44,7 @@ cfg.stim_max_char_per_line = 38; % wrap text at this length
 cfg.daf_sentences = 'daf_sentences.tsv';
 cfg.no_audio_debug_mode = true; % Set to true to skip hardware dependent parts
 cfg.LAG_DIAGNOSTICS = true;  
+cfg.LOCAL_TEST = 0; % turn on when testing the script on a laptop other than the intraop rig Alienware computer
 
 % delayOptions = [0, 100, 150, 200]; % DAF delay condoitions in ms
 cfg.delayOptions = 150; % DAF delay conditions in ms (MAX IS 1000ms)
