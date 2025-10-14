@@ -25,7 +25,7 @@ nTrials = cfg.n_blocks * blockNtrials; % Total number of trials
 ..... [with 10 stim ID, 2 delays, 3 blocks]
 ..... also - include option to use the same stim order across blocks rather than do a different randomization across blocks
 
-% Preallocate arrays for all trials
+% Make trials table
 trials = table([1:nTrials]','VariableNames',{'trialnum'});
 trials.stim_id = zeros(nTrials, 1); % stim indices for all trials
 trials.delay = zeros(nTrials, 1); % Delay values for all trials
