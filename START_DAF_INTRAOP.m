@@ -40,11 +40,11 @@ cfg.HOST_AUDIO_API_NAME = 'Windows WASAPI';
 cfg.SCREEN_RES = [1280, 1024];
 cfg.MIC_API_NAME = 'Windows WASAPI';
 
-if strcmpi(getenv('COMPUTERNAME'), 'BML-ALIENWARE')
+if strcmpi(getenv('COMPUTERNAME'), 'BML-ALIENWARE2')
     cfg.PATH_TASK = 'D:\Task\Task_SentenceOnsetElectricalStimulation';
     cfg.PATH_SOURCEDATA = 'D:\DBS\sourcedata';
     cfg.AUDIO_DEVICE = 'Speakers (Radial USB Pro)';
-    cfg.MIC_DEVICE = 'Analogue 1 + 2 (2- Focusrite USB Audio)';
+    cfg.MIC_DEVICE = 'Analogue 1 + 2 (5- Focusrite USB Audio)';
 elseif strcmpi(getenv('COMPUTERNAME'), 'BML-ALIENWARE2')
     cfg.PATH_TASK = 'D:\Task\Task_SentenceOnsetElectricalStimulation';
     cfg.PATH_SOURCEDATA = 'D:\DBS\sourcedata';
