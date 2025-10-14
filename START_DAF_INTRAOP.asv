@@ -10,14 +10,14 @@ cfg.SUBJECT = 'test0715';
 cfg.SESSION_LABEL = 'intraop';
 cfg.DATA_TYPE = 'task';
 
-%% Experimental parameters from SOES
+% Experimental parameters
 cfg.SPEECH_LEVEL_THR = 0.025;
-% % % % % % cfg.STIM_CTRL = 2;
-% % % % % % cfg.STIM_EPOCH = {'go', 'mid-sentence'};
-% % % % % % cfg.STIM_TRIG = {'go', 'speech-onset'};
-% % % % % % cfg.STIM_DELAY = [0, 0.300];
-% % % % % % cfg.STIM_TL = [2000, 1000];
-% % % % % % cfg.STIM_FREQ = [30, 130];
+cfg.STIM_CTRL = 2;
+cfg.STIM_EPOCH = {'go', 'mid-sentence'};
+cfg.STIM_TRIG = {'go', 'speech-onset'};
+cfg.STIM_DELAY = [0, 0.300];
+cfg.STIM_TL = [2000, 1000];
+cfg.STIM_FREQ = [30, 130];
 
 % % % % % % % cfg.STIM_LOC = {'ventral', 'dorsal'};
 % % % % % % % % % cfg.STIM_ELEC = {[2, 18, 34, 6, 22, 38], [3, 19, 35, 7, 23, 39]};
@@ -31,24 +31,9 @@ cfg.SPEECH_LEVEL_THR = 0.025;
 % % % % % % % % % % cfg.STIM_PL = 0;
 % % % % % % % % % % cfg.STIM_RES = 3;
 % % % % % % % % % % cfg.STIM_RES_mA = 0.05;
-%%
 
 cfg.STIM_SENTENCES_FILE = 'daf_sentences.tsv';
-% % % cfg.SPEECH_LEVEL_MAD_MULTIPLIER = 10;
-
-%% Parameter settings
-cfg.n_blocks = 1; % Number of blocks
-cfg.pause_between_blocks = 0; % Set to true to require keypress between blocks
-cfg.audio_sample_rate = 44100; % Audio sample rate in Hz
-cfg.audio_frame_size = 128; % Number of samples processed per audio frame
-cfg.audio_playback_gain = 15; % Output gain for delayed signal... might want to run volume calibration for each subject
-cfg.fix_cross_dur = 0.; % Duration of fixation cue (seconds)
-cfg.delay_dur = 0.; % Pause between fixation and sentence onset (seconds)
-cfg.text_stim_dur = 12.0; % Duration for which sentence is displayed and spoken (seconds)
-cfg.iti = 2.0; % Inter-trial interval (seconds)
-cfg.stim_font_size = 65; 
-cfg.stim_max_char_per_line = 38; % wrap text at this length  
-cfg.delay_values = [0 150]; % DAF delay conditions in ms (MAX IS 1000ms)
+cfg.SPEECH_LEVEL_MAD_MULTIPLIER = 10;
 
 % --- Paths and device configuration ---
 cfg.HOST_AUDIO_API_NAME = 'Windows WASAPI';
@@ -126,7 +111,6 @@ pathSub = fullfile(cfg.PATH_SOURCEDATA, ['sub-' cfg.SUBJECT]);
 pathSubSes = fullfile(pathSub, ['ses-' cfg.SESSION_LABEL]);
 pathSubSesDataType = fullfile(pathSubSes, cfg.DATA_TYPE);
 pathSubSesAudio = fullfile(pathSubSes, 'audio');
-cfg.PATH_AUDIO = pathSubSesAudio;
 
 dirList = {cfg.PATH_SOURCEDATA, pathSub, pathSubSes, pathSubSesDataType, pathSubSesAudio};
 for i = 1:numel(dirList)
