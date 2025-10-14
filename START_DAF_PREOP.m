@@ -45,6 +45,9 @@ cfg.daf_sentences = 'daf_sentences.tsv';
 cfg.no_audio_debug_mode = true; % Set to true to skip hardware dependent parts
 cfg.LAG_DIAGNOSTICS = true;  
 cfg.LOCAL_TEST = 0; % turn on when testing the script on a laptop other than the intraop rig Alienware computer
+cfg.max_stim_repeats      = 2;          % max consecutive repeats of same stimulus within a block
+cfg.max_delay_repeats     = 4;          % max consecutive repeats of same delays within a block
+cfg.same_trials_across_blocks = true;   % if true: trials randomized in first block only, same order repeated across blocks
 
 % delayOptions = [0, 100, 150, 200]; % DAF delay condoitions in ms
 cfg.delayOptions = 150; % DAF delay conditions in ms (MAX IS 1000ms)
@@ -70,7 +73,7 @@ elseif strcmpi(getenv('COMPUTERNAME'),'BML-ALIENWARE2')
     cfg.HOST_AUDIO_API_NAME = 'Windows WASAPI';
 elseif ismac
     cfg.PATH_TASK = '/Users/samhansen/Documents/Matlab/Task_DelayedAuditoryFeedback';
-    cfg.PATH_SOURCEDATA = '/Users/samhansen/Documents/Matlab/Task_DelayedAuditoryFeedback/stimuli'; %adjust as needed
+    cfg.PATH_SOURCEDATA = '/Users/samhansen/Documents/Matlab/Task_DelayedAuditoryFeedback/'; %adjust as needed
     cfg.AUDIO_DEVICE_OUT = 'MacBook Pro Speakers';
     cfg.AUDIO_DEVICE_IN  = 'MacBook Pro Microphone';
     cfg.HOST_AUDIO_API_NAME = 'CoreAudio'; 

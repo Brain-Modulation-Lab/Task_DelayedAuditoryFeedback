@@ -1,141 +1,112 @@
-% Speech Onset Stimulation Task Launcher (Refactored)
-clear;
+% Intraop Launcher for DAF
 figure;
 
 % --- Centralized configuration structure ---
 cfg = [];
 
 % Subject/session metadata
-cfg.SUBJECT = 'test0715';
+cfg.SUBJECT       = 'test0715';
 cfg.SESSION_LABEL = 'intraop';
-cfg.DATA_TYPE = 'task';
+cfg.DATA_TYPE     = 'task';
 
-%% Experimental parameters from SOES
-cfg.SPEECH_LEVEL_THR = 0.025;
-% % % % % % cfg.STIM_CTRL = 2;
-% % % % % % cfg.STIM_EPOCH = {'go', 'mid-sentence'};
-% % % % % % cfg.STIM_TRIG = {'go', 'speech-onset'};
-% % % % % % cfg.STIM_DELAY = [0, 0.300];
-% % % % % % cfg.STIM_TL = [2000, 1000];
-% % % % % % cfg.STIM_FREQ = [30, 130];
+% Task metadata (match preop naming so Task_*.m runs unchanged)
+cfg.TASK          = 'daf';
+cfg.TASK_VERSION  = 1;
+cfg.TASK_FUNCTION = 'Task_DelayedAuditoryFeedback.m';
 
-% % % % % % % cfg.STIM_LOC = {'ventral', 'dorsal'};
-% % % % % % % % % cfg.STIM_ELEC = {[2, 18, 34, 6, 22, 38], [3, 19, 35, 7, 23, 39]};
-% % % % % % % % % % cfg.STIM_AMP = {ones(1,6), ones(1,6)};
-% % % % % % % % % % cfg.STIM_LABELS = { {'L1a', 'L1b', 'L1c', 'R1a', 'R1b', 'R1c'}, {'L2a', 'L2b', 'L2c', 'R2a', 'R2b', 'R2c'} };
-% % % % % % % % % % cfg.STIM_LABELS = cellfun(@(x) cellfun(@(y) ['DBS_', y], x, 'UniformOutput', false), cfg.STIM_LABELS, 'UniformOutput', false);
-% % % % % % % % % % cfg.STIM_PW1 = 66;
-% % % % % % % % % % cfg.STIM_PW_RATIO = 1;
-% % % % % % % % % % cfg.STIM_IPI = 33;
-% % % % % % % % % % cfg.STIM_FS = nan;
-% % % % % % % % % % cfg.STIM_PL = 0;
-% % % % % % % % % % cfg.STIM_RES = 3;
-% % % % % % % % % % cfg.STIM_RES_mA = 0.05;
-%%
+% Sentences file: the experimental function expects cfg.daf_sentences
+cfg.daf_sentences = 'daf_sentences.tsv';
 
-cfg.STIM_SENTENCES_FILE = 'daf_sentences.tsv';
-% % % cfg.SPEECH_LEVEL_MAD_MULTIPLIER = 10;
+% Core DAF parameters REQUIRED by Task_DelayedAuditoryFeedback
+cfg.n_blocks              = 1;          % number of blocks
+cfg.max_trials            = 30;         % optional cap (same default as your preop)
+cfg.pause_between_blocks  = 0;          % not used by Task_*, included for parity
+cfg.audio_frame_size      = 128;        % block size Task_* uses for streaming
+cfg.audio_playback_gain   = 1;          % DAF output gain
+cfg.fix_cross_dur         = 0.0;        % pre-sentence fix (Task_* uses its own ITI_S but we keep parity)
+cfg.delay_dur             = 0.0;        % pre-visual onset delay (used by Task_*)
+cfg.text_stim_dur         = 12.0;       % sentence display/speaking time (used by Task_*)
+cfg.iti                   = 2.0;        % not read by Task_* (kept for symmetry)
+cfg.stim_font_size        = 65;         % used by Task_*
+cfg.stim_max_char_per_line= 38;         % used by Task_* wrapping
+cfg.catchRatio            = 0;          % used by Task_* to assign catch trials
+cfg.max_stim_repeats      = 2;          % max consecutive repeats of same stimulus within a block
+cfg.max_delay_repeats     = 4;          % max consecutive repeats of same delays within a block
+cfg.same_trials_across_blocks = true;   % if true: trials randomized in first block only, same order repeated across blocks
 
-%% Parameter settings
-cfg.n_blocks = 1; % Number of blocks
-cfg.pause_between_blocks = 0; % Set to true to require keypress between blocks
-cfg.audio_sample_rate = 44100; % Audio sample rate in Hz
-cfg.audio_frame_size = 128; % Number of samples processed per audio frame
-cfg.audio_playback_gain = 15; % Output gain for delayed signal... might want to run volume calibration for each subject
-cfg.fix_cross_dur = 0.; % Duration of fixation cue (seconds)
-cfg.delay_dur = 0.; % Pause between fixation and sentence onset (seconds)
-cfg.text_stim_dur = 12.0; % Duration for which sentence is displayed and spoken (seconds)
-cfg.iti = 2.0; % Inter-trial interval (seconds)
-cfg.stim_font_size = 65; 
-cfg.stim_max_char_per_line = 38; % wrap text at this length  
-cfg.delay_values = [0 150]; % DAF delay conditions in ms (MAX IS 1000ms)
+% DAF delay conditions (ms) – Task_* requires cfg.delayOptions
+cfg.delayOptions          = 150;        % you can set [0 100 150 200] etc. Must be <= maxAllowedDelay_ms
+cfg.maxAllowedDelay_ms    = 1000;       % defensive check (mirrors preop)
 
-% --- Paths and device configuration ---
-cfg.HOST_AUDIO_API_NAME = 'Windows WASAPI';
-cfg.SCREEN_RES = [1280, 1024];
-cfg.MIC_API_NAME = 'Windows WASAPI';
+if any(cfg.delayOptions > cfg.maxAllowedDelay_ms)
+    error('One or more delayOptions exceed the maximum allowed delay of %d ms.', cfg.maxAllowedDelay_ms);
+end
 
-if strcmpi(getenv('COMPUTERNAME'), 'BML-ALIENWARE2')
-    cfg.PATH_TASK = 'D:\Task\Task_DelayedAuditoryFeedback';
+% Diagnostics / flags (used by Task_* optionally)
+cfg.no_audio_debug_mode   = true;
+cfg.LAG_DIAGNOSTICS       = true;
+
+% Audio / PTB preferences
+cfg.HOST_AUDIO_API_NAME   = 'Windows WASAPI';
+cfg.SKIP_SYNC_TEST        = 1;          % safe for bench/windowed testing; set 0 in OR if fully synced desired
+cfg.CONSERVE_VRAM_MODE    = 4096;
+
+% Choose LOCAL_TEST mode explicitly (Task_* branches on this)
+% Set to false on the OR rig; set true on a laptop for quick dry-runs.
+cfg.LOCAL_TEST            = false;
+
+% Optional device names (Task_* will auto-pick max channels if not provided)
+% On Windows OR rig:
+cfg.AUDIO_DEVICE          = 'Speakers (Radial USB Pro)';      % output (optional hint)
+% cfg.AUDIO_DEVICE_IN     = 'Analogue 1 + 2 (2- Focusrite USB Audio)'; % input (optional hint)
+
+% Paths and device configuration (point at DAF task)
+if strcmpi(getenv('COMPUTERNAME'), 'BML-ALIENWARE')
+    cfg.PATH_TASK       = 'D:\docs\code\stut_obs\Task_DelayedAuditoryFeedback';
     cfg.PATH_SOURCEDATA = 'D:\DBS\sourcedata';
-    cfg.AUDIO_DEVICE = 'Speakers (Radial USB Pro)';
-    cfg.MIC_DEVICE = 'Analogue 1 + 2 (5- Focusrite USB Audio)';
 elseif strcmpi(getenv('COMPUTERNAME'), 'BML-ALIENWARE2')
-    cfg.PATH_TASK = 'D:\Task\Task_DelayedAuditoryFeedback';
+    cfg.PATH_TASK       = 'D:\docs\code\stut_obs\Task_DelayedAuditoryFeedback';
     cfg.PATH_SOURCEDATA = 'D:\DBS\sourcedata';
-    cfg.AUDIO_DEVICE = 'Speakers (Radial USB Pro)';
-    cfg.MIC_DEVICE = 'Analogue 1 + 2 (2- Focusrite USB Audio)';
+elseif ismac
+    cfg.PATH_TASK       = '/Users/samhansen/Documents/MATLAB/Guenther/Task_DelayedAuditoryFeedback/';
+    cfg.PATH_SOURCEDATA = '/Users/samhansen/Documents/MATLAB/Guenther/Task_DelayedAuditoryFeedback/stimuli';
+    cfg.AUDIO_DEVICE_OUT = 'MacBook Pro Speakers';
+    cfg.AUDIO_DEVICE_IN  = 'MacBook Pro Microphone';
+    cfg.HOST_AUDIO_API_NAME = 'CoreAudio';
 else
-    cfg.PATH_TASK = '~/git/Task_DelayedAuditoryFeedback';
+    cfg.PATH_TASK       = '~/git/Task_DelayedAuditoryFeedback';
     cfg.PATH_SOURCEDATA = '~/Data/DBS/sourcedata';
 end
 
-cfg.TEST_SOUND_S = 10;
+% Misc parity with preop
+cfg.TEST_SOUND_S        = 10;
 cfg.CALIBRATION_BEEPS_N = 5;
-cfg.AUDIO_AMP = 1;
-cfg.GO_BEEP_AMP = 0.5;
-cfg.KEYBOARD_ID = [];
-cfg.SKIP_SYNC_TEST = 1;
-cfg.CONSERVE_VRAM_MODE = 4096;
-cfg.TASK = 'sent_onset_stim';
-cfg.TASK_VERSION = 2;
-cfg.TASK_FUNCTION = 'task_sent_onset_stim.m';
+cfg.AUDIO_AMP           = 1;
+cfg.GO_BEEP_AMP         = 0.5;
+cfg.KEYBOARD_ID         = [];
 
-% --- Parallel processing for audio recording ---
-if isempty(gcp())
-    parpool('local', 1);
-end
-
-workerQueueConstant = parallel.pool.Constant(@parallel.pool.PollableDataQueue);
-workerQueueClient = fetchOutputs(parfeval(@(x) x.Value, 1, workerQueueConstant));
-
-% --- Microphone initialization ---
-pa_devices = struct2table(PsychPortAudio('GetDevices'));
-pa_devices_sel = contains(pa_devices.HostAudioAPIName, cfg.MIC_API_NAME) & contains(pa_devices.DeviceName, cfg.MIC_DEVICE);
-
-if sum(pa_devices_sel) ~= 1
-    disp(pa_devices);
-    error('%s - %s selection error. Check available devices.', cfg.MIC_API_NAME, cfg.MIC_DEVICE);
-end
-disp('Selected microphone device:');
-disp(pa_devices(pa_devices_sel, :));
-cfg.MIC_ID = pa_devices.DeviceIndex(pa_devices_sel);
-
-recording_handle = PsychPortAudio('Open', cfg.MIC_ID, 2, 1, [], 1, [], 0.02);
-PsychPortAudio('GetAudioData', recording_handle, 10);
-cfg.PA_RECORDER_FS = PsychPortAudio('GetStatus',recording_handle).SampleRate;
-PsychPortAudio('Start', recording_handle, [], 0);
-WaitSecs(0.5);
-test_data = PsychPortAudio('GetAudioData', recording_handle);
-PsychPortAudio('Stop', recording_handle);
-assert(~isempty(test_data));
-
-detection_ops.loudness_threshold = cfg.SPEECH_LEVEL_THR;
-detection_ops.max_dur_seconds = 4;
-detection_ops.waitscan_seconds = 0.01;
-cfg.DETECTION_OPS = detection_ops;
-cfg.PA_RECORDER_HANDLE = recording_handle;
-
-% --- Enable warnings, setup Psychtoolbox ---
-warning('on', 'all');
-beep off;
+% --- Warnings/PTB setup (apply prefs so toggles take effect) ---
+warning('on','all'); beep off;
 PsychDefaultSetup(2);
+Screen('Preference','SkipSyncTests', cfg.SKIP_SYNC_TEST);
+Screen('Preference','ConserveVRAM', cfg.CONSERVE_VRAM_MODE);
+Screen('Preference','VisualDebugLevel', 1);
+Screen('Preference','Verbosity', 3);
+PsychDebugWindowConfiguration;   % windowed + alpha for bench testing (comment out on OR if undesired)
 
-% --- Setup paths and output files ---
-pathSub = fullfile(cfg.PATH_SOURCEDATA, ['sub-' cfg.SUBJECT]);
-pathSubSes = fullfile(pathSub, ['ses-' cfg.SESSION_LABEL]);
+% --- Paths & output folders (match preop structure) ---
+pathSub            = fullfile(cfg.PATH_SOURCEDATA, ['sub-' cfg.SUBJECT]);
+pathSubSes         = fullfile(pathSub, ['ses-' cfg.SESSION_LABEL]);
 pathSubSesDataType = fullfile(pathSubSes, cfg.DATA_TYPE);
-pathSubSesAudio = fullfile(pathSubSes, 'audio');
-cfg.PATH_AUDIO = pathSubSesAudio;
+pathSubSesAudio    = fullfile(pathSubSes, 'audio');
 
-dirList = {cfg.PATH_SOURCEDATA, pathSub, pathSubSes, pathSubSesDataType, pathSubSesAudio};
-for i = 1:numel(dirList)
-    if ~isfolder(dirList{i})
-        mkdir(dirList{i});
-    end
+for p = {cfg.PATH_SOURCEDATA, pathSub, pathSubSes, pathSubSesDataType, pathSubSesAudio}
+    if ~isfolder(p{1}), mkdir(p{1}); end
 end
+cfg.PATH_AUDIO = pathSubSesAudio;   % needed for AUDIO_FILENAME
 
-fileBaseName = ['sub-' cfg.SUBJECT '_ses-' cfg.SESSION_LABEL '_task-' cfg.TASK '_run-'];
+% --- Run basename / filenames (integer-safe %02d) ---
+fileBaseName  = ['sub-' cfg.SUBJECT '_ses-' cfg.SESSION_LABEL '_task-' cfg.TASK '_run-'];
 allEventFiles = dir(fullfile(pathSubSesDataType, [fileBaseName '*_events.tsv']));
 if ~isempty(allEventFiles)
     prevRunIds = regexp({allEventFiles.name}, '_run-(\d+)_', 'tokens', 'ignorecase');
@@ -145,104 +116,51 @@ else
     runId = 1;
 end
 
-cfg.RUN_ID = runId;
-cfg.PATH_LOG = pathSubSesDataType;
-cfg.BASE_NAME = [fileBaseName, sprintf('%02.f_', runId)];
-cfg.LOG_FILENAME = fullfile(cfg.PATH_LOG, [cfg.BASE_NAME 'log.txt']);
-cfg.EVENT_FILENAME = fullfile(cfg.PATH_LOG, [cfg.BASE_NAME 'events.tsv']);
-cfg.TRIAL_FILENAME = fullfile(cfg.PATH_LOG, [cfg.BASE_NAME 'trials.tsv']);
-cfg.AUDIO_CALIBRATION_FILENAME = fullfile(cfg.PATH_LOG, [cfg.BASE_NAME 'audio-calibration.mat']);
+cfg.RUN_ID        = runId;
+cfg.PATH_LOG      = pathSubSesDataType;
+cfg.BASE_NAME     = [fileBaseName, sprintf('%02d_', runId)];
+cfg.LOG_FILENAME  = fullfile(cfg.PATH_LOG, [cfg.BASE_NAME 'log.txt']);
+cfg.EVENT_FILENAME= fullfile(cfg.PATH_LOG, [cfg.BASE_NAME 'events.tsv']);
+cfg.TRIAL_FILENAME= fullfile(cfg.PATH_LOG, [cfg.BASE_NAME 'trials.tsv']);
+cfg.AUDIO_FILENAME= fullfile(cfg.PATH_AUDIO, [cfg.BASE_NAME(1:end-1) '.wav']);
 
-% --- Create trials table ---
-trials = create_trials_table(cfg);
-cfg.TRIAL_TABLE = trials;
-
-% --- Start diary/log ---
+% --- Start diary ---
 diary(cfg.LOG_FILENAME);
-onCleanupTasks = cell(10, 1);
+onCleanupTasks = cell(10,1);
 onCleanupTasks{10} = onCleanup(@() diary('off'));
-
 disp(cfg);
 
-% --- Start parallel audio recording ---
-cfg.AUDIO_FILENAME = fullfile(cfg.PATH_AUDIO, [cfg.BASE_NAME(1:end-1) '.wav']);
-filename = cfg.AUDIO_FILENAME;
-
-if ~(exist('record_audio', 'file') == 2)
-    error('record_audio() not found. Add to MATLAB path.');
+% --- Optional: parallel worker for external audio recording (same pattern as preop) ---
+if isempty(gcp())
+    parpool('local',1);
 end
-future = parfeval(@record_audio, 1, filename, workerQueueConstant);
+workerQueueConstant = parallel.pool.Constant(@parallel.pool.PollableDataQueue);
+workerQueueClient   = fetchOutputs(parfeval(@(x) x.Value, 1, workerQueueConstant));
+
+% Use same worker name as preop for parity (or swap to your preferred worker)
+if ~(exist('record_audio_preop','file')==2)
+    clear onCleanupTasks
+    error('record_audio_preop() not found on path.');
+end
+future = parfeval(@record_audio_preop, 1, cfg.AUDIO_FILENAME, workerQueueConstant);
 future.Diary;
 onCleanupTasks{6} = onCleanup(@() send(workerQueueClient, 'stop'));
 
-% --- Verify Ripple system connection ---
-digout = 0;
-if exist('xippmex', 'file')==3
-    try
-        digout = xippmex();
-        disp('Using UDP mode');
-        onCleanupTasks{9} = onCleanup(@() xippmex('close'));
-    catch err
-        warning('xippmex failed %s: %s\n', err.identifier, err.message);
-    end
+% --- No digital I/O / Ripple in DAF ---
+cfg.DIGOUT = 0;
+
+% --- Launch task (same as preop flow) ---
+fprintf('Launching task\n');
+
+task_function = [pwd filesep cfg.TASK_FUNCTION];
+if ~isfile(task_function)
+    clear onCleanupTasks
+    error('%s should be in current working directory', cfg.TASK_FUNCTION);
 end
-cfg.DIGOUT = digout;
+copyfile(task_function, [cfg.PATH_LOG filesep cfg.BASE_NAME 'script.m']);
 
-if digout
-    fprintf('Ripple system found.\n');
-    rippleRec = xippmex('trial');
-    if isempty(strfind(rippleRec.filebase, cfg.SUBJECT))
-        warning('Ripple file basename (%s) does not contain subject id (%s)', rippleRec.filebase, cfg.SUBJECT);
-        input('Press enter to continue or ctrl-c to exit\n','s');
-    end
-    if ~strcmp(rippleRec.status, 'recording')
-        warning('Ripple system connected but NOT recording. DRY RUN.');
-        input('Press enter to continue or ctrl-c to exit\n','s');
-    else
-        fprintf('Ripple recording to file %s%04d\n', rippleRec.filebase, rippleRec.incr_num);
-    end
-    cfg.RIPPLE_STIM_ELEC = xippmex('elec','stim');
-    all_stim_elec = [cfg.STIM_ELEC{:}];
-    non_stim_elec_selected = setdiff(all_stim_elec, cfg.RIPPLE_STIM_ELEC);
-    if ~isempty(non_stim_elec_selected)
-        error('Cannot stim through electrodes: %s', num2str(non_stim_elec_selected));
-    end
-    for i = 1:length(all_stim_elec)
-        xippmex('stim','res',all_stim_elec(i),cfg.STIM_RES);
-    end
-else
-    fprintf(2, '\n*** Ripple system NOT found! DRY RUN! ***\n');
-    input('Press enter to continue or ctrl-c to exit\n','s');
-end
+Task_DelayedAuditoryFeedback(cfg);
 
-% --- Main command prompt ---
-fprintf('\n===================\n');
-fprintf('Task: %s \n', cfg.TASK);
-fprintf(2, 'Subject: %s\n', cfg.SUBJECT);
-fprintf('Session: %s\n', cfg.SESSION_LABEL);
-fprintf('Run: %i\n', cfg.RUN_ID);
-
-cmd = input('Command {1=Calibrate mic threshold | 2=Run task | 3=exit} [0]:\n===================\n', 's');
-if isempty(cmd) || ~ismember(cmd, {'1','2','3'})
-    clear onCleanupTasks;
-    error('Task canceled by user');
-end
-
-if strcmp(cmd, '1')
-    fprintf('Running mic calibration...\n');
-    calibrate_soes_detection_threshold(cfg);
-elseif strcmp(cmd, '2')
-    fprintf('Launching task...\n');
-    writetable(trials, cfg.TRIAL_FILENAME, 'Delimiter', '\t', 'FileType', 'text');
-    task_function = fullfile(pwd, cfg.TASK_FUNCTION);
-    if ~isfile(task_function)
-        clear onCleanupTasks;
-        error('%s should be in current working directory', cfg.TASK_FUNCTION);
-    end
-    copyfile(task_function, fullfile(cfg.PATH_LOG, [cfg.BASE_NAME 'script.m']));
-    task_sent_onset_stim(cfg);
-end
-
-% --- Clean up resources ---
+% --- Cleanup ---
 clear onCleanupTasks;
 close all;
