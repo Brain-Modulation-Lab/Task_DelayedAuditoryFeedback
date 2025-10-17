@@ -154,7 +154,7 @@ textColor = [0 0 0];
 for si = 1:cfg.n_unique_stim
     off = Screen('OpenOffscreenWindow', window, cfg.bg_color);
     Screen('TextSize', off, cfg.stim_font_size); 
-    text_wrapped_all = DrawFormattedText(off, text_wrapped_all{si}, 'center', 'center', textColor); % AM just added left side
+    DrawFormattedText(off, text_wrapped_all{si}, 'center', 'center', textColor);
     stimTex(si) = off;
 end
 

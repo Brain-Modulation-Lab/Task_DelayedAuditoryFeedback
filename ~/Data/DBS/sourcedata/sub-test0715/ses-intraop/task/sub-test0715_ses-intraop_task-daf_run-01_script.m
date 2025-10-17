@@ -10,7 +10,7 @@ TRIG_DAF = 4; % Delayed auditory feedback on/off
 TRIG_KEY = 8; % Keyboard escape key press
 
 %% Trial table
-[cfg, trials] = create_trials_table(cfg);
+[cfg, DAF_Trials] = create_trials_table(cfg);
 
 %% Initializing log files
 eventFile = fopen(cfg.EVENT_FILENAME, 'w');
@@ -102,10 +102,9 @@ for k = 1:numel(uniqueDelaysMs)
 end
 
 % Map trial delay ms to samples (double precision for accuracy)
-ntrials = height(trials);
-trialDelaySamples = zeros(ntrials,1,'double');
-for i = 1:ntrials
-    trialDelaySamples(i) = delayMsToSamples(int32(round(trials.delay(i))));
+trialDelaySamples = zeros(nTrials,1,'double');
+for i = 1:nTrials
+    trialDelaySamples(i) = delayMsToSamples(int32(round(DAF_Trials.delay(i))));
 end
 
 % Configure max delay for fractional delay filter and create filter instance
@@ -149,13 +148,13 @@ Screen('BlendFunction', window, GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 Screen('TextSize', window, cfg.stim_font_size);
 
 % Build an offscreen texture for each wrapped sentence
-stimTex = nan(cfg.n_unique_stim,1);
+sentTex = nan(nSentences,1);
 textColor = [0 0 0];
-for si = 1:cfg.n_unique_stim
+for si = 1:nSentences
     off = Screen('OpenOffscreenWindow', window, cfg.bg_color);
     Screen('TextSize', off, cfg.stim_font_size); 
-    text_wrapped_all = DrawFormattedText(off, text_wrapped_all{si}, 'center', 'center', textColor); % AM just added left side
-    stimTex(si) = off;
+    DrawFormattedText(off, text_wrapped_all{si}, 'center', 'center', textColor);
+    sentTex(si) = off;
 end
 
 % Calculate fixation cross coordinates and properties for drawing
@@ -241,7 +240,7 @@ goto_cleanup = false;
 % Check if lag diagnostics enabled
 doSoftLag = isfield(cfg,'LAG_DIAGNOSTICS') && cfg.LAG_DIAGNOSTICS && ~cfg.LOCAL_TEST;
 
-for idxTrial = 1:ntrials
+for idxTrial = 1:nTrials
     % Check for user abort with ESC key
     [isDown, ~, kc] = KbQueueCheck(device);
     if isDown && kc(ESC)
@@ -252,8 +251,8 @@ for idxTrial = 1:ntrials
     end
 
     % Determine if trial is catch (no speech) or speech trial
-    isSpeak = ~trials.catch(idxTrial);
-    if trials.catch(idxTrial)
+    isSpeak = ~DAF_Trials.catch(idxTrial);
+    if DAF_Trials.catch(idxTrial)
         trialType = 'catch';
     else
         trialType = 'speech';
@@ -266,14 +265,14 @@ for idxTrial = 1:ntrials
     delay_samples = trialDelaySamples(idxTrial);
         
     % Display diagnostic info about trial start
-    fprintf('Starting trial %d with sentence index %d and delay %d ms\n', idxTrial, trials.sentence_idx(idxTrial), trials.delay(idxTrial));
+    fprintf('Starting trial %d with sentence index %d and delay %d ms\n', idxTrial, DAF_Trials.sentence_idx(idxTrial), DAF_Trials.delay(idxTrial));
 
     % ITI with fixation cross display and log
     Screen('FillRect', window, cfg.bg_color);
     Screen('DrawLines', window, xy, lw, fixColor);
     flipSyncState = ~flipSyncState;
     [itiFixOnTime, ~] = Screen('Flip', window);
-    trials.start_time(idxTrial) = baseClock + seconds(itiFixOnTime - baseGetSecs);
+    DAF_Trials.start_time(idxTrial) = baseClock + seconds(itiFixOnTime - baseGetSecs);
     
     ItiDuration = ITI_S(1) + (ITI_S(2) - ITI_S(1)) .* rand(1);
     code = TRIG_ITI;
@@ -313,12 +312,12 @@ for idxTrial = 1:ntrials
 
     % Visual stimulus on: draw text texture and flip screen
     Screen('FillRect', window, cfg.bg_color);
-    Screen('DrawTexture', window, stimTex(trials.sentence_idx(idxTrial)));
+    Screen('DrawTexture', window, sentTex(DAF_Trials.sentence_idx(idxTrial)));
     flipSyncState = ~flipSyncState;
     [stimOnsetTime, ~] = Screen('Flip', window);
-    trials.visual_onset_time(idxTrial) = baseClock + seconds(stimOnsetTime - baseGetSecs);
+    DAF_Trials.visual_onset_time(idxTrial) = baseClock + seconds(stimOnsetTime - baseGetSecs);
     code = TRIG_VISUAL;
-    text_stim = sentences{trials.sentence_idx(idxTrial)};
+    text_stim = sentences{DAF_Trials.sentence_idx(idxTrial)};
     log_event(eventFile, cfg.DIGOUT, stimOnsetTime, [], [], trialType, text_stim, code, 'Visual Onset', flipSyncState);
 
     % Streaming Loop: read microphone audio, apply delay, output delayed audio
@@ -384,9 +383,9 @@ for idxTrial = 1:ntrials
 
         % Save mean lag time in milliseconds for trial, or NaN if none measured
         if doSoftLag && lagN > 0
-            trials.lag_mean(idxTrial) = 1000 * (lagSum / lagN);
+            DAF_Trials.lag_mean(idxTrial) = 1000 * (lagSum / lagN);
         else
-            trials.lag_mean(idxTrial) = NaN;
+            DAF_Trials.lag_mean(idxTrial) = NaN;
         end
 
         if goto_cleanup, break; end
@@ -418,19 +417,19 @@ for idxTrial = 1:ntrials
     Screen('FillRect', window, cfg.bg_color);
     flipSyncState = ~flipSyncState;
     [visOffTime, ~] = Screen('Flip', window);
-    trials.visual_off_time(idxTrial) = baseClock + seconds(visOffTime - baseGetSecs);
+    DAF_Trials.visual_off_time(idxTrial) = baseClock + seconds(visOffTime - baseGetSecs);
     code = TRIG_VISUAL;
     log_event(eventFile, cfg.DIGOUT, visOffTime, [], [], trialType, [], code, 'Visual Off', flipSyncState);
 
     % Display trial completion summary
     elapsed = GetSecs() - runStartTime;
-    fprintf('Trial %2i / %i completed at %02d:%02d \n', idxTrial, ntrials, floor(elapsed/60), round(mod(elapsed,60)));
+    fprintf('Trial %2i / %i completed at %02d:%02d \n', idxTrial, nTrials, floor(elapsed/60), round(mod(elapsed,60)));
 
     % Save current trial data to disk; write headers only on first occasion
     if idxTrial == 1
-        writetable(trials(1,:), cfg.TRIAL_FILENAME, 'Delimiter', '\t', 'FileType', 'text', 'WriteVariableNames', true);
+        writetable(DAF_Trials(1,:), cfg.TRIAL_FILENAME, 'Delimiter', '\t', 'FileType', 'text', 'WriteVariableNames', true);
     else
-        writetable(trials(idxTrial,:), cfg.TRIAL_FILENAME, 'Delimiter', '\t', 'FileType', 'text', 'WriteMode', 'append', 'WriteVariableNames', false);
+        writetable(DAF_Trials(idxTrial,:), cfg.TRIAL_FILENAME, 'Delimiter', '\t', 'FileType', 'text', 'WriteMode', 'append', 'WriteVariableNames', false);
     end
 end
 
@@ -453,8 +452,8 @@ if ~cfg.LOCAL_TEST
 end
 
 % Close offscreen text windows
-for si = 1:numel(stimTex)
-    if ~isnan(stimTex(si)), Screen('Close', stimTex(si)); end
+for si = 1:numel(sentTex)
+    if ~isnan(sentTex(si)), Screen('Close', sentTex(si)); end
 end
 
 % Release keyboard queue, reset priority and listeners, close screen
