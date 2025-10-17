@@ -15,11 +15,11 @@ cfg.TASK_VERSION  = 1;
 cfg.TASK_FUNCTION = 'Task_DelayedAuditoryFeedback.m';
 
 % Sentences file: the experimental function expects cfg.daf_sentences
-cfg.daf_sentences = 'daf_sentences.tsv';
+cfg.daf_stim_file = 'daf_sentences.tsv';
 
 % Core DAF parameters REQUIRED by Task_DelayedAuditoryFeedback
 cfg.n_blocks              = 1;          % number of blocks
-cfg.max_trials            = 30;         % optional cap (same default as your preop)
+cfg.max_trials            = 30;         % optional cap (same default as preop)
 cfg.pause_between_blocks  = 0;          % not used by Task_*, included for parity
 cfg.audio_frame_size      = 128;        % block size Task_* uses for streaming
 cfg.audio_playback_gain   = 1;          % DAF output gain
@@ -35,7 +35,7 @@ cfg.max_delay_repeats     = 4;          % max consecutive repeats of same delays
 cfg.same_trials_across_blocks = true;   % if true: trials randomized in first block only, same order repeated across blocks
 
 % DAF delay conditions (ms) – Task_* requires cfg.delayOptions
-cfg.delayOptions          = 150;        % you can set [0 100 150 200] etc. Must be <= maxAllowedDelay_ms
+cfg.delayOptions          = [0 150];        % you can set [0 100 150 200] etc. Must be <= maxAllowedDelay_ms
 cfg.maxAllowedDelay_ms    = 1000;       % defensive check (mirrors preop)
 
 if any(cfg.delayOptions > cfg.maxAllowedDelay_ms)
@@ -53,7 +53,7 @@ cfg.CONSERVE_VRAM_MODE    = 4096;
 
 % Choose LOCAL_TEST mode explicitly (Task_* branches on this)
 % Set to false on the OR rig; set true on a laptop for quick dry-runs.
-cfg.LOCAL_TEST            = false;
+cfg.LOCAL_TEST            = 1;
 
 % Optional device names (Task_* will auto-pick max channels if not provided)
 % On Windows OR rig:
@@ -73,6 +73,9 @@ elseif ismac
     cfg.AUDIO_DEVICE_OUT = 'MacBook Pro Speakers';
     cfg.AUDIO_DEVICE_IN  = 'MacBook Pro Microphone';
     cfg.HOST_AUDIO_API_NAME = 'CoreAudio';
+elseif strcmpi(getenv('COMPUTERNAME'), '677-GUE-WL-0010') % Andrew Meier work laptop
+    cfg.PATH_TASK = 'C:\docs\code\Task_DelayedAuditoryFeedback'; 
+    cfg.PATH_SOURCEDATA= 'C:\ieeg_stut'; 
 else
     cfg.PATH_TASK       = '~/git/Task_DelayedAuditoryFeedback';
     cfg.PATH_SOURCEDATA = '~/Data/DBS/sourcedata';

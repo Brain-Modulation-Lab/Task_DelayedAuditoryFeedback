@@ -5,18 +5,23 @@ function [cfg, DAF_Trials, text_wrapped_all] = create_trials_table(cfg)
 %   % cfg.TRIAL_TABLE is also populated.
 
 %% Load stimuli
-stimtable = readtable(fullfile(cfg.PATH_TASK,'stimuli',cfg.daf_stim_file), 'FileType','text', 'Delimiter','tab');
-unique_stim_list = stimtable.stim; 
+sentPath = 
+lines = readlines(sentPath);
+lines = strip(lines);
+lines(lines == "") = [];
+sentences = cellstr(lines);
+
+stimtable = readtable(fullfile(cfg.PATH_TASK,'stimuli',cfg.daf_sentences), 'T;
 
 % Counts and delay vector
-cfg.n_unique_stim = numel(unique_stim_list);
+nSentences = numel(sentences);
 cfg.delayOptions = cfg.delayOptions(:);
 nDelays = numel(cfg.delayOptions);
 
-%% Build all (stim, delay) pairs
-pairStim = repmat((1:cfg.n_unique_stim)', nDelays, 1);
-pairDelays    = reshape(repmat(cfg.delayOptions, cfg.n_unique_stim, 1), [], 1);
-pairsN        = numel(pairStim);     % trials per block
+%% Build all (sentence, delay) pairs
+pairSentences = repmat((1:nSentences)', nDelays, 1);
+pairDelays    = reshape(repmat(cfg.delayOptions, nSentences, 1), [], 1);
+pairsN        = numel(pairSentences);     % trials per block
 blockNtrials  = pairsN;
 
 max_attempts = 100000;
@@ -27,7 +32,7 @@ while ~ok && attempt < max_attempts
     attempt = attempt + 1;
 
     idxPool = randperm(pairsN);
-    fs = zeros(pairsN,1);     % final Stim for this block
+    fs = zeros(pairsN,1);     % final sentences for this block
     fd = zeros(pairsN,1);     % final delays for this block
 
     curStim = NaN; stimRun = 0;
@@ -40,7 +45,7 @@ while ~ok && attempt < max_attempts
 
         picked = NaN;
         for cand = remaining
-            s = pairStim(cand);
+            s = pairSentences(cand);
             d = pairDelays(cand);
 
             if isnan(curStim) || s ~= curStim, nextStimRun = 1; else, nextStimRun = stimRun + 1; end
@@ -55,7 +60,7 @@ while ~ok && attempt < max_attempts
             picked = remaining(1);
         end
 
-        fs(k) = pairStim(picked);
+        fs(k) = pairSentences(picked);
         fd(k) = pairDelays(picked);
 
         if fs(k) == curStim, stimRun = stimRun + 1; else, curStim = fs(k); stimRun = 1; end
@@ -74,10 +79,10 @@ end
 
 %% Build across blocks (reuse or per-block)
 if isfield(cfg,'same_trials_across_blocks') && cfg.same_trials_across_blocks
-    finalStim = repmat(fs, cfg.n_blocks, 1);
+    finalSentences = repmat(fs, cfg.n_blocks, 1);
     finalDelays    = repmat(fd, cfg.n_blocks, 1);
 else
-    finalStim = zeros(pairsN * cfg.n_blocks, 1);
+    finalSentences = zeros(pairsN * cfg.n_blocks, 1);
     finalDelays    = zeros(pairsN * cfg.n_blocks, 1);
     writeIdx = 1;
     for b = 1:cfg.n_blocks
@@ -99,7 +104,7 @@ else
 
                 picked = NaN;
                 for cand = remaining
-                    s = pairStim(cand);
+                    s = pairSentences(cand);
                     d = pairDelays(cand);
 
                     if isnan(curStim) || s ~= curStim, nextStimRun = 1; else, nextStimRun = stimRun + 1; end
@@ -111,7 +116,7 @@ else
                 end
                 if isnan(picked), picked = remaining(1); end
 
-                bs(k) = pairStim(picked);
+                bs(k) = pairSentences(picked);
                 bd(k) = pairDelays(picked);
 
                 if bs(k) == curStim, stimRun = stimRun + 1; else, curStim = bs(k); stimRun = 1; end
@@ -125,7 +130,7 @@ else
         if ~ok
             error('Block %d: could not satisfy max repeats after %d attempts.', b, max_attempts);
         end
-        finalStim(writeIdx:writeIdx+pairsN-1) = bs;
+        finalSentences(writeIdx:writeIdx+pairsN-1) = bs;
         finalDelays(writeIdx:writeIdx+pairsN-1)    = bd;
         writeIdx = writeIdx + pairsN;
     end
@@ -151,7 +156,7 @@ for b = 1:cfg.n_blocks
     src1    = (b-1)*blockNtrials + 1;
     src2    = src1 + thisN - 1;
 
-    trialSentIdx(writePtr:writePtr+thisN-1) = finalStim(src1:src2);
+    trialSentIdx(writePtr:writePtr+thisN-1) = finalSentences(src1:src2);
     trialDelays(writePtr:writePtr+thisN-1)  = finalDelays(src1:src2);
     trialBlock(writePtr:writePtr+thisN-1)   = b;
 
@@ -165,11 +170,11 @@ if nCatch > 0
     catchVec(randperm(nTrials, nCatch)) = true;
 end
 
-%% Pre-wrap Stim (for display)
-text_wrapped_all = cell(cfg.n_unique_stim,1);
+%% Pre-wrap sentences (for display)
+text_wrapped_all = cell(nSentences,1);
 nl = sprintf('\n');
-for si = 1:cfg.n_unique_stim
-    text_stim = regexprep(unique_stim_list{si}, '\r', '');
+for si = 1:nSentences
+    text_stim = regexprep(sentences{si}, '\r', '');
     if isfield(cfg,'stim_max_char_per_line') && ~isempty(cfg.stim_max_char_per_line) && cfg.stim_max_char_per_line>0
         w = split(string(text_stim));
         cur = ""; lines = strings(0,1);
@@ -193,11 +198,11 @@ end
 DAF_Trials = table( ...
     (1:nTrials).', ...
     trialBlock(:), ...
-    unique_stim_list(trialSentIdx), ...
+    sentences(trialSentIdx), ...
     trialSentIdx(:), ...
     trialDelays(:), ...
     catchVec(:), ...
-    'VariableNames', {'trialnum','block_id','stim','stim_idx','delay','catch'} ...
+    'VariableNames', {'trialnum','block_id','sentence','sentence_idx','delay','catch'} ...
 );
 
 % Initialize columns that will be filled during runtime
