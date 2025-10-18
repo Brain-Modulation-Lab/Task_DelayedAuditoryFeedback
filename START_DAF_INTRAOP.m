@@ -12,16 +12,14 @@ cfg.DATA_TYPE     = 'task';
 % Task metadata (match preop naming so Task_*.m runs unchanged)
 cfg.TASK          = 'daf';
 cfg.TASK_VERSION  = 1;
-cfg.TASK_FUNCTION = 'Task_DelayedAuditoryFeedback.m';
-
-% Sentences file: the experimental function expects cfg.daf_sentences
-cfg.daf_stim_file = 'daf_sentences.tsv';
+cfg.TASK_FUNCTION = 'task_daf.m';
+cfg.daf_stim_file = 'daf_sentences.tsv'; % Stim text file
 
 % Core DAF parameters REQUIRED by Task_DelayedAuditoryFeedback
 cfg.n_blocks              = 1;          % number of blocks
 cfg.max_trials            = 30;         % optional cap (same default as preop)
 cfg.pause_between_blocks  = 0;          % not used by Task_*, included for parity
-cfg.audio_frame_size      = 128;        % block size Task_* uses for streaming
+cfg.audio_frame_size      = 2000;        % block size Task_* uses for streaming; Sam's default = 128
 cfg.audio_playback_gain   = 1;          % DAF output gain
 cfg.fix_cross_dur         = 0.0;        % pre-sentence fix (Task_* uses its own ITI_S but we keep parity)
 cfg.delay_dur             = 0.0;        % pre-visual onset delay (used by Task_*)
@@ -53,7 +51,7 @@ cfg.CONSERVE_VRAM_MODE    = 4096;
 
 % Choose LOCAL_TEST mode explicitly (Task_* branches on this)
 % Set to false on the OR rig; set true on a laptop for quick dry-runs.
-cfg.LOCAL_TEST            = 1;
+cfg.LOCAL_TEST            = 0;
 
 % Optional device names (Task_* will auto-pick max channels if not provided)
 % On Windows OR rig:
@@ -61,12 +59,11 @@ cfg.AUDIO_DEVICE          = 'Speakers (Radial USB Pro)';      % output (optional
 % cfg.AUDIO_DEVICE_IN     = 'Analogue 1 + 2 (2- Focusrite USB Audio)'; % input (optional hint)
 
 % Paths and device configuration (point at DAF task)
-if strcmpi(getenv('COMPUTERNAME'), 'BML-ALIENWARE')
-    cfg.PATH_TASK       = 'D:\docs\code\stut_obs\Task_DelayedAuditoryFeedback';
+if strcmpi(getenv('COMPUTERNAME'), 'BML-ALIENWARE2') %% intrasurgical rig laptop
+    cfg.PATH_TASK       = 'D:\Task\Task_DelayedAuditoryFeedback';
     cfg.PATH_SOURCEDATA = 'D:\DBS\sourcedata';
-elseif strcmpi(getenv('COMPUTERNAME'), 'BML-ALIENWARE2')
-    cfg.PATH_TASK       = 'D:\docs\code\stut_obs\Task_DelayedAuditoryFeedback';
-    cfg.PATH_SOURCEDATA = 'D:\DBS\sourcedata';
+    cfg.AUDIO_DEVICE_OUT = 'Speakers (Radial USB Pro)';
+%     cfg.AUDIO_DEVICE_OUT = 'Speakers (HIFI Audio)'; % for testing without Radial USB
 elseif ismac
     cfg.PATH_TASK       = '/Users/samhansen/Documents/MATLAB/Guenther/Task_DelayedAuditoryFeedback/';
     cfg.PATH_SOURCEDATA = '/Users/samhansen/Documents/MATLAB/Guenther/Task_DelayedAuditoryFeedback/stimuli';
@@ -96,6 +93,8 @@ Screen('Preference','ConserveVRAM', cfg.CONSERVE_VRAM_MODE);
 Screen('Preference','VisualDebugLevel', 1);
 Screen('Preference','Verbosity', 3);
 PsychDebugWindowConfiguration;   % windowed + alpha for bench testing (comment out on OR if undesired)
+
+close all force; Screen('CloseAll'); % close all normal matlab figures and PTB windows
 
 % --- Paths & output folders (match preop structure) ---
 pathSub            = fullfile(cfg.PATH_SOURCEDATA, ['sub-' cfg.SUBJECT]);
@@ -140,6 +139,12 @@ end
 workerQueueConstant = parallel.pool.Constant(@parallel.pool.PollableDataQueue);
 workerQueueClient   = fetchOutputs(parfeval(@(x) x.Value, 1, workerQueueConstant));
 
+%% Change folder 
+% change to main scripts folder, like we do in Speech Motor Sequence Learning (SMSL) scripts
+cd('./scripts'); 
+
+%%
+
 % Use same worker name as preop for parity (or swap to your preferred worker)
 if ~(exist('record_audio_preop','file')==2)
     clear onCleanupTasks
@@ -148,6 +153,8 @@ end
 future = parfeval(@record_audio_preop, 1, cfg.AUDIO_FILENAME, workerQueueConstant);
 future.Diary;
 onCleanupTasks{6} = onCleanup(@() send(workerQueueClient, 'stop'));
+
+
 
 % --- No digital I/O / Ripple in DAF ---
 cfg.DIGOUT = 0;
@@ -162,7 +169,7 @@ if ~isfile(task_function)
 end
 copyfile(task_function, [cfg.PATH_LOG filesep cfg.BASE_NAME 'script.m']);
 
-Task_DelayedAuditoryFeedback(cfg);
+task_daf(cfg);
 
 % --- Cleanup ---
 clear onCleanupTasks;

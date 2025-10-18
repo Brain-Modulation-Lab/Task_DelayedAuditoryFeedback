@@ -1,4 +1,8 @@
-function Task_DelayedAuditoryFeedback(cfg)
+function task_daf(cfg)
+
+%%%% run delayed auditory feedback task; in or out of operating room
+% by Sam Hansen (SH), Andrew Meier (AM); adapted from other Brain Modulation Lab (BML) scripts
+
 %% Task specific parameters
 % Fixation Cross ITI parameters
 ITI_S = [1.75, 2.25]; % duration range in seconds of ITI
@@ -39,11 +43,11 @@ InitializePsychSound(1);
 
 % Audio device selection and opening for full duplex playback and recording
 if ~cfg.LOCAL_TEST
-    pa_tbl = struct2table(PsychPortAudio('GetDevices'));
-    % Select output and input devices based on Host API and user configura
+    pa_tbl = struct2table(PsychPortAudio('GetDevices'));    
+    % Select output and input devices based on Host API and user configuration
     apiMask = contains(pa_tbl.HostAudioAPIName, cfg.HOST_AUDIO_API_NAME, 'IgnoreCase', true);
     outMask = apiMask & pa_tbl.NrOutputChannels > 0;
-    if isfield(cfg,'AUDIO_DEVICE') && ~isempty(cfg.AUDIO_DEVICE)
+    if isfield(cfg,'AUDIO_DEVICE_OUT') && ~isempty(cfg.AUDIO_DEVICE)
         outMask = outMask & contains(pa_tbl.DeviceName, cfg.AUDIO_DEVICE, 'IgnoreCase', true);
     end
     if ~any(outMask)
@@ -71,13 +75,21 @@ if ~cfg.LOCAL_TEST
     % Open audio devices: master playback, recorder, and slave for output routing
     pa_mode = 1 + 8; % playback + master
     pa_reqlatencyclass = 3; % robust low-latency
+
+    % AM added the following line [PsychPortAudio('Close')] to make sure that the master audio device
+    % is closed before trying to open it (it might still be open if script
+    % was run and aborted before closing)
+    PsychPortAudio('Close')
     cfg.pa_master = PsychPortAudio('Open', cfg.AUDIO_ID, pa_mode, pa_reqlatencyclass, [], pa_channels);
     statusMaster = PsychPortAudio('GetStatus', cfg.pa_master);
     Fs = statusMaster.SampleRate;
     fprintf('Using hardware sample rate: %d Hz\n', Fs);
 
-    % Recorder & slave with same Fs
-    cfg.pa_rec = PsychPortAudio('Open', cfg.AUDIO_IN_ID, 2, pa_reqlatencyclass, Fs, 1);
+    %%%% open recorder & slave with same Fs
+    % AM note: some other BML scripts force the audio recording device to
+    % have the same sample rate (arugment 5 in PsychPortAudio('Open')) as master device; 
+    % however this causes errors when master = Radial USB and recording = Focusrite
+    cfg.pa_rec = PsychPortAudio('Open', cfg.AUDIO_IN_ID, 2, pa_reqlatencyclass, [], 1);
     cfg.pa_slave3 = PsychPortAudio('OpenSlave', cfg.pa_master, 1, pa_channels);
 
     % Prime device buffers and start audio streams
@@ -148,13 +160,14 @@ end
 Screen('BlendFunction', window, GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 Screen('TextSize', window, cfg.stim_font_size);
 
-% Build an offscreen texture for each wrapped sentence
+% Build an offscreen texture for each wrapped stim text
 stimTex = nan(cfg.n_unique_stim,1);
 textColor = [0 0 0];
 for si = 1:cfg.n_unique_stim
     off = Screen('OpenOffscreenWindow', window, cfg.bg_color);
     Screen('TextSize', off, cfg.stim_font_size); 
-    text_wrapped_all = DrawFormattedText(off, text_wrapped_all{si}, 'center', 'center', textColor); % AM just added left side
+% % % % % %     DrawFormattedText(off, text_wrapped_all{si}, 'center', 'center', textColor); 
+    DrawFormattedText(off, trials.stim{si}, 'center', 'center', textColor); 
     stimTex(si) = off;
 end
 
@@ -241,7 +254,7 @@ goto_cleanup = false;
 % Check if lag diagnostics enabled
 doSoftLag = isfield(cfg,'LAG_DIAGNOSTICS') && cfg.LAG_DIAGNOSTICS && ~cfg.LOCAL_TEST;
 
-for idxTrial = 1:ntrials
+for itrial = 1:ntrials
     % Check for user abort with ESC key
     [isDown, ~, kc] = KbQueueCheck(device);
     if isDown && kc(ESC)
@@ -252,8 +265,8 @@ for idxTrial = 1:ntrials
     end
 
     % Determine if trial is catch (no speech) or speech trial
-    isSpeak = ~trials.catch(idxTrial);
-    if trials.catch(idxTrial)
+    isSpeak = ~trials.catch(itrial);
+    if trials.catch(itrial)
         trialType = 'catch';
     else
         trialType = 'speech';
@@ -263,17 +276,17 @@ for idxTrial = 1:ntrials
         fixColor = [255 0 0];
     end
 
-    delay_samples = trialDelaySamples(idxTrial);
+    delay_samples = trialDelaySamples(itrial);
         
     % Display diagnostic info about trial start
-    fprintf('Starting trial %d with sentence index %d and delay %d ms\n', idxTrial, trials.sentence_idx(idxTrial), trials.delay(idxTrial));
+    fprintf('Starting trial %d with stim index %d and delay %d ms\n', itrial, trials.stim_idx(itrial), trials.delay(itrial));
 
     % ITI with fixation cross display and log
     Screen('FillRect', window, cfg.bg_color);
     Screen('DrawLines', window, xy, lw, fixColor);
     flipSyncState = ~flipSyncState;
     [itiFixOnTime, ~] = Screen('Flip', window);
-    trials.start_time(idxTrial) = baseClock + seconds(itiFixOnTime - baseGetSecs);
+    trials.start_time(itrial) = baseClock + seconds(itiFixOnTime - baseGetSecs);
     
     ItiDuration = ITI_S(1) + (ITI_S(2) - ITI_S(1)) .* rand(1);
     code = TRIG_ITI;
@@ -293,7 +306,7 @@ for idxTrial = 1:ntrials
     WaitSecs(0.005);
     if goto_cleanup, break; end
 
-    % Pre sentence blank screen followed by configured delay before stimulus
+    % Pre stim blank screen followed by configured delay before stimulus
     Screen('FillRect', window, cfg.bg_color);
     Screen('Flip', window);
     WaitSecs(cfg.delay_dur);
@@ -313,12 +326,12 @@ for idxTrial = 1:ntrials
 
     % Visual stimulus on: draw text texture and flip screen
     Screen('FillRect', window, cfg.bg_color);
-    Screen('DrawTexture', window, stimTex(trials.sentence_idx(idxTrial)));
+    Screen('DrawTexture', window, stimTex(trials.stim_idx(itrial)));
     flipSyncState = ~flipSyncState;
     [stimOnsetTime, ~] = Screen('Flip', window);
-    trials.visual_onset_time(idxTrial) = baseClock + seconds(stimOnsetTime - baseGetSecs);
+    trials.visual_onset_time(itrial) = baseClock + seconds(stimOnsetTime - baseGetSecs);
     code = TRIG_VISUAL;
-    text_stim = sentences{trials.sentence_idx(idxTrial)};
+    text_stim = trials.stim{itrial};
     log_event(eventFile, cfg.DIGOUT, stimOnsetTime, [], [], trialType, text_stim, code, 'Visual Onset', flipSyncState);
 
     % Streaming Loop: read microphone audio, apply delay, output delayed audio
@@ -384,9 +397,9 @@ for idxTrial = 1:ntrials
 
         % Save mean lag time in milliseconds for trial, or NaN if none measured
         if doSoftLag && lagN > 0
-            trials.lag_mean(idxTrial) = 1000 * (lagSum / lagN);
+            trials.lag_mean(itrial) = 1000 * (lagSum / lagN);
         else
-            trials.lag_mean(idxTrial) = NaN;
+            trials.lag_mean(itrial) = NaN;
         end
 
         if goto_cleanup, break; end
@@ -418,19 +431,19 @@ for idxTrial = 1:ntrials
     Screen('FillRect', window, cfg.bg_color);
     flipSyncState = ~flipSyncState;
     [visOffTime, ~] = Screen('Flip', window);
-    trials.visual_off_time(idxTrial) = baseClock + seconds(visOffTime - baseGetSecs);
+    trials.visual_off_time(itrial) = baseClock + seconds(visOffTime - baseGetSecs);
     code = TRIG_VISUAL;
     log_event(eventFile, cfg.DIGOUT, visOffTime, [], [], trialType, [], code, 'Visual Off', flipSyncState);
 
     % Display trial completion summary
     elapsed = GetSecs() - runStartTime;
-    fprintf('Trial %2i / %i completed at %02d:%02d \n', idxTrial, ntrials, floor(elapsed/60), round(mod(elapsed,60)));
+    fprintf('Trial %2i / %i completed at %02d:%02d \n', itrial, ntrials, floor(elapsed/60), round(mod(elapsed,60)));
 
     % Save current trial data to disk; write headers only on first occasion
-    if idxTrial == 1
+    if itrial == 1
         writetable(trials(1,:), cfg.TRIAL_FILENAME, 'Delimiter', '\t', 'FileType', 'text', 'WriteVariableNames', true);
     else
-        writetable(trials(idxTrial,:), cfg.TRIAL_FILENAME, 'Delimiter', '\t', 'FileType', 'text', 'WriteMode', 'append', 'WriteVariableNames', false);
+        writetable(trials(itrial,:), cfg.TRIAL_FILENAME, 'Delimiter', '\t', 'FileType', 'text', 'WriteMode', 'append', 'WriteVariableNames', false);
     end
 end
 
