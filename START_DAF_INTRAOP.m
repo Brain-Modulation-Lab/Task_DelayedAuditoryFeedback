@@ -51,12 +51,7 @@ cfg.CONSERVE_VRAM_MODE    = 4096;
 
 % Choose LOCAL_TEST mode explicitly (Task_* branches on this)
 % Set to false on the OR rig; set true on a laptop for quick dry-runs.
-cfg.LOCAL_TEST            = 0;
-
-% Optional device names (Task_* will auto-pick max channels if not provided)
-% On Windows OR rig:
-cfg.AUDIO_DEVICE          = 'Speakers (Radial USB Pro)';      % output (optional hint)
-% cfg.AUDIO_DEVICE_IN     = 'Analogue 1 + 2 (2- Focusrite USB Audio)'; % input (optional hint)
+cfg.LOCAL_TEST            = 1;
 
 % Paths and device configuration (point at DAF task)
 if strcmpi(getenv('COMPUTERNAME'), 'BML-ALIENWARE2') %% intrasurgical rig laptop
