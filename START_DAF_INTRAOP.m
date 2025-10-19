@@ -12,7 +12,7 @@ cfg.DATA_TYPE     = 'task';
 % Task metadata (match preop naming so Task_*.m runs unchanged)
 cfg.TASK          = 'daf';
 cfg.TASK_VERSION  = 1;
-cfg.TASK_FUNCTION = 'task_daf.m';
+cfg.TASK_FUNCTION = 'task_daf_nonptb.m';
 cfg.daf_stim_file = 'daf_sentences.tsv'; % Stim text file
 
 % Core DAF parameters REQUIRED by Task_DelayedAuditoryFeedback
@@ -20,7 +20,7 @@ cfg.n_blocks              = 1;          % number of blocks
 cfg.max_trials            = 30;         % optional cap (same default as preop)
 cfg.pause_between_blocks  = 0;          % not used by Task_*, included for parity
 cfg.audio_sample_rate     = 44100;      % Audio sample rate in Hz
-cfg.audio_frame_size      = 2000;        % block size Task_* uses for streaming; Sam's default = 128
+cfg.audio_frame_size      = 128;        % block size Task_* uses for streaming; Sam's default = 128
 cfg.audio_playback_gain   = 0.1;          % DAF output gain
 cfg.fix_cross_dur         = 0.0;        % pre-sentence fix (Task_* uses its own ITI_S but we keep parity)
 cfg.delay_dur             = 0.0;        % pre-visual onset delay (used by Task_*)
@@ -169,7 +169,7 @@ if ~isfile(task_function)
 end
 copyfile(task_function, [cfg.PATH_LOG filesep cfg.BASE_NAME 'script.m']);
 
-task_daf(cfg);
+task_daf_nonptb(cfg);
 
 % --- Cleanup ---
 clear onCleanupTasks;

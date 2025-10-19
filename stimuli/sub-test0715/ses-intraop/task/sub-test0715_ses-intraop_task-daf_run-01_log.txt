@@ -1,0 +1,290 @@
+                      SUBJECT: 'test0715'
+                SESSION_LABEL: 'intraop'
+                    DATA_TYPE: 'task'
+                         TASK: 'daf'
+                 TASK_VERSION: 1
+                TASK_FUNCTION: 'task_daf_nonptb.m'
+                daf_stim_file: 'daf_sentences.tsv'
+                     n_blocks: 1
+                   max_trials: 30
+         pause_between_blocks: 0
+            audio_sample_rate: 44100
+             audio_frame_size: 128
+          audio_playback_gain: 0.1000
+                fix_cross_dur: 0
+                    delay_dur: 0
+                text_stim_dur: 12
+                          iti: 2
+               stim_font_size: 65
+       stim_max_char_per_line: 38
+                   catchRatio: 0
+             max_stim_repeats: 2
+            max_delay_repeats: 4
+    same_trials_across_blocks: 1
+              delay_values_ms: [0 150]
+           maxAllowedDelay_ms: 1000
+          no_audio_debug_mode: 1
+              LAG_DIAGNOSTICS: 1
+                   LOCAL_TEST: 0
+                    PATH_TASK: '/Users/samhansen/Documents/MATLAB/Guenther/Task_DelayedAuditoryFeedback/'
+              PATH_SOURCEDATA: '/Users/samhansen/Documents/MATLAB/Guenther/Task_DelayedAuditoryFeedback/stimuli'
+             AUDIO_DEVICE_OUT: 'MacBook Pro Speakers'
+              AUDIO_DEVICE_IN: 'MacBook Pro Microphone'
+                 TEST_SOUND_S: 10
+          CALIBRATION_BEEPS_N: 5
+                    AUDIO_AMP: 1
+                  GO_BEEP_AMP: 0.5000
+                  KEYBOARD_ID: []
+                   PATH_AUDIO: '/Users/samhansen/Documents/MATLAB/Guenther/Task_DelayedAuditoryFeedback/stimuli/sub-test0715/ses-intraop/audio'
+                       RUN_ID: 1
+                     PATH_LOG: '/Users/samhansen/Documents/MATLAB/Guenther/Task_DelayedAuditoryFeedback/stimuli/sub-test0715/ses-intraop/task'
+                    BASE_NAME: 'sub-test0715_ses-intraop_task-daf_run-01_'
+                 LOG_FILENAME: '/Users/samhansen/Documents/MATLAB/Guenther/Task_DelayedAuditoryFeedback/stimuli/sub-test0715/ses-intraop/task/sub-test0715_ses-intraop_task-daf_run-01_log.txt'
+               EVENT_FILENAME: '/Users/samhansen/Documents/MATLAB/Guenther/Task_DelayedAuditoryFeedback/stimuli/sub-test0715/ses-intraop/task/sub-test0715_ses-intraop_task-daf_run-01_events.tsv'
+               TRIAL_FILENAME: '/Users/samhansen/Documents/MATLAB/Guenther/Task_DelayedAuditoryFeedback/stimuli/sub-test0715/ses-intraop/task/sub-test0715_ses-intraop_task-daf_run-01_trials.tsv'
+               AUDIO_FILENAME: '/Users/samhansen/Documents/MATLAB/Guenther/Task_DelayedAuditoryFeedback/stimuli/sub-test0715/ses-intraop/audio/sub-test0715_ses-intraop_task-daf_run-01.wav'
+
+Starting parallel pool (parpool) using the 'Processes' profile ...
+<a href="matlab: opentoline('/Applications/MATLAB_R2025a.app/toolbox/parallel/cluster/+parallel/+cluster/@Local/Local.m',229,1)">229 </a>                    if nextDone
+
+Parallel pool using the 'Processes' profile is shutting down.
+{Operation terminated by user during <a href="matlab:matlab.lang.internal.introspective.errorDocCallback('parallel.internal.cluster.wait', '/Applications/MATLAB_R2025a.app/toolbox/parallel/cluster/+parallel/+internal/+cluster/wait.m', 15)" style="font-weight:bold">parallel.internal.cluster.wait</a> (<a href="matlab: opentoline('/Applications/MATLAB_R2025a.app/toolbox/parallel/cluster/+parallel/+internal/+cluster/wait.m',15,0)">line 15</a>)
+
+
+In <a href="matlab:matlab.lang.internal.introspective.errorDocCallback('parallel.Job/doWait', '/Applications/MATLAB_R2025a.app/toolbox/parallel/cluster/+parallel/@Job/Job.m', 692)" style="font-weight:bold">parallel.Job/doWait</a> (<a href="matlab: opentoline('/Applications/MATLAB_R2025a.app/toolbox/parallel/cluster/+parallel/@Job/Job.m',692,0)">line 692</a>)
+            ok = parallel.internal.cluster.wait( job, varargin{:} );
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+In <a href="matlab:matlab.lang.internal.introspective.errorDocCallback('parallel.Job/wait', '/Applications/MATLAB_R2025a.app/toolbox/parallel/cluster/+parallel/@Job/Job.m', 1352)" style="font-weight:bold">parallel.Job/wait</a> (<a href="matlab: opentoline('/Applications/MATLAB_R2025a.app/toolbox/parallel/cluster/+parallel/@Job/Job.m',1352,0)">line 1352</a>)
+                ok = job.doWait( state, timeout );
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+In <a href="matlab:matlab.lang.internal.introspective.errorDocCallback('parallel.internal.pool.ClusterClientSession/waitForConnections', '/Applications/MATLAB_R2025a.app/toolbox/parallel/cluster/+parallel/+internal/+pool/ClusterClientSession.m', 129)" style="font-weight:bold">parallel.internal.pool.ClusterClientSession/waitForConnections</a> (<a href="matlab: opentoline('/Applications/MATLAB_R2025a.app/toolbox/parallel/cluster/+parallel/+internal/+pool/ClusterClientSession.m',129,0)">line 129</a>)
+            while ~wait(job, 'running', 0.1)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^
+In <a href="matlab:matlab.lang.internal.introspective.errorDocCallback('parallel.internal.pool.AbstractInteractiveClient/start', '/Applications/MATLAB_R2025a.app/toolbox/parallel/cluster/+parallel/+internal/+pool/AbstractInteractiveClient.m', 119)" style="font-weight:bold">parallel.internal.pool.AbstractInteractiveClient/start</a> (<a href="matlab: opentoline('/Applications/MATLAB_R2025a.app/toolbox/parallel/cluster/+parallel/+internal/+pool/AbstractInteractiveClient.m',119,0)">line 119</a>)
+                session.waitForConnections(checkFcn, obj.ParallelJob);
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+In <a href="matlab:matlab.lang.internal.introspective.errorDocCallback('parallel.internal.pool.AbstractClusterPool>iStartClient', '/Applications/MATLAB_R2025a.app/toolbox/parallel/cluster/+parallel/+internal/+pool/@AbstractClusterPool/AbstractClusterPool.m', 753)" style="font-weight:bold">parallel.internal.pool.AbstractClusterPool>iStartClient</a> (<a href="matlab: opentoline('/Applications/MATLAB_R2025a.app/toolbox/parallel/cluster/+parallel/+internal/+pool/@AbstractClusterPool/AbstractClusterPool.m',753,0)">line 753</a>)
+client.start(sessionBuildFcn, sessionInfo, numWorkers, cluster, ...
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+In <a href="matlab:matlab.lang.internal.introspective.errorDocCallback('parallel.internal.pool.AbstractClusterPool.hBuildPool', '/Applications/MATLAB_R2025a.app/toolbox/parallel/cluster/+parallel/+internal/+pool/@AbstractClusterPool/AbstractClusterPool.m', 570)" style="font-weight:bold">parallel.internal.pool.AbstractClusterPool.hBuildPool</a> (<a href="matlab: opentoline('/Applications/MATLAB_R2025a.app/toolbox/parallel/cluster/+parallel/+internal/+pool/@AbstractClusterPool/AbstractClusterPool.m',570,0)">line 570</a>)
+            iStartClient(client, sessionInfo, cluster, argsList);
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+In <a href="matlab:matlab.lang.internal.introspective.errorDocCallback('parallel.internal.pool.doParpool', '/Applications/MATLAB_R2025a.app/toolbox/parallel/cluster/+parallel/+internal/+pool/doParpool.m', 22)" style="font-weight:bold">parallel.internal.pool.doParpool</a> (<a href="matlab: opentoline('/Applications/MATLAB_R2025a.app/toolbox/parallel/cluster/+parallel/+internal/+pool/doParpool.m',22,0)">line 22</a>)
+    pool = parallel.internal.pool.AbstractClusterPool.hBuildPool(constructorArgs{:});
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+In <a href="matlab:matlab.lang.internal.introspective.errorDocCallback('parpool', '/Applications/MATLAB_R2025a.app/toolbox/parallel/cluster/cluster/parpool.m', 116)" style="font-weight:bold">parpool</a> (<a href="matlab: opentoline('/Applications/MATLAB_R2025a.app/toolbox/parallel/cluster/cluster/parpool.m',116,0)">line 116</a>)
+        pool = parallel.internal.pool.doParpool(sessionInfo, varargin{:});
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+In <a href="matlab:matlab.lang.internal.introspective.errorDocCallback('START_DAF_INTRAOP_nonptb', '/Users/samhansen/Documents/MATLAB/Guenther/Task_DelayedAuditoryFeedback/START_DAF_INTRAOP_nonptb.m', 121)" style="font-weight:bold">START_DAF_INTRAOP_nonptb</a> (<a href="matlab: opentoline('/Users/samhansen/Documents/MATLAB/Guenther/Task_DelayedAuditoryFeedback/START_DAF_INTRAOP_nonptb.m',121,0)">line 121</a>)
+    parpool('local',1);
+    ^^^^^^^^^^^^^^^^^^
+} 
+START_DAF_INTRAOP_nonptb
+                      SUBJECT: 'test0715'
+                SESSION_LABEL: 'intraop'
+                    DATA_TYPE: 'task'
+                         TASK: 'daf'
+                 TASK_VERSION: 1
+                TASK_FUNCTION: 'task_daf_nonptb.m'
+                daf_stim_file: 'daf_sentences.tsv'
+                     n_blocks: 1
+                   max_trials: 30
+         pause_between_blocks: 0
+            audio_sample_rate: 44100
+             audio_frame_size: 128
+          audio_playback_gain: 0.1000
+                fix_cross_dur: 0
+                    delay_dur: 0
+                text_stim_dur: 12
+                          iti: 2
+               stim_font_size: 65
+       stim_max_char_per_line: 38
+                   catchRatio: 0
+             max_stim_repeats: 2
+            max_delay_repeats: 4
+    same_trials_across_blocks: 1
+              delay_values_ms: [0 150]
+           maxAllowedDelay_ms: 1000
+          no_audio_debug_mode: 1
+              LAG_DIAGNOSTICS: 1
+                   LOCAL_TEST: 0
+                    PATH_TASK: '/Users/samhansen/Documents/MATLAB/Guenther/Task_DelayedAuditoryFeedback/'
+              PATH_SOURCEDATA: '/Users/samhansen/Documents/MATLAB/Guenther/Task_DelayedAuditoryFeedback/stimuli'
+             AUDIO_DEVICE_OUT: 'MacBook Pro Speakers'
+              AUDIO_DEVICE_IN: 'MacBook Pro Microphone'
+                 TEST_SOUND_S: 10
+          CALIBRATION_BEEPS_N: 5
+                    AUDIO_AMP: 1
+                  GO_BEEP_AMP: 0.5000
+                  KEYBOARD_ID: []
+                   PATH_AUDIO: '/Users/samhansen/Documents/MATLAB/Guenther/Task_DelayedAuditoryFeedback/stimuli/sub-test0715/ses-intraop/audio'
+                       RUN_ID: 1
+                     PATH_LOG: '/Users/samhansen/Documents/MATLAB/Guenther/Task_DelayedAuditoryFeedback/stimuli/sub-test0715/ses-intraop/task'
+                    BASE_NAME: 'sub-test0715_ses-intraop_task-daf_run-01_'
+                 LOG_FILENAME: '/Users/samhansen/Documents/MATLAB/Guenther/Task_DelayedAuditoryFeedback/stimuli/sub-test0715/ses-intraop/task/sub-test0715_ses-intraop_task-daf_run-01_log.txt'
+               EVENT_FILENAME: '/Users/samhansen/Documents/MATLAB/Guenther/Task_DelayedAuditoryFeedback/stimuli/sub-test0715/ses-intraop/task/sub-test0715_ses-intraop_task-daf_run-01_events.tsv'
+               TRIAL_FILENAME: '/Users/samhansen/Documents/MATLAB/Guenther/Task_DelayedAuditoryFeedback/stimuli/sub-test0715/ses-intraop/task/sub-test0715_ses-intraop_task-daf_run-01_trials.tsv'
+               AUDIO_FILENAME: '/Users/samhansen/Documents/MATLAB/Guenther/Task_DelayedAuditoryFeedback/stimuli/sub-test0715/ses-intraop/audio/sub-test0715_ses-intraop_task-daf_run-01.wav'
+
+Launching task
+                      SUBJECT: 'test0715'
+                SESSION_LABEL: 'intraop'
+                    DATA_TYPE: 'task'
+                         TASK: 'daf'
+                 TASK_VERSION: 1
+                TASK_FUNCTION: 'task_daf_nonptb.m'
+                daf_stim_file: 'daf_sentences.tsv'
+                     n_blocks: 1
+                   max_trials: 30
+         pause_between_blocks: 0
+            audio_sample_rate: 44100
+             audio_frame_size: 128
+          audio_playback_gain: 0.1000
+                fix_cross_dur: 0
+                    delay_dur: 0
+                text_stim_dur: 12
+                          iti: 2
+               stim_font_size: 65
+       stim_max_char_per_line: 38
+                   catchRatio: 0
+             max_stim_repeats: 2
+            max_delay_repeats: 4
+    same_trials_across_blocks: 1
+              delay_values_ms: [0 150]
+           maxAllowedDelay_ms: 1000
+          no_audio_debug_mode: 1
+              LAG_DIAGNOSTICS: 1
+                   LOCAL_TEST: 0
+                    PATH_TASK: '/Users/samhansen/Documents/MATLAB/Guenther/Task_DelayedAuditoryFeedback/'
+              PATH_SOURCEDATA: '/Users/samhansen/Documents/MATLAB/Guenther/Task_DelayedAuditoryFeedback/stimuli'
+             AUDIO_DEVICE_OUT: 'MacBook Pro Speakers'
+              AUDIO_DEVICE_IN: 'MacBook Pro Microphone'
+                 TEST_SOUND_S: 10
+          CALIBRATION_BEEPS_N: 5
+                    AUDIO_AMP: 1
+                  GO_BEEP_AMP: 0.5000
+                  KEYBOARD_ID: []
+                   PATH_AUDIO: '/Users/samhansen/Documents/MATLAB/Guenther/Task_DelayedAuditoryFeedback/stimuli/sub-test0715/ses-intraop/audio'
+                       RUN_ID: 1
+                     PATH_LOG: '/Users/samhansen/Documents/MATLAB/Guenther/Task_DelayedAuditoryFeedback/stimuli/sub-test0715/ses-intraop/task'
+                    BASE_NAME: 'sub-test0715_ses-intraop_task-daf_run-01_'
+                 LOG_FILENAME: '/Users/samhansen/Documents/MATLAB/Guenther/Task_DelayedAuditoryFeedback/stimuli/sub-test0715/ses-intraop/task/sub-test0715_ses-intraop_task-daf_run-01_log.txt'
+               EVENT_FILENAME: '/Users/samhansen/Documents/MATLAB/Guenther/Task_DelayedAuditoryFeedback/stimuli/sub-test0715/ses-intraop/task/sub-test0715_ses-intraop_task-daf_run-01_events.tsv'
+               TRIAL_FILENAME: '/Users/samhansen/Documents/MATLAB/Guenther/Task_DelayedAuditoryFeedback/stimuli/sub-test0715/ses-intraop/task/sub-test0715_ses-intraop_task-daf_run-01_trials.tsv'
+               AUDIO_FILENAME: '/Users/samhansen/Documents/MATLAB/Guenther/Task_DelayedAuditoryFeedback/stimuli/sub-test0715/ses-intraop/audio/sub-test0715_ses-intraop_task-daf_run-01.wav'
+
+Launching task
+                      SUBJECT: 'test0715'
+                SESSION_LABEL: 'intraop'
+                    DATA_TYPE: 'task'
+                         TASK: 'daf'
+                 TASK_VERSION: 1
+                TASK_FUNCTION: 'task_daf_nonptb.m'
+                daf_stim_file: 'daf_sentences.tsv'
+                     n_blocks: 1
+                   max_trials: 30
+         pause_between_blocks: 0
+            audio_sample_rate: 44100
+             audio_frame_size: 128
+          audio_playback_gain: 0.1000
+                fix_cross_dur: 0
+                    delay_dur: 0
+                text_stim_dur: 12
+                          iti: 2
+               stim_font_size: 65
+       stim_max_char_per_line: 38
+                   catchRatio: 0
+             max_stim_repeats: 2
+            max_delay_repeats: 4
+    same_trials_across_blocks: 1
+              delay_values_ms: [0 150]
+           maxAllowedDelay_ms: 1000
+          no_audio_debug_mode: 1
+              LAG_DIAGNOSTICS: 1
+                   LOCAL_TEST: 0
+                    PATH_TASK: '/Users/samhansen/Documents/MATLAB/Guenther/Task_DelayedAuditoryFeedback/'
+              PATH_SOURCEDATA: '/Users/samhansen/Documents/MATLAB/Guenther/Task_DelayedAuditoryFeedback/stimuli'
+             AUDIO_DEVICE_OUT: 'MacBook Pro Speakers'
+              AUDIO_DEVICE_IN: 'MacBook Pro Microphone'
+                 TEST_SOUND_S: 10
+          CALIBRATION_BEEPS_N: 5
+                    AUDIO_AMP: 1
+                  GO_BEEP_AMP: 0.5000
+                  KEYBOARD_ID: []
+                   PATH_AUDIO: '/Users/samhansen/Documents/MATLAB/Guenther/Task_DelayedAuditoryFeedback/stimuli/sub-test0715/ses-intraop/audio'
+                       RUN_ID: 1
+                     PATH_LOG: '/Users/samhansen/Documents/MATLAB/Guenther/Task_DelayedAuditoryFeedback/stimuli/sub-test0715/ses-intraop/task'
+                    BASE_NAME: 'sub-test0715_ses-intraop_task-daf_run-01_'
+                 LOG_FILENAME: '/Users/samhansen/Documents/MATLAB/Guenther/Task_DelayedAuditoryFeedback/stimuli/sub-test0715/ses-intraop/task/sub-test0715_ses-intraop_task-daf_run-01_log.txt'
+               EVENT_FILENAME: '/Users/samhansen/Documents/MATLAB/Guenther/Task_DelayedAuditoryFeedback/stimuli/sub-test0715/ses-intraop/task/sub-test0715_ses-intraop_task-daf_run-01_events.tsv'
+               TRIAL_FILENAME: '/Users/samhansen/Documents/MATLAB/Guenther/Task_DelayedAuditoryFeedback/stimuli/sub-test0715/ses-intraop/task/sub-test0715_ses-intraop_task-daf_run-01_trials.tsv'
+               AUDIO_FILENAME: '/Users/samhansen/Documents/MATLAB/Guenther/Task_DelayedAuditoryFeedback/stimuli/sub-test0715/ses-intraop/audio/sub-test0715_ses-intraop_task-daf_run-01.wav'
+
+Launching task
+Initializing non-PTB at 17:10:26 for subject test0715, daf task, session intraop, run 1
+
+
+
+PsychHID-ERROR: During PsychHID invocation: macOS is preventing access to HID input devices like keyboard, keypad and mouse!
+PsychHID-ERROR: This is because permission for 'Input Monitoring' is denied to Matlab, or to Terminal.app, if you started Matlab from a Terminal.
+PsychHID-ERROR: Please rectify this manually now:
+PsychHID-ERROR: 
+PsychHID-ERROR: 1. Quit Matlab, and also Terminal if it was used to launch Matlab.
+PsychHID-ERROR: 2. Open 'System Preferences', then go to the 'Security & Privacy' control panel.
+PsychHID-ERROR: 3. Select the 'Privacy' tab, and then in the list on the left, the item 'Input Monitoring'.
+PsychHID-ERROR: 4. Make sure that Matlab, or similar, or maybe Terminal instead, is listed in the list on the right.
+PsychHID-ERROR:    E.g., names could be 'Terminal' or 'Octave' something, or 'MATLAB_R2020b.app' or similar for Matlab.
+PsychHID-ERROR: 5. Make sure that the checkbox next to the name of the item is checked.
+PsychHID-ERROR: 6. Restart Matlab.
+PsychHID-ERROR: 7. Execute the 'KbCheck' command as a simple test, which should hopefully work now without errors.
+PsychHID-ERROR: 8. If it doesn't work, go back to step 5, but *uncheck* the checkbox, close the GUI,
+PsychHID-ERROR:    then reopen the GUI, go back to step 5 and *check* the checkbox again. Unchecking
+PsychHID-ERROR:    and then checking the checkbox again, and closing and reopening the security GUI and
+PsychHID-ERROR:    Matlab/Octave/Terminal inbetween usually fixes these issues caused by Apple macOS GUI bugs.
+PsychHID-ERROR:    It may also be neccessary to delete the item from the list by marking it and then using the
+PsychHID-ERROR:    - (Minus) button at the bottom of the list view. Closing the GUI, reopening and readding the
+PsychHID-ERROR:    Matlab/Octave/Terminal item to the list by clicking the + (Plus) button.
+PsychHID-ERROR: 9. If it still doesn't work, retry the procedure - rinse, wash, repeat.
+PsychHID-ERROR: 10. If it works without errors, retry if your own scripts or our demos now work again.
+PsychHID-ERROR: 11. If none of this works, you may be able to buy paid support from us: 'help PsychPaidSupportAndServices'.
+
+
+Error in function : 	Usage error
+PsychHID-CRITICAL: PsychHID disabled due to macOS security restrictions! Emergency shutdown! 'clear all' or restart your application.
+
+{Error using <a href="matlab:matlab.lang.internal.introspective.errorDocCallback('Screen')" style="font-weight:bold">Screen</a>
+This Psychtoolbox function is currently not licensed for use on this machine.
+
+Error in <a href="matlab:matlab.lang.internal.introspective.errorDocCallback('KbQueueReserve', '/Users/samhansen/Documents/MATLAB/toolboxes/Psychtoolbox/PsychBasic/KbQueueReserve.m', 32)" style="font-weight:bold">KbQueueReserve</a> (<a href="matlab: opentoline('/Users/samhansen/Documents/MATLAB/toolboxes/Psychtoolbox/PsychBasic/KbQueueReserve.m',32,0)">line 32</a>)
+    defaultKbDevice = PsychHID('Devices', -1);
+                      ^^^^^^^^^^^^^^^^^^^^^^^
+Error in <a href="matlab:matlab.lang.internal.introspective.errorDocCallback('ListenChar', '/Users/samhansen/Documents/MATLAB/toolboxes/Psychtoolbox/PsychBasic/ListenChar.m', 296)" style="font-weight:bold">ListenChar</a> (<a href="matlab: opentoline('/Users/samhansen/Documents/MATLAB/toolboxes/Psychtoolbox/PsychBasic/ListenChar.m',296,0)">line 296</a>)
+        if KbQueueReserve(3, 1, [])
+           ^^^^^^^^^^^^^^^^^^^^^^^^
+Error in <a href="matlab:matlab.lang.internal.introspective.errorDocCallback('task_daf_nonptb', '/Users/samhansen/Documents/MATLAB/Guenther/Task_DelayedAuditoryFeedback/scripts/task_daf_nonptb.m', 36)" style="font-weight:bold">task_daf_nonptb</a> (<a href="matlab: opentoline('/Users/samhansen/Documents/MATLAB/Guenther/Task_DelayedAuditoryFeedback/scripts/task_daf_nonptb.m',36,0)">line 36</a>)
+ListenChar(0);
+^^^^^^^^^^^^^
+Error in <a href="matlab:matlab.lang.internal.introspective.errorDocCallback('START_DAF_INTRAOP_nonptb', '/Users/samhansen/Documents/MATLAB/Guenther/Task_DelayedAuditoryFeedback/scripts/START_DAF_INTRAOP_nonptb.m', 161)" style="font-weight:bold">START_DAF_INTRAOP_nonptb</a> (<a href="matlab: opentoline('/Users/samhansen/Documents/MATLAB/Guenther/Task_DelayedAuditoryFeedback/scripts/START_DAF_INTRAOP_nonptb.m',161,0)">line 161</a>)
+task_daf_nonptb(cfg);
+^^^^^^^^^^^^^^^^^^^^
+} 
+PTB-CRITICAL: Recursion stack underflow in module PsychHID! Brace for impact!
+{Error using <a href="matlab:matlab.lang.internal.introspective.errorDocCallback('PsychHID')" style="font-weight:bold">PsychHID</a>
+Usage:
+
+(null)
+
+Error in <a href="matlab:matlab.lang.internal.introspective.errorDocCallback('KbQueueReserve', '/Users/samhansen/Documents/MATLAB/toolboxes/Psychtoolbox/PsychBasic/KbQueueReserve.m', 32)" style="font-weight:bold">KbQueueReserve</a> (<a href="matlab: opentoline('/Users/samhansen/Documents/MATLAB/toolboxes/Psychtoolbox/PsychBasic/KbQueueReserve.m',32,0)">line 32</a>)
+    defaultKbDevice = PsychHID('Devices', -1);
+                      ^^^^^^^^^^^^^^^^^^^^^^^
+Error in <a href="matlab:matlab.lang.internal.introspective.errorDocCallback('ListenChar', '/Users/samhansen/Documents/MATLAB/toolboxes/Psychtoolbox/PsychBasic/ListenChar.m', 296)" style="font-weight:bold">ListenChar</a> (<a href="matlab: opentoline('/Users/samhansen/Documents/MATLAB/toolboxes/Psychtoolbox/PsychBasic/ListenChar.m',296,0)">line 296</a>)
+        if KbQueueReserve(3, 1, [])
+           ^^^^^^^^^^^^^^^^^^^^^^^^
+Error in <a href="matlab:matlab.lang.internal.introspective.errorDocCallback('task_daf_nonptb', '/Users/samhansen/Documents/MATLAB/Guenther/Task_DelayedAuditoryFeedback/scripts/task_daf_nonptb.m', 36)" style="font-weight:bold">task_daf_nonptb</a> (<a href="matlab: opentoline('/Users/samhansen/Documents/MATLAB/Guenther/Task_DelayedAuditoryFeedback/scripts/task_daf_nonptb.m',36,0)">line 36</a>)
+ListenChar(0);
+^^^^^^^^^^^^^
+Error in <a href="matlab:matlab.lang.internal.introspective.errorDocCallback('START_DAF_INTRAOP_nonptb', '/Users/samhansen/Documents/MATLAB/Guenther/Task_DelayedAuditoryFeedback/scripts/START_DAF_INTRAOP_nonptb.m', 161)" style="font-weight:bold">START_DAF_INTRAOP_nonptb</a> (<a href="matlab: opentoline('/Users/samhansen/Documents/MATLAB/Guenther/Task_DelayedAuditoryFeedback/scripts/START_DAF_INTRAOP_nonptb.m',161,0)">line 161</a>)
+task_daf_nonptb(cfg);
+^^^^^^^^^^^^^^^^^^^^
+} 
+START_DAF_INTRAOP_nonptb
