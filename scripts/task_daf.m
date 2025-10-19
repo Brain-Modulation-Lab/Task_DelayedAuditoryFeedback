@@ -74,7 +74,7 @@ if ~cfg.LOCAL_TEST
 
     % Open audio devices: master playback, recorder, and slave for output routing
     pa_mode = 1 + 8; % playback + master
-    pa_reqlatencyclass = 3; % robust low-latency
+    pa_reqlatencyclass = 0; % robust low-latency
 
     % AM added the following line [PsychPortAudio('Close')] to make sure that the master audio device
     % is closed before trying to open it (it might still be open if script
