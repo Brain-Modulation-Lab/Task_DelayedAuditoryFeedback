@@ -19,6 +19,7 @@ cfg.daf_stim_file = 'daf_sentences.tsv'; % Stim text file
 cfg.n_blocks              = 1;          % number of blocks
 cfg.max_trials            = 30;         % optional cap (same default as preop)
 cfg.pause_between_blocks  = 0;          % not used by Task_*, included for parity
+cfg.audio_sample_rate     = 44100;      % Audio sample rate in Hz
 cfg.audio_frame_size      = 2000;        % block size Task_* uses for streaming; Sam's default = 128
 cfg.audio_playback_gain   = 0.1;          % DAF output gain
 cfg.fix_cross_dur         = 0.0;        % pre-sentence fix (Task_* uses its own ITI_S but we keep parity)
@@ -33,10 +34,10 @@ cfg.max_delay_repeats     = 4;          % max consecutive repeats of same delays
 cfg.same_trials_across_blocks = true;   % if true: trials randomized in first block only, same order repeated across blocks
 
 % DAF delay conditions (ms) – Task_* requires cfg.delayOptions
-cfg.delayOptions          = [0 150];        % you can set [0 100 150 200] etc. Must be <= maxAllowedDelay_ms
+cfg.delay_values_ms          = [0 150];        % you can set [0 100 150 200] etc. Must be <= maxAllowedDelay_ms
 cfg.maxAllowedDelay_ms    = 1000;       % defensive check (mirrors preop)
 
-if any(cfg.delayOptions > cfg.maxAllowedDelay_ms)
+if any(cfg.delay_values_ms > cfg.maxAllowedDelay_ms)
     error('One or more delayOptions exceed the maximum allowed delay of %d ms.', cfg.maxAllowedDelay_ms);
 end
 

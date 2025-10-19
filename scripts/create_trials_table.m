@@ -1,7 +1,7 @@
-function [cfg, DAF_Trials, text_wrapped_all] = create_trials_table(cfg)
+function [cfg, trials, text_wrapped_all] = create_trials_table(cfg)
 % create_trials_table  Build DAF trial table with max-repeat constraints.
 % Usage (inside Task_DelayedAuditoryFeedback.m):
-%   [cfg, DAF_Trials] = create_trials_table(cfg);
+%   [cfg, trials] = create_trials_table(cfg);
 %   % cfg.TRIAL_TABLE is also populated.
 
 %% Load stimuli
@@ -10,12 +10,12 @@ unique_stim_list = stimtable.stim;
 
 % Counts and delay vector
 cfg.n_unique_stim = numel(unique_stim_list);
-cfg.delayOptions = cfg.delayOptions(:);
-nDelays = numel(cfg.delayOptions);
+% % % % % % % % % % % cfg.delay_values_ms = cfg.delay_values_ms(:);
+nDelays = numel(cfg.delay_values_ms);
 
 %% Build all (stim, delay) pairs
 pairStim = repmat((1:cfg.n_unique_stim)', nDelays, 1);
-pairDelays    = reshape(repmat(cfg.delayOptions, cfg.n_unique_stim, 1), [], 1);
+pairDelays    = reshape(repmat(cfg.delay_values_ms, cfg.n_unique_stim, 1), [], 1);
 pairsN        = numel(pairStim);     % trials per block
 blockNtrials  = pairsN;
 
@@ -132,20 +132,21 @@ else
 end
 
 %% Assemble trials across blocks with optional cap
-nTrialsPlanned = cfg.n_blocks * blockNtrials;
+ntrialsPlanned = cfg.n_blocks * blockNtrials;
 if isfield(cfg,'max_trials') && ~isempty(cfg.max_trials)
-    nTrials = min(nTrialsPlanned, cfg.max_trials);
+    ntrials = min(ntrialsPlanned, cfg.max_trials);
 else
-    nTrials = nTrialsPlanned;
+    ntrials = ntrialsPlanned;
 end
+cfg.ntrials = ntrials;
 
-trialSentIdx = zeros(nTrials,1);
-trialDelays  = zeros(nTrials,1);
-trialBlock   = zeros(nTrials,1);
+trialSentIdx = zeros(ntrials,1);
+trialDelays  = zeros(ntrials,1);
+trialBlock   = zeros(ntrials,1);
 
 writePtr = 1;
 for b = 1:cfg.n_blocks
-    rem = nTrials - (writePtr-1);
+    rem = ntrials - (writePtr-1);
     if rem <= 0, break; end
     thisN   = min(blockNtrials, rem);
     src1    = (b-1)*blockNtrials + 1;
@@ -159,10 +160,10 @@ for b = 1:cfg.n_blocks
 end
 
 %% Catch trials
-nCatch = round(nTrials * cfg.catchRatio);
-catchVec = false(nTrials,1);
+nCatch = round(ntrials * cfg.catchRatio);
+catchVec = false(ntrials,1);
 if nCatch > 0
-    catchVec(randperm(nTrials, nCatch)) = true;
+    catchVec(randperm(ntrials, nCatch)) = true;
 end
 
 %% Pre-wrap Stim (for display)
@@ -190,22 +191,22 @@ for si = 1:cfg.n_unique_stim
 end
 
 %% Build table
-DAF_Trials = table( ...
-    (1:nTrials).', ...
+trials = table( ...
+    (1:ntrials).', ...
     trialBlock(:), ...
     unique_stim_list(trialSentIdx), ...
     trialSentIdx(:), ...
     trialDelays(:), ...
     catchVec(:), ...
-    'VariableNames', {'trialnum','block_id','stim','stim_idx','delay','catch'} ...
+    'VariableNames', {'trialnum','block_id','stim','stim_idx','delay','catch_trial'} ...
 );
 
 % Initialize columns that will be filled during runtime
-DAF_Trials.start_time         = NaT(nTrials,1,'TimeZone','local');
-DAF_Trials.visual_onset_time  = NaT(nTrials,1,'TimeZone','local');
-DAF_Trials.visual_off_time    = NaT(nTrials,1,'TimeZone','local');
-DAF_Trials.lag_mean           = nan(nTrials,1);
+trials.start_time         = NaT(ntrials,1,'TimeZone','local');
+trials.visual_onset_time  = NaT(ntrials,1,'TimeZone','local');
+trials.visual_off_time    = NaT(ntrials,1,'TimeZone','local');
+trials.lag_mean           = nan(ntrials,1);
 
 % Return in cfg (and as output)
-cfg.TRIAL_TABLE = DAF_Trials;
+cfg.TRIAL_TABLE = trials;
 end
