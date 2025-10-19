@@ -166,12 +166,8 @@ textColor = [0 0 0];
 for si = 1:cfg.n_unique_stim
     off = Screen('OpenOffscreenWindow', window, cfg.bg_color);
     Screen('TextSize', off, cfg.stim_font_size); 
-<<<<<<< HEAD:scripts/task_daf.m
-% % % % % %     DrawFormattedText(off, text_wrapped_all{si}, 'center', 'center', textColor); 
+% % % % % %     DrawFormattedText(off, text_wrapped_all{si}, 'center', 'center', textColor); % commented out and replaced by AM 2025/10/18
     DrawFormattedText(off, trials.stim{si}, 'center', 'center', textColor); 
-=======
-    DrawFormattedText(off, text_wrapped_all{si}, 'center', 'center', textColor);
->>>>>>> 28ffa5828a07d7fc208266c8de5839f3eef82208:Task_DelayedAuditoryFeedback.m
     stimTex(si) = off;
 end
 
