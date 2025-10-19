@@ -73,6 +73,9 @@ elseif ismac
 elseif strcmpi(getenv('COMPUTERNAME'), '677-GUE-WL-0010') % Andrew Meier work laptop
     cfg.PATH_TASK = 'C:\docs\code\Task_DelayedAuditoryFeedback'; 
     cfg.PATH_SOURCEDATA= 'C:\ieeg_stut'; 
+    cfg.AUDIO_DEVICE_IN = 'Headphones (WF-C500)';
+    cfg.AUDIO_DEVICE_OUT = 'Headset (WF-C500)'; 
+
 else
     cfg.PATH_TASK       = '~/git/Task_DelayedAuditoryFeedback';
     cfg.PATH_SOURCEDATA = '~/Data/DBS/sourcedata';
