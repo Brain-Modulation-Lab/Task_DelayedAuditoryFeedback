@@ -51,7 +51,7 @@ cfg.CONSERVE_VRAM_MODE    = 4096;
 
 % Choose LOCAL_TEST mode explicitly (Task_* branches on this)
 % Set to false on the OR rig; set true on a laptop for quick dry-runs.
-cfg.LOCAL_TEST            = 1;
+cfg.LOCAL_TEST            = 0;
 
 % Paths and device configuration (point at DAF task)
 if strcmpi(getenv('COMPUTERNAME'), 'BML-ALIENWARE2') %% intrasurgical rig laptop
@@ -68,9 +68,10 @@ elseif ismac
 elseif strcmpi(getenv('COMPUTERNAME'), '677-GUE-WL-0010') % Andrew Meier work laptop
     cfg.PATH_TASK = 'C:\docs\code\Task_DelayedAuditoryFeedback'; 
     cfg.PATH_SOURCEDATA= 'C:\ieeg_stut'; 
-    cfg.AUDIO_DEVICE_IN = 'Headphones (WF-C500)';
-    cfg.AUDIO_DEVICE_OUT = 'Headset (WF-C500)'; 
-
+    % cfg.AUDIO_DEVICE_IN = 'Headphones (WF-C500)';
+    cfg.AUDIO_DEVICE_IN = 'Microphone Array (Intel® Smart Sound Technology for Digital Microphones)'; 
+    % cfg.AUDIO_DEVICE_OUT = 'Headset (WF-C500)'; 
+    cfg.AUDIO_DEVICE_OUT = 'Speakers (HIFI Audio)'; 
 else
     cfg.PATH_TASK       = '~/git/Task_DelayedAuditoryFeedback';
     cfg.PATH_SOURCEDATA = '~/Data/DBS/sourcedata';
