@@ -20,7 +20,7 @@ cfg.n_blocks              = 1;          % number of blocks
 cfg.max_trials            = 30;         % optional cap (same default as preop)
 cfg.pause_between_blocks  = 0;          % not used by Task_*, included for parity
 cfg.audio_frame_size      = 2000;        % block size Task_* uses for streaming; Sam's default = 128
-cfg.audio_playback_gain   = 1;          % DAF output gain
+cfg.audio_playback_gain   = 0.1;          % DAF output gain
 cfg.fix_cross_dur         = 0.0;        % pre-sentence fix (Task_* uses its own ITI_S but we keep parity)
 cfg.delay_dur             = 0.0;        % pre-visual onset delay (used by Task_*)
 cfg.text_stim_dur         = 12.0;       % sentence display/speaking time (used by Task_*)
@@ -51,7 +51,7 @@ cfg.CONSERVE_VRAM_MODE    = 4096;
 
 % Choose LOCAL_TEST mode explicitly (Task_* branches on this)
 % Set to false on the OR rig; set true on a laptop for quick dry-runs.
-cfg.LOCAL_TEST            = 1;
+cfg.LOCAL_TEST            = 0;
 
 % Paths and device configuration (point at DAF task)
 if strcmpi(getenv('COMPUTERNAME'), 'BML-ALIENWARE2') %% intrasurgical rig laptop

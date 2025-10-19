@@ -47,8 +47,8 @@ if ~cfg.LOCAL_TEST
     % Select output and input devices based on Host API and user configuration
     apiMask = contains(pa_tbl.HostAudioAPIName, cfg.HOST_AUDIO_API_NAME, 'IgnoreCase', true);
     outMask = apiMask & pa_tbl.NrOutputChannels > 0;
-    if isfield(cfg,'AUDIO_DEVICE_OUT') && ~isempty(cfg.AUDIO_DEVICE)
-        outMask = outMask & contains(pa_tbl.DeviceName, cfg.AUDIO_DEVICE, 'IgnoreCase', true);
+    if isfield(cfg,'AUDIO_DEVICE_OUT') && ~isempty(cfg.AUDIO_DEVICE_OUT)
+        outMask = outMask & contains(pa_tbl.DeviceName, cfg.AUDIO_DEVICE_OUT, 'IgnoreCase', true);
     end
     if ~any(outMask)
         disp(pa_tbl); error('No OUTPUT device matched HostAPI "%s".', cfg.HOST_AUDIO_API_NAME);
