@@ -12,7 +12,7 @@ cfg.DATA_TYPE     = 'task';
 % Task metadata (non-PTB task entry point)
 cfg.TASK          = 'daf';
 cfg.TASK_VERSION  = 1;
-cfg.TASK_FUNCTION = 'test_task.m';
+cfg.TASK_FUNCTION = 'task_daf.m';
 cfg.daf_stim_file = 'daf_sentences.tsv'; % Stim text file
 
 % Core DAF parameters
@@ -26,7 +26,7 @@ cfg.fix_cross_dur            = 0.0;   % seconds
 cfg.delay_dur                = 0.0;   % seconds
 cfg.text_stim_dur            = 12.0;  % seconds
 cfg.iti                      = 2.0;   % symmetry with preop (not used directly)
-cfg.stim_font_size           = 65;
+cfg.stim_font_size           = 5;
 cfg.stim_max_char_per_line   = 38;
 cfg.catchRatio               = 0;
 cfg.max_stim_repeats         = 2;
@@ -158,7 +158,7 @@ if ~isfile(task_function)
 end
 copyfile(task_function, [cfg.PATH_LOG filesep cfg.BASE_NAME 'script.m']);
 
-test_task(cfg);
+task_daf(cfg);
 
 % --- Cleanup ---
 clear onCleanupTasks;

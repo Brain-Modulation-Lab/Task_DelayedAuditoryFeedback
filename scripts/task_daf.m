@@ -1,4 +1,4 @@
-function task_daf(cfg)
+function task_daf_nonptb(cfg)
 
 %%%% run delayed auditory feedback task; in or out of operating room
 % by Sam Hansen (SH), Andrew Meier (AM); adapted from other Brain Modulation Lab (BML) scripts
@@ -14,7 +14,7 @@ TRIG_DAF = 4; % Delayed auditory feedback on/off
 TRIG_KEY = 8; % Keyboard escape key press
 
 %% Trial table
-[cfg, trials] = create_trials_table(cfg);
+[cfg, trials, text_wrapped_all] = create_trials_table(cfg);
 
 %% Initializing log files
 eventFile = fopen(cfg.EVENT_FILENAME, 'w');
@@ -37,199 +37,15 @@ if isempty(cfg.KEYBOARD_ID)
     end
     disp(devices);
 end
-% % % 
-% % % % Initialize Psychtoolbox sound with low latency
-% % % InitializePsychSound(1);
-% % % 
-% % % % Audio device selection and opening for full duplex playback and recording
-% % % if ~cfg.LOCAL_TEST
-% % %     pa_tbl = struct2table(PsychPortAudio('GetDevices'));    
-% % %     % Select output and input devices based on Host API and user configuration
-% % %     apiMask = contains(pa_tbl.HostAudioAPIName, cfg.HOST_AUDIO_API_NAME, 'IgnoreCase', true);
-% % %     outMask = apiMask & pa_tbl.NrOutputChannels > 0;
-% % %     if isfield(cfg,'AUDIO_DEVICE_OUT') && ~isempty(cfg.AUDIO_DEVICE_OUT)
-% % %         outMask = outMask & contains(pa_tbl.DeviceName, cfg.AUDIO_DEVICE_OUT, 'IgnoreCase', true);
-% % %     end
-% % %     if ~any(outMask)
-% % %         disp(pa_tbl); error('No OUTPUT device matched HostAPI "%s".', cfg.HOST_AUDIO_API_NAME);
-% % %     end
-% % %     [~, io] = max(pa_tbl.NrOutputChannels(outMask));
-% % %     outIdx = find(outMask);
-% % %     outIdx = outIdx(io);
-% % %     cfg.AUDIO_ID = pa_tbl.DeviceIndex(outIdx);
-% % %     pa_channels = min(2, pa_tbl.NrOutputChannels(outIdx));
-% % % 
-% % %     % Input selection
-% % %     inMask = apiMask & pa_tbl.NrInputChannels > 0;
-% % %     if isfield(cfg,'AUDIO_DEVICE_IN') && ~isempty(cfg.AUDIO_DEVICE_IN)
-% % %         inMask = inMask & contains(pa_tbl.DeviceName, cfg.AUDIO_DEVICE_IN, 'IgnoreCase', true);
-% % %     end
-% % %     if ~any(inMask)
-% % %         disp(pa_tbl); error('No INPUT device matched HostAPI "%s".', cfg.HOST_AUDIO_API_NAME);
-% % %     end
-% % %     [~, ii] = max(pa_tbl.NrInputChannels(inMask));
-% % %     inIdx = find(inMask);
-% % %     inIdx = inIdx(ii);
-% % %     cfg.AUDIO_IN_ID = pa_tbl.DeviceIndex(inIdx);
-% % % 
-% % %     % Open audio devices: master playback, recorder, and slave for output routing
-% % %     pa_mode = 1 + 8; % playback + master
-% % %     pa_reqlatencyclass = 0; % robust low-latency
-% % % 
-% % %     % AM added the following line [PsychPortAudio('Close')] to make sure that the master audio device
-% % %     % is closed before trying to open it (it might still be open if script
-% % %     % was run and aborted before closing)
-% % %     PsychPortAudio('Close')
-% % %     cfg.pa_master = PsychPortAudio('Open', cfg.AUDIO_ID, pa_mode, pa_reqlatencyclass, [], pa_channels);
-% % %     statusMaster = PsychPortAudio('GetStatus', cfg.pa_master);
-% % %     Fs = statusMaster.SampleRate;
-% % %     fprintf('Using hardware sample rate: %d Hz\n', Fs);
-% % % 
-% % %     %%%% open recorder & slave with same Fs
-% % %     % AM note: some other BML scripts force the audio recording device to
-% % %     % have the same sample rate (arugment 5 in PsychPortAudio('Open')) as master device; 
-% % %     % however this causes errors when master = Radial USB and recording = Focusrite
-% % %     cfg.pa_rec = PsychPortAudio('Open', cfg.AUDIO_IN_ID, 2, pa_reqlatencyclass, [], 1);
-% % %     cfg.pa_slave3 = PsychPortAudio('OpenSlave', cfg.pa_master, 1, pa_channels);
-% % % 
-% % %     % Prime device buffers and start audio streams
-% % %     PsychPortAudio('GetAudioData', cfg.pa_rec, 10);
-% % %     PsychPortAudio('Start', cfg.pa_master, 0, 0, 0);
-% % %     WaitSecs(0.02);
-% % %     PsychPortAudio('Start', cfg.pa_rec, 0, 0, 0);
-% % % else
-% % %     % Local test mode: skip hardware setup and use default parameters
-% % %     fprintf('LOCAL_TEST: skipping audio setup\n');
-% % %     Fs = 48000;
-% % %     cfg.pa_master = [];
-% % %     cfg.pa_rec = [];
-% % %     cfg.pa_slave3 = [];
-% % % end
-% % % 
-% % % % Compute delay times in audio samples from milliseconds, store in map
-% % % uniqueDelaysMs = unique(round(cfg.delayOptions(:)));
-% % % delayMsToSamples = containers.Map('KeyType','int32','ValueType','double');
-% % % for k = 1:numel(uniqueDelaysMs)
-% % %     delayMsToSamples(int32(uniqueDelaysMs(k))) = Fs * (uniqueDelaysMs(k)/1000);
-% % % end
-% % % 
-% % % % Map trial delay ms to samples (double precision for accuracy)
-% % % ntrials = height(trials);
-% % % trialDelaySamples = zeros(ntrials,1,'double');
-% % % for i = 1:ntrials
-% % %     trialDelaySamples(i) = delayMsToSamples(int32(round(trials.delay(i))));
-% % % end
-% % % 
-% % % % Configure max delay for fractional delay filter and create filter instance
-% % % maxDelaySamples = max(ceil(max(trialDelaySamples)), round(0.25 * Fs) );
-% % % vfd = dsp.VariableFractionalDelay('MaximumDelay', maxDelaySamples);
-% % % 
-% % % % Default background color if not specified, normalized just before window open
-% % % if ~isfield(cfg,'bg_color')
-% % %     cfg.bg_color = [255 255 255];
-% % % end
-% % % 
-% % % % Normalize color
-% % % if max(cfg.bg_color) > 1
-% % %     cfg.bg_color = double(cfg.bg_color)./255;
-% % % end
-% % % 
-% % % % Get the largest screen number (usually the main display)
-% % % scr = max(Screen('Screens'));
-% % % 
-% % % % Open Psychtoolbox screen window, fullscreen or windowed depending on mode
-% % % if cfg.LOCAL_TEST
-% % %     % Tell PTB to create a real GUI window instead of fullscreen
-% % %     PsychImaging('PrepareConfiguration');
-% % %     PsychImaging('AddTask', 'General', 'UseGUIWindow');
-% % %     debugWindowWidth = 1024;
-% % %     debugWindowHeight = 640;
-% % %     sr = Screen('Rect', scr);
-% % %     cx = (sr(3)-debugWindowWidth)/2;
-% % %     cy = (sr(4)-debugWindowHeight)/2;
-% % %     windowRect = [cx, cy, cx+debugWindowWidth, cy+debugWindowHeight];
-% % %     [window, ~] = PsychImaging('OpenWindow', scr, cfg.bg_color, windowRect);
-% % %     fprintf('Opened PTB LOCAL_TEST in a real desktop window (%dx%d, resizable/movable)\n', ...
-% % %             debugWindowWidth, debugWindowHeight);
-% % % else
-% % %     % Standard fullscreen mode
-% % %     [window, ~] = PsychImaging('OpenWindow', scr, cfg.bg_color);
-% % % end
-% % % 
-% % % % Set alpha blending for smooth text and stimuli
-% % % Screen('BlendFunction', window, GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-% % % Screen('TextSize', window, cfg.stim_font_size);
-% % % 
-% % % % Build an offscreen texture for each wrapped stim text
-% % % stimTex = nan(cfg.n_unique_stim,1);
-% % % textColor = [0 0 0];
-% % % for si = 1:cfg.n_unique_stim
-% % %     off = Screen('OpenOffscreenWindow', window, cfg.bg_color);
-% % %     Screen('TextSize', off, cfg.stim_font_size); 
-% % % % % % % % %     DrawFormattedText(off, text_wrapped_all{si}, 'center', 'center', textColor); % commented out and replaced by AM 2025/10/18
-% % %     DrawFormattedText(off, trials.stim{si}, 'center', 'center', textColor); 
-% % %     stimTex(si) = off;
-% % % end
-% % % 
-% % % % Calculate fixation cross coordinates and properties for drawing
-% % % [winW, winH] = Screen('WindowSize', window);
-% % % [cx, cy] = RectCenter([0 0 winW winH]);
-% % % arm = 40;
-% % % lw = 5;
-% % % xy = [ cx-arm, cx+arm, cx, cx;
-% % %     cy, cy, cy-arm, cy+arm ];
 
 % Set up keyboard escape key identification and priority
 KbName('UnifyKeyNames');
 ESC = KbName('ESCAPE');
 device = []; % default keyboard
-% % % 
-% % % if ~cfg.LOCAL_TEST
-% % %     Priority(MaxPriority(window)); % raise MATLAB priority for experiment timing
-% % % else
-% % %     Priority(0); % normal priority for debug mode
-% % % end
 
 % Enable keyboard listening without echoing characters to command window
 ListenChar(0);
 ShowCursor;
-% % % 
-% % % %% ******************************************************************** %%
-% % % %                         TASK SPECIFIC SECTION                          %
-% % % %  ********************************************************************  %
-% % % 
-% % % fprintf('%s Task run is starting...\n', cfg.TASK);
-% % % fprintf('\nStarting run %i at %s \n',cfg.RUN_ID,datestr(now,'HH:MM:SS am'));
-% % % fprintf('RUN ID: %i\n\n',cfg.RUN_ID);
-% % % 
-% % % %% Display instructions screen and wait for keypress to start
-% % % instr = 'INSTRUCTIONS\n\nWhen text appears on the screen,\n Read as quickly and accurately as possible.\n\nPress any key to begin...';
-% % % Screen('FillRect', window, cfg.bg_color);
-% % % DrawFormattedText(window, instr, 'center', 'center', [0 0 0]);
-% % % [instrOn, ~] = Screen('Flip', window);
-% % % KbReleaseWait(device); % swallow any prior keypress
-% % % [~, keyCode] = KbStrokeWait(device); % blocks until a key is pressed
-% % % 
-% % % goto_cleanup = keyCode(ESC) > 0; % exit if ESC pressed here
-% % % if goto_cleanup
-% % %     if ~cfg.LOCAL_TEST
-% % %         try PsychPortAudio('Stop',  cfg.pa_slave3, 1, 1); catch, end
-% % %         try PsychPortAudio('Stop',  cfg.pa_rec,    1, 1); catch, end
-% % %         try PsychPortAudio('Stop',  cfg.pa_master, 1, 1); catch, end
-% % %         try PsychPortAudio('Close', cfg.pa_slave3);       catch, end
-% % %         try PsychPortAudio('Close', cfg.pa_rec);          catch, end
-% % %         try PsychPortAudio('Close', cfg.pa_master);       catch, end
-% % %     end
-% % %     try Screen('CloseAll'); catch, end
-% % %     try fclose(eventFile);  catch, end
-% % %     try KbQueueRelease;     catch, end
-% % %     try Priority(0);        catch, end
-% % %     try ListenChar(0);      catch, end
-% % %     try ShowCursor;         catch, end
-% % %     return
-% % % end
-
-
 
 %% Audio setup
 
@@ -294,7 +110,7 @@ instructions = [
     'Press any key to begin...'
 ];
 set(hText, 'String', sprintf(instructions), ...
-    'FontSize', 55, ...
+    'FontSize', cfg.stim_font_size, ...
     'Color', 'black'); % Show instructions
 figure(fig); % Bring main window to front
 instrOn = GetSecs(); % get instructions presentation time
@@ -360,8 +176,6 @@ for itrial = 1:cfg.ntrials
         fixColor = [0 0 0];
     end
 
-% % %     delay_samples = trialDelaySamples(itrial);
-
     delay_samples = cfg.audio_sample_rate * trials.delay(itrial) / 1000; % Trial parameters 
         
     for iframe = 1:maxDelayFrames
@@ -374,17 +188,11 @@ for itrial = 1:cfg.ntrials
     fprintf('Starting trial %d with stim index %d and delay %d ms\n', itrial, trials.stim_idx(itrial), trials.delay(itrial));
 
     % ITI with fixation cross display and log
-% % %     Screen('FillRect', window, cfg.bg_color);
-% % %     Screen('DrawLines', window, xy, lw, fixColor);
-
     set(hText, 'String', '*', 'FontSize', cfg.stim_font_size, 'Color', ifelse(~trials.catch_trial(itrial), [0.7 0.7 0.7], 'red')); % Show asterisk cue
     drawnow;
     itiFixOnTime = GetSecs; 
 
-
     flipSyncState = ~flipSyncState;
-
-% % %    [itiFixOnTime, ~] = Screen('Flip', window);
 
     % record the time when fixation cross comes on
     trials.fix_time(itrial) = baseClock + seconds(itiFixOnTime - baseGetSecs);
@@ -407,34 +215,14 @@ for itrial = 1:cfg.ntrials
     WaitSecs(0.005);
     if goto_cleanup, break; end
 
-% % %     % Pre stim blank screen followed by configured delay before stimulus
-% % %     Screen('FillRect', window, cfg.bg_color);
-% % %     Screen('Flip', window);
-
-
     WaitSecs(cfg.delay_dur);
 
-    % DAF audio playback start (for speech trials, non-local mode only)
-% % %     if isSpeak && ~cfg.LOCAL_TEST
-% % %         % Prefill silence to give the slave FIFO some headroom:
-% % %         prefill = zeros(pa_channels, round(0.25 * Fs), 'double');
-% % %         PsychPortAudio('FillBuffer', cfg.pa_slave3, prefill);
-% % %         reset(vfd);
-% % %         PsychPortAudio('Start', cfg.pa_slave3, 0, 0, 0);
-% % %         flipSyncState = ~flipSyncState;
-% % %         code = TRIG_DAF;
-% % %         dafTriggerTime = GetSecs();
-% % %         log_event(eventFile, cfg.DIGOUT, dafTriggerTime, [], [], trialType, [], code, 'DAF On', flipSyncState);
-% % %     end
-
-    % Visual stimulus on: draw text texture and flip screen
-    set(hText, 'String', trials.stim{itrial}, 'FontSize', cfg.stim_font_size, 'Color', 'black'); drawnow; % Show sentence
+    % Visual stimulus on: draw text
+    wrapped_text = text_wrapped_all{trials.stim_idx(itrial)};
+    set(hText, 'String', wrapped_text, 'FontSize', cfg.stim_font_size, 'Color', 'black'); drawnow; % Show sentence
     stimOnsetTime = GetSecs(); 
 
-% % %     Screen('FillRect', window, cfg.bg_color);
-% % %     Screen('DrawTexture', window, stimTex(trials.stim_idx(itrial)));
     flipSyncState = ~flipSyncState;
-% % %     [stimOnsetTime, ~] = Screen('Flip', window);
     trials.visual_onset_time(itrial) = baseClock + seconds(stimOnsetTime - baseGetSecs);
     code = TRIG_VISUAL;
     text_stim = trials.stim{itrial};
@@ -442,74 +230,6 @@ for itrial = 1:cfg.ntrials
 
     % Streaming Loop: read microphone audio, apply delay, output delayed audio
     if ~trials.catch_trial(itrial) && ~cfg.LOCAL_TEST
-% % %         KbQueueFlush(device);
-% % %         trialStart = GetSecs();
-% % %         if doSoftLag
-% % %             lagSum = 0; 
-% % %             lagN   = 0;
-% % %         end
-% % %         while (GetSecs - trialStart) < cfg.text_stim_dur
-% % %             % ESC abort check in streaming loop
-% % %             [pressed, fp] = KbQueueCheck(device);
-% % %             if pressed && fp(ESC) > 0
-% % %                 flipSyncState = ~flipSyncState;
-% % %                 log_event(eventFile, cfg.DIGOUT, GetSecs(), [], [], speechVsCatch, [], TRIG_KEY, 'Escape/Stop', flipSyncState);
-% % %                 goto_cleanup = true;
-% % %                 break
-% % %             end
-% % %     
-% % %             % Non-blocking audio input read with max length blockSamples
-% % %             [a, tCapFirst, ~] = PsychPortAudio('GetAudioData', cfg.pa_rec, [], 0, 0, 1);
-% % % 
-% % %             % Mix stereo to mono if needed, zero pad or truncate
-% % %             if ~isempty(a)
-% % %                 if size(a,1) > 1, a = mean(a,1); end % mixdown to mono
-% % %                 a = a(:);
-% % %             else
-% % %                 a = single([]); % keep type stable
-% % %             end
-% % %             n = numel(a);
-% % %             if n < blockSamples
-% % %                 a = [a; zeros(blockSamples-n,1,'single')];
-% % %             elseif n > blockSamples
-% % %                 a = a(end-blockSamples+1:end);
-% % %             end
-% % % 
-% % %             % Apply configured fractional delay to input audio block
-% % %             delayed = vfd(single(a), single(delay_samples));
-% % %             y = double(delayed(:)).' * cfg.audio_playback_gain;
-% % %             y = max(min(y, 1), -1);
-% % %             
-% % %             % Optional soft lag diagnostics tracking delay performance
-% % %             if doSoftLag && ~isempty(tCapFirst) && n > 0
-% % %                 tCapLast = tCapFirst + (min(n, blockSamples)-1)/Fs; % timestamp for last captured sample in this block
-% % %                 tEnq = GetSecs();
-% % %                 extra_s = (tEnq - tCapLast) - double(delay_samples)/Fs; % extra over requested delay
-% % %                 if extra_s > 0
-% % %                     lagSum = lagSum + extra_s;
-% % %                     lagN = lagN + 1;
-% % %                 end
-% % %             end
-% % % 
-% % %             % Fill output buffers for either stereo or mono output
-% % %             if pa_channels >= 2
-% % %                 streamBufStereo(1,:) = y;
-% % %                 streamBufStereo(2,:) = y;
-% % %                 PsychPortAudio('FillBuffer', cfg.pa_slave3, streamBufStereo, 1); % streaming refill
-% % %             else
-% % %                 PsychPortAudio('FillBuffer', cfg.pa_slave3, y, 1);
-% % %             end
-% % %         end
-% % % 
-% % %         % Save mean lag time in milliseconds for trial, or NaN if none measured
-% % %         if doSoftLag && lagN > 0
-% % %             trials.lag_mean(itrial) = 1000 * (lagSum / lagN);
-% % %         else
-% % %             trials.lag_mean(itrial) = NaN;
-% % %         end
-% % % 
-% % %         if goto_cleanup, break; end
-
         DAop.audio_sample_ratetart = GetSecs;
         frameCounter = 0;
         while (GetSecs - DAop.audio_sample_ratetart) < cfg.text_stim_dur && ~getappdata(0,'stopReq') % While within trial duration and not stopped
@@ -552,7 +272,6 @@ for itrial = 1:cfg.ntrials
 
     % DAF off
     if ~trials.catch_trial(itrial) && ~cfg.LOCAL_TEST
-% % %         PsychPortAudio('Stop', cfg.pa_slave3, 0, 0);
         flipSyncState = ~flipSyncState;
         dafOffTime = GetSecs();
         code = TRIG_DAF;
@@ -560,15 +279,10 @@ for itrial = 1:cfg.ntrials
     end
 
     % Visual off
-% % %     Screen('FillRect', window, cfg.bg_color);
-
-    
     flipSyncState = ~flipSyncState;
 
     set(hText, 'String', '');
     drawnow; % Clear
-
-% % %     [visOffTime, ~] = Screen('Flip', window);
 
     visOffTime = GetSecs(); 
 
@@ -602,27 +316,11 @@ release(writer);
 release(vfd);
 close(fig);
 
-% % % % Stop and close audio devices
-% % % if ~cfg.LOCAL_TEST
-% % %     try PsychPortAudio('Stop',  cfg.pa_rec,    1, 1); catch, end
-% % %     try PsychPortAudio('Stop',  cfg.pa_master, 1, 1); catch, end
-% % %     try PsychPortAudio('Stop',  cfg.pa_slave3, 1, 1); catch, end
-% % %     try PsychPortAudio('Close', cfg.pa_slave3);       catch, end
-% % %     try PsychPortAudio('Close', cfg.pa_rec);          catch, end
-% % %     try PsychPortAudio('Close', cfg.pa_master);       catch, end
-% % % end
-
-% % % % Close offscreen text windows
-% % % for si = 1:numel(stimTex)
-% % %     if ~isnan(stimTex(si)), Screen('Close', stimTex(si)); end
-% % % end
-
-% Release keyboard queue, reset priority and listeners, close screen
+% Release keyboard queue, reset priority and listeners
 try KbQueueRelease(device); catch, end
 try ListenChar(0);          catch, end
 try ShowCursor;             catch, end
 try Priority(0);            catch, end
-% % % try Screen('CloseAll');     catch, end
 
 % Close the event file safely
 try fclose(eventFile);      catch, end

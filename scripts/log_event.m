@@ -42,7 +42,7 @@ if isempty(stim_file),  stim_file  = 'n/a'; end
 if isempty(event_name), event_name = 'n/a'; end
 
 fprintf(file,'%10.6f\t%6.6f\t%i\t"%s"\t"%s"\t%i\t"%s"\n', onset - t0, dur, samp, trial_type, stim_file, val + 32768 * flip_sync, event_name);
-fflush(file); % optional but recommended
+% fflush(file); % optional but recommended
 
 end
 

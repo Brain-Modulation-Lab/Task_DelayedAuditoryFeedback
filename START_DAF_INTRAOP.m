@@ -12,7 +12,7 @@ cfg.DATA_TYPE     = 'task';
 % Task metadata (match preop naming so Task_*.m runs unchanged)
 cfg.TASK          = 'daf';
 cfg.TASK_VERSION  = 1;
-cfg.TASK_FUNCTION = 'task_daf_nonptb.m';
+cfg.TASK_FUNCTION = 'task_daf.m';
 cfg.daf_stim_file = 'daf_sentences.tsv'; % Stim text file
 
 % Core DAF parameters REQUIRED by Task_DelayedAuditoryFeedback
@@ -26,7 +26,7 @@ cfg.fix_cross_dur         = 0.0;        % pre-sentence fix (Task_* uses its own 
 cfg.delay_dur             = 0.0;        % pre-visual onset delay (used by Task_*)
 cfg.text_stim_dur         = 12.0;       % sentence display/speaking time (used by Task_*)
 cfg.iti                   = 2.0;        % not read by Task_* (kept for symmetry)
-cfg.stim_font_size        = 65;         % used by Task_*
+cfg.stim_font_size        = 45;         % used by Task_*
 cfg.stim_max_char_per_line= 38;         % used by Task_* wrapping
 cfg.catchRatio            = 0;          % used by Task_* to assign catch trials
 cfg.max_stim_repeats      = 2;          % max consecutive repeats of same stimulus within a block
@@ -169,7 +169,7 @@ if ~isfile(task_function)
 end
 copyfile(task_function, [cfg.PATH_LOG filesep cfg.BASE_NAME 'script.m']);
 
-task_daf_nonptb(cfg);
+task_daf(cfg);
 
 % --- Cleanup ---
 clear onCleanupTasks;
