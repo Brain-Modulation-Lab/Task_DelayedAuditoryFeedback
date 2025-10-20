@@ -18,16 +18,14 @@ cfg.daf_stim_file = 'daf_sentences.tsv'; % Stim text file
 % Core DAF parameters REQUIRED by Task_DelayedAuditoryFeedback
 cfg.n_blocks              = 1;          % number of blocks
 cfg.max_trials            = 30;         % optional cap (same default as preop)
-% % % cfg.pause_between_blocks  = 0;          % not used by Task_*, included for parity
 cfg.audio_sample_rate     = 44100;      % Audio sample rate in Hz
 cfg.audio_frame_size      = 128;        % block size Task_* uses for streaming; Sam's default = 128
 cfg.audio_playback_gain   = 0.1;          % DAF output gain
 cfg.fix_cross_dur         = 0.0;        % pre-sentence fix (Task_* uses its own ITI_S but we keep parity)
 cfg.delay_dur             = 0.0;        % pre-visual onset delay 
 cfg.text_stim_dur         = 12.0;       % sentence display/speaking time 
-% % % cfg.iti                   = 2.0;        % not read by Task_* (kept for symmetry)
 cfg.stim_font_size        = 50;         % use 50 on intraop rig
-cfg.stim_max_char_per_line= 38;         % maximum number of chars per line in ortho stim figure, for text wrapping
+cfg.stim_max_char_per_line= 30;         % maximum number of chars per line in ortho stim figure, for text wrapping
 cfg.catchRatio            = 0;          % proportion of trials which are no-speech catch trials
 cfg.max_stim_repeats      = 2;          % max consecutive repeats of same stimulus within a block
 cfg.max_delay_repeats     = 4;          % max consecutive repeats of same delays within a block
@@ -46,7 +44,7 @@ cfg.no_audio_debug_mode   = true;
 cfg.LAG_DIAGNOSTICS       = true;
 
 % Audio / PTB preferences
-cfg.HOST_AUDIO_API_NAME   = 'Windows WASAPI';
+
 cfg.SKIP_SYNC_TEST        = 1;          % safe for bench/windowed testing; set 0 in OR if fully synced desired
 cfg.CONSERVE_VRAM_MODE    = 4096;
 
@@ -58,6 +56,7 @@ cfg.LOCAL_TEST            = 0;
 if strcmpi(getenv('COMPUTERNAME'), 'BML-ALIENWARE2') %% intrasurgical rig laptop
     cfg.PATH_TASK       = 'D:\Task\Task_DelayedAuditoryFeedback';
     cfg.PATH_SOURCEDATA = 'D:\DBS\sourcedata';
+    cfg.AUDIO_DEVICE_IN = 'Focusrite USB ASIO'; 
     cfg.AUDIO_DEVICE_OUT = 'Speakers (Radial USB Pro)';
 %     cfg.AUDIO_DEVICE_OUT = 'Speakers (HIFI Audio)'; % for testing without Radial USB
 elseif ismac

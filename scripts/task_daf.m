@@ -48,42 +48,27 @@ ListenChar(0);
 ShowCursor;
 
 %% Audio setup
-
-% List available audio input devices.... sometimes crashes matlab on intraop rig Alienware laptop 
-input_devices = getAudioDevices(audioDeviceReader); 
-for k = 1:length(input_devices)
-    fprintf('%d: %s\n', k, input_devices{k});
-end
-inIdx = input('INPUT device #: '); % User selects input device
-
-% if using focusrite on BML intraop rig, specify the correct audio driver
 if ispc % If running on a Windows
     [~,host] = system('hostname');
-    host     = deblank(host);
+    cfg.host     = deblank(host);
+    audio_reader = audioDeviceReader('Device', cfg.AUDIO_DEVICE_IN, ... % Live mic input  
+        'SampleRate', cfg.audio_sample_rate, ...
+        'SamplesPerFrame', cfg.audio_frame_size, ...
+        'Driver','ASIO'); % WASAPI is lower latency than DirectSound 
 elseif ismac % If running on a Mac
     [~,host] = system('scutil --get LocalHostName');
-    host     = deblank(host);
-end
-if strcmp(host,'BML-ALIENWARE2')
-    reader = audioDeviceReader('SampleRate', cfg.audio_sample_rate, ...
-        'SamplesPerFrame', cfg.audio_frame_size, ...
-        'Device', 'Focusrite USB ASIO',...
-        'Driver','ASIO'); % Live mic input  
-else
-    reader = audioDeviceReader('SampleRate', cfg.audio_sample_rate,...
-        'SamplesPerFrame', cfg.audio_frame_size,...
-        'Device', input_devices{inIdx}); % Live mic input
+    cfg.host     = deblank(host);
+    audio_reader = audioDeviceReader('Device', cfg.AUDIO_DEVICE_IN, ... % Live mic input  
+        'SampleRate', cfg.audio_sample_rate, ...
+        'SamplesPerFrame', cfg.audio_frame_size); 
 end
 
-output_devices = getAudioDevices(audioDeviceWriter); % List available audio output devices
-for k = 1:length(output_devices)
-    fprintf('%d: %s\n', k, output_devices{k});
-end
-outIdx = input('OUTPUT device #: '); % User selects output device
+audio_writer = audioDeviceWriter('Device', cfg.AUDIO_DEVICE_OUT,...
+    'SampleRate', cfg.audio_sample_rate); %,...
+%     'Driver',windows_audio_driver); 
 
-writer = audioDeviceWriter('SampleRate', cfg.audio_sample_rate, 'Device', output_devices{outIdx}); % Speaker output
 vfd = dsp.VariableFractionalDelay('MaximumDelay', round(cfg.audio_sample_rate)); % Delay buffer for DAF
-for k = 1:10, writer(reader()); end % Prime audio pipeline (avoid startup glitch)
+for k = 1:10, audio_writer(audio_reader()); end % Prime audio pipeline (avoid startup glitch)
 maxDelay_ms = max(cfg.delay_values_ms); % Find largest delay (ms)
 maxDelayFrames = ceil((maxDelay_ms/1000) * cfg.audio_sample_rate / cfg.audio_frame_size) + 5; % Max delay in frames, add buffer
 
@@ -182,7 +167,7 @@ for itrial = 1:cfg.ntrials
     delay_samples = cfg.audio_sample_rate * trials.delay(itrial) / 1000; % Trial parameters 
         
     for iframe = 1:maxDelayFrames
-        writer(zeros(cfg.audio_frame_size,1)); % Flush output buffer
+        audio_writer(zeros(cfg.audio_frame_size,1)); % Flush output buffer
         vfd(zeros(cfg.audio_frame_size,1), delay_samples); % Flush delay buffer
     end
     vfd.reset(); % Reset delay state
@@ -240,10 +225,10 @@ for itrial = 1:cfg.ntrials
         frameCounter = 0;
         while (GetSecs - DAop.audio_sample_ratetart) < cfg.text_stim_dur && ~getappdata(0,'stopReq') % While within trial duration and not stopped
             tStart = GetSecs; % Start timing for this frame
-            audioIn = reader(); 
+            audioIn = audio_reader(); 
             delayed = vfd(audioIn, delay_samples); % Get input, apply delay
             audioOut = max(min(cfg.audio_playback_gain * delayed, 1), -1); % Apply gain, clip to [-1,1]
-            writer(audioOut); % Output delayed audio
+            audio_writer(audioOut); % Output delayed audio
             lag = max((GetSecs - tStart)*1000 - (cfg.audio_frame_size/cfg.audio_sample_rate*1000), 0); % Compute audio processing lag in ms
             lagBuffer(lagIndex) = lag; % Store lag
             lagIndex = mod(lagIndex, 5000) + 1; % Circular buffer
@@ -256,7 +241,7 @@ for itrial = 1:cfg.ntrials
         end
         for iframe = 1:maxDelayFrames
             audioOut = vfd(zeros(cfg.audio_frame_size,1), delay_samples); % Flush remaining delayed audio
-            writer(audioOut);
+            audio_writer(audioOut);
         end
         vfd.reset();
         WaitSecs(0.1); % Short pause to finish playback
@@ -317,8 +302,8 @@ fprintf('\nTask %s, session %s, run %i for %s ended at %s\n', ...
 fprintf('RUN ID: %i\n',cfg.RUN_ID);
 
 % Release hardware, close windows
-release(reader); 
-release(writer);
+release(audio_reader); 
+release(audio_writer);
 release(vfd);
 close(hfig_stim);
 
