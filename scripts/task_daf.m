@@ -89,8 +89,9 @@ maxDelayFrames = ceil((maxDelay_ms/1000) * cfg.audio_sample_rate / cfg.audio_fra
 
 %% Stimulus figure setup
 screenSize = get(0, 'ScreenSize'); % Get screen size for centering
-fig = figure('Name','DAF','Color','white','MenuBar','none','ToolBar','none','Position',[screenSize(3)/4 screenSize(4)/4 900 600],'NumberTitle','off'); % Main experiment window
-ax = axes('Parent',fig,'Position',[0 0 1 1],'Visible','off'); % Invisible axes for center-center text
+hfig_stim = figure('Name','DAF','Color','white','MenuBar','none','ToolBar','none',... % make stimulus figure
+    'Position', [0 0 screenSize(3) screenSize(4)],'NumberTitle','off'); % position = [left bottom width height]... full screen
+ax = axes('Parent',hfig_stim,'Position',[0 0 1 1],'Visible','off'); % Invisible axes for center-center text
 hText = text(0.5, 0.5, '', ...
     'FontSize', cfg.stim_font_size, ...
     'FontWeight', 'bold', ...
@@ -98,6 +99,9 @@ hText = text(0.5, 0.5, '', ...
     'VerticalAlignment', 'middle', ...
     'Units','normalized', ...
     'Parent', ax); % Centered text object for all instructions/cues
+pdiode_square_length = 0.05; % relative to figure size
+hSquare = annotation('rectangle','FaceColor', [1 1 1],'EdgeColor', 'none', ... % square to be recorded by photodiode
+    'Position', [0, 1-pdiode_square_length, pdiode_square_length, pdiode_square_length]); % [x y width height]... upper left
 stopFig = figure('Name','Stop','NumberTitle','off','MenuBar','none','ToolBar','none','Position',[300 100 200 80]); % Stop window
 setappdata(0, 'stopReq', false); % Shared flag for stopping experiment
 uicontrol(stopFig,'Style','pushbutton','String','Stop','FontSize',14,'Position',[50 20 100 40],'Callback', @(~,~) setappdata(0,'stopReq',true)); % Stop button sets flag
@@ -106,17 +110,16 @@ uicontrol(stopFig,'Style','pushbutton','String','Stop','FontSize',14,'Position',
 instructions = [
     'INSTRUCTIONS\n\n' ...
     'When text appears on the screen,\n'...
-    'Read as quickly and accurately as possible.\n\n' ...
-    'Press any key to begin...'
+    'read it out loud as accurately as possible.' ...
 ];
 set(hText, 'String', sprintf(instructions), ...
-    'FontSize', cfg.stim_font_size, ...
+    'FontSize', 45, ...
     'Color', 'black'); % Show instructions
-figure(fig); % Bring main window to front
+figure(hfig_stim); % Bring main window to front
 instrOn = GetSecs(); % get instructions presentation time
-set(fig, 'WindowKeyPressFcn', @(~,~) uiresume(fig)); % Resume on any key
-uiwait(fig); % Wait for user keypress
-set(fig, 'WindowKeyPressFcn', ''); % Remove keypress handler
+set(hfig_stim, 'WindowKeyPressFcn', @(~,~) uiresume(hfig_stim)); % Resume on any key
+uiwait(hfig_stim); % Wait for user keypress
+set(hfig_stim, 'WindowKeyPressFcn', ''); % Remove keypress handler
 set(hText, 'String', ''); drawnow; % Clear text
 beepWave = 0.1 * sin(2*pi*1000*(0:1/cfg.audio_sample_rate:0.2)); % 200ms, 1kHz beep
 set(hText, 'String', 'SYNC', 'FontSize', 48, 'Color', 'red'); drawnow; % Show sync message
@@ -189,6 +192,7 @@ for itrial = 1:cfg.ntrials
 
     % ITI with fixation cross display and log
     set(hText, 'String', '*', 'FontSize', cfg.stim_font_size, 'Color', ifelse(~trials.catch_trial(itrial), [0.7 0.7 0.7], 'red')); % Show asterisk cue
+    set(hSquare, 'FaceColor', [1 1 1]); % switch photodiode square to white
     drawnow;
     itiFixOnTime = GetSecs; 
 
@@ -219,7 +223,9 @@ for itrial = 1:cfg.ntrials
 
     % Visual stimulus on: draw text
     wrapped_text = text_wrapped_all{trials.stim_idx(itrial)};
-    set(hText, 'String', wrapped_text, 'FontSize', cfg.stim_font_size, 'Color', 'black'); drawnow; % Show sentence
+    set(hText, 'String', wrapped_text, 'FontSize', cfg.stim_font_size, 'Color', 'black'); 
+    set(hSquare, 'FaceColor', [0 0 0]); % switch photodiode square to black
+    drawnow; % Show sentence
     stimOnsetTime = GetSecs(); 
 
     flipSyncState = ~flipSyncState;
@@ -314,7 +320,7 @@ fprintf('RUN ID: %i\n',cfg.RUN_ID);
 release(reader); 
 release(writer);
 release(vfd);
-close(fig);
+close(hfig_stim);
 
 % Release keyboard queue, reset priority and listeners
 try KbQueueRelease(device); catch, end
