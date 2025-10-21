@@ -24,7 +24,7 @@ cfg.audio_sample_rate     = 44100;      % Audio sample rate in Hz
 cfg.audio_frame_size      = 128;        % block size Task_* uses for streaming; Sam's default = 128
 cfg.audio_playback_gain   = 0.1;          % DAF output gain
 cfg.fix_cross_dur         = 0.0;        % pre-sentence fix (Task_* uses its own ITI_S but we keep parity)
-cfg.delay_dur             = 0.0;        % pre-visual onset delay 
+% % % cfg.delay_dur             = 0.0;        % pre-visual onset delay 
 cfg.text_stim_dur         = 12.0;       % sentence display/speaking time 
 cfg.stim_font_size        = 50;         % use 50 on intraop rig
 cfg.stim_max_char_per_line= 30;         % maximum number of chars per line in ortho stim figure, for text wrapping
