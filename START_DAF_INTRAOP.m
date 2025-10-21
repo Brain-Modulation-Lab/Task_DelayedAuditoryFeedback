@@ -6,7 +6,7 @@ figure;
 cfg = [];
 
 % Subject/session metadata
-cfg.SUBJECT       = 'test0715';
+cfg.SUBJECT       = 'daftestsub';
 cfg.SESSION_LABEL = 'intraop';
 cfg.DATA_TYPE     = 'task';
 cfg.RECORD_AUDIO = 1;
@@ -18,14 +18,14 @@ cfg.TASK_FUNCTION = 'task_daf.m';
 cfg.daf_stim_file = 'daf_sentences.tsv'; % Stim text file
 
 % Core DAF parameters REQUIRED by Task_DelayedAuditoryFeedback
-cfg.n_blocks              = 1;          % number of blocks
-cfg.max_trials            = 30;         % optional cap (same default as preop)
+cfg.n_blocks              = 2;          % number of blocks
+cfg.max_trials            = inf;         % optional cap (same default as preop)
 cfg.audio_sample_rate     = 44100;      % Audio sample rate in Hz
 cfg.audio_frame_size      = 128;        % block size Task_* uses for streaming; Sam's default = 128
 cfg.audio_playback_gain   = 0.1;          % DAF output gain
 cfg.fix_cross_dur         = 0.0;        % pre-sentence fix (Task_* uses its own ITI_S but we keep parity)
 % % % cfg.delay_dur             = 0.0;        % pre-visual onset delay 
-cfg.text_stim_dur         = 12.0;       % sentence display/speaking time 
+cfg.text_stim_dur         = 7;       % sentence display/speaking time in sec; ok to make this shorter than expected response, because it's also keypress-controlled
 cfg.stim_font_size        = 50;         % use 50 on intraop rig
 cfg.stim_max_char_per_line= 30;         % maximum number of chars per line in ortho stim figure, for text wrapping
 cfg.catchRatio            = 0;          % proportion of trials which are no-speech catch trials
@@ -33,7 +33,7 @@ cfg.max_stim_repeats      = 2;          % max consecutive repeats of same stimul
 cfg.max_delay_repeats     = 4;          % max consecutive repeats of same delays within a block
 cfg.same_trials_across_blocks = true;   % if true: trials randomized in first block only, same order repeated across blocks
 
-% DAF delay conditions (ms) – Task_* requires cfg.delayOptions
+% DAF delay conditions (ms)
 cfg.delay_values_ms          = [0 150];        % you can set [0 100 150 200] etc. Must be <= maxAllowedDelay_ms
 cfg.maxAllowedDelay_ms    = 1000;       % defensive check (mirrors preop)
 

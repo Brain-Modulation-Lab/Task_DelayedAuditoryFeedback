@@ -89,11 +89,6 @@ pdiode_square_length = 0.05; % relative to figure size
 hSquare = annotation('rectangle','FaceColor', [1 1 1],'EdgeColor', 'none', ... % square to be recorded by photodiode
     'Position', [0, 1-pdiode_square_length, pdiode_square_length, pdiode_square_length]); % [x y width height]... upper left
 
-
-% % % % Initialize keyboard queue for low-latency key detection during task
-% % % KbQueueCreate(device);
-% % % KbQueueStart(device); 
-
 %% Instructions and sync beeps
 instructions = [
     'INSTRUCTIONS\n\n' ...
@@ -105,11 +100,6 @@ set(hText, 'String', sprintf(instructions), ...
     'Color', 'black'); % Show instructions
 figure(hfig_stim); % Bring main window to front
 instrOn = GetSecs(); % get instructions presentation time
-
-
-% % % set(hfig_stim, 'WindowKeyPressFcn', @(~,~) uiresume(hfig_stim)); % Resume on any key
-% % % uiwait(hfig_stim); % Wait for user keypress
-% % % set(hfig_stim, 'WindowKeyPressFcn', ''); % Remove keypress handler
 
   disp('Press Spacebar to proceed to experiment')  %Experimenter instructions
 
@@ -149,20 +139,36 @@ blockSamples = blockFrames * frameSamples;
 streamBufStereo = zeros(2, blockSamples, 'double');
 goto_cleanup = false;
 nextTrialRequested = 1; % initialize; this tracks whether spacebar has been pressed to move onto next trial
+cfg.ntrials_between_breaks = round(cfg.ntrials / cfg.n_blocks); % have subject take a break after this many trials
 
 % Check if lag diagnostics enabled
 doSoftLag = isfield(cfg,'LAG_DIAGNOSTICS') && cfg.LAG_DIAGNOSTICS && ~cfg.LOCAL_TEST;
 lagBuffer = zeros(1, 5000); lagIndex = 1; lagCount = 0; completedTrials = 0; % Buffers for audio latency diagnostics
 
 for itrial = 1:cfg.ntrials
-    % Check for user abort with ESC key
-% % %     [isDown, ~, kc] = KbQueueCheck(device);
-% % %     if isDown && kc(keyCodeEscape)
-% % %         flipSyncState = ~flipSyncState;
-% % %         code = TRIG_ESC;
-% % %         log_event(eventFile, cfg.DIGOUT, GetSecs(), [], [], speechVsCatch, [], code, 'Escape/Stop', flipSyncState);
-% % %         goto_cleanup = true; break;
-% % %     end
+     if (mod(itrial, cfg.ntrials_between_breaks) == 0) && (itrial ~= cfg.ntrials)  % Break after every X trials  , but not on the las
+         % Display break message
+         flipSyncState = ~flipSyncState;   
+         break_message = 'Take a break! Press Spacebar to continue.';
+         set(hText, 'String', break_message, 'FontSize', cfg.stim_font_size, 'Color', 'black'); 
+         set(hSquare, 'FaceColor', [0.6 0.6 0.6]); % switch photodiode square to light gray
+         drawnow
+         breakMesageTime = GetSecs(); 
+        log_event(eventFile, cfg.DIGOUT, breakMesageTime, [], [], [], [], 0, 'Break message', flipSyncState);  
+
+        disp('Press Spacebar to continue experiment')  %Message to experimenter
+
+        WaitSecs(3); %Forced pause to prevent inadvertently skipping the break
+
+        [keyPressTime, keyCode] = KbWait(cfg.KEYBOARD_ID, 2);
+        log_event(eventFile, cfg.DIGOUT, keyPressTime, [], [], [], [], TRIG_KEYPRESS, 'Key Press', flipSyncState);
+        if any(ismember(find(keyCode),keyCodeEscape))
+          log_event(eventFile, cfg.DIGOUT, [], [], [], [], [], TRIG_ESC, 'Escape', flipSyncState);
+          fprintf("Escape key detected, ending run.\n");
+          clear onCleanupTasks
+          return
+        end
+     end
 
     % Set params depending on whether trial is catch (no speech) or speech trial
     if trials.catch_trial(itrial)
@@ -198,7 +204,7 @@ for itrial = 1:cfg.ntrials
 
     % ITI with fixation cross display and log
     set(hText, 'String', '*', 'FontSize', cfg.stim_font_size, 'Color', ifelse(~trials.catch_trial(itrial), [0.7 0.7 0.7], 'red')); % Show asterisk cue
-    set(hSquare, 'FaceColor', [1 1 1]); % switch photodiode square to white
+     set(hSquare, 'FaceColor', [0.3 0.3 0.3]); % switch photodiode square to dark gray
     drawnow;
     itiFixOnTime = GetSecs; 
     flipSyncState = ~flipSyncState;
@@ -207,16 +213,13 @@ for itrial = 1:cfg.ntrials
     ItiDuration = ITI_S(1) + (ITI_S(2) - ITI_S(1)) .* rand(1);
     code = TRIG_ITI;
     log_event(eventFile, cfg.DIGOUT, itiFixOnTime, ItiDuration, [], speechVsCatch, [], code, 'Fixation_Cross_Onset', flipSyncState);
-    trials.fix_time(itrial) = baseClock + seconds(itiFixOnTime - baseGetSecs);
+    trials.fix_time(itrial) = itiFixOnTime;
     
     % Display diagnostic info about trial start
     fprintf('Starting trial %d with stim index %d and delay %d ms\n', itrial, trials.stim_idx(itrial), trials.delay(itrial));
 
     WaitSecs(0.005);
     if goto_cleanup, break; end
-
-% % %     WaitSecs(cfg.delay_dur);
-
 
     % Visual stimulus on: draw text
     wrapped_text = text_wrapped_all{trials.stim_idx(itrial)};
@@ -229,7 +232,7 @@ for itrial = 1:cfg.ntrials
 
     % record time of orthography stim onset, send trigger
     flipSyncState = ~flipSyncState;
-    trials.visual_onset_time(itrial) = baseClock + seconds(stimOnsetTime - baseGetSecs);
+    trials.visual_onset_time(itrial) = stimOnsetTime;
     code = TRIG_VISUAL;
     text_stim = trials.stim{itrial};
     log_event(eventFile, cfg.DIGOUT, stimOnsetTime, [], [], speechVsCatch, text_stim, code, 'Visual Onset', flipSyncState);
@@ -288,11 +291,12 @@ for itrial = 1:cfg.ntrials
     flipSyncState = ~flipSyncState;
 
     set(hText, 'String', '');
+     set(hSquare, 'FaceColor', [1 1 1]); % switch photodiode square to white
     drawnow; % Clear
 
     visOffTime = GetSecs(); 
 
-    trials.visual_off_time(itrial) = baseClock + seconds(visOffTime - baseGetSecs);
+    trials.visual_off_time(itrial) = visOffTime;
     code = TRIG_VISUAL;
     log_event(eventFile, cfg.DIGOUT, visOffTime, [], [], speechVsCatch, [], code, 'Visual_Off', flipSyncState);
 

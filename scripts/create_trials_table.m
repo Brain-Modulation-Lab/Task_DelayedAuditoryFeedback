@@ -202,9 +202,9 @@ trials = table( ...
 );
 
 % Initialize columns that will be filled during runtime
-trials.start_time         = NaT(ntrials,1,'TimeZone','local');
-trials.visual_onset_time  = NaT(ntrials,1,'TimeZone','local');
-trials.visual_off_time    = NaT(ntrials,1,'TimeZone','local');
+trials.start_time         = nan(ntrials,1);
+trials.visual_onset_time  = nan(ntrials,1);
+trials.visual_off_time    = nan(ntrials,1);
 trials.lag_mean           = nan(ntrials,1);
 
 % Return in cfg (and as output)
