@@ -93,6 +93,10 @@ stopFig = figure('Name','Stop','NumberTitle','off','MenuBar','none','ToolBar','n
 setappdata(0, 'stopReq', false); % Shared flag for stopping experiment
 uicontrol(stopFig,'Style','pushbutton','String','Stop','FontSize',14,'Position',[50 20 100 40],'Callback', @(~,~) setappdata(0,'stopReq',true)); % Stop button sets flag
 
+% Initialize keyboard queue for low-latency key detection during task
+KbQueueCreate(device);
+KbQueueStart(device); 
+
 %% Instructions and sync beeps
 instructions = [
     'INSTRUCTIONS\n\n' ...
@@ -120,18 +124,14 @@ for i = 1:3
 end
 set(hText, 'String', ''); drawnow; % Clear after last beep
 
-% Initialize keyboard queue for low-latency key detection during task
-KbQueueCreate(device);
-KbQueueStart(device); 
-
-% Initialize clocks for event timing
-baseGetSecs = GetSecs();
-baseClock = datetime('now','TimeZone','local');
-
 % Log instruction onset using flip timestamp
 flipSyncState = 0;
 flipSyncState = ~flipSyncState;
 log_event(eventFile, 0, instrOn, [], [], [], [], 0, 'Instructions', flipSyncState);
+
+% Initialize clocks for event timing
+baseGetSecs = GetSecs();
+baseClock = datetime('now','TimeZone','local');
 
 
 %% Trial Loop main
@@ -182,15 +182,13 @@ for itrial = 1:cfg.ntrials
     set(hSquare, 'FaceColor', [1 1 1]); % switch photodiode square to white
     drawnow;
     itiFixOnTime = GetSecs; 
-
     flipSyncState = ~flipSyncState;
 
     % record the time when fixation cross comes on
-    trials.fix_time(itrial) = baseClock + seconds(itiFixOnTime - baseGetSecs);
-    
     ItiDuration = ITI_S(1) + (ITI_S(2) - ITI_S(1)) .* rand(1);
     code = TRIG_ITI;
     log_event(eventFile, cfg.DIGOUT, itiFixOnTime, ItiDuration, [], speechVsCatch, [], code, 'Fixation_Cross_Onset', flipSyncState);
+    trials.fix_time(itrial) = baseClock + seconds(itiFixOnTime - baseGetSecs);
     
     % ITI wait loop with abort check loop
     tEnd = itiFixOnTime + ItiDuration;
@@ -215,6 +213,7 @@ for itrial = 1:cfg.ntrials
     drawnow; % Show sentence
     stimOnsetTime = GetSecs(); 
 
+    % record time of orthography stim onset, send trigger
     flipSyncState = ~flipSyncState;
     trials.visual_onset_time(itrial) = baseClock + seconds(stimOnsetTime - baseGetSecs);
     code = TRIG_VISUAL;
@@ -268,7 +267,7 @@ for itrial = 1:cfg.ntrials
         flipSyncState = ~flipSyncState;
         dafOffTime = GetSecs();
         code = TRIG_DAF;
-        log_event(eventFile, cfg.DIGOUT, dafOffTime, [], [], speechVsCatch, [], code, 'DAF Off', flipSyncState);
+        log_event(eventFile, cfg.DIGOUT, dafOffTime, [], [], speechVsCatch, [], code, 'DAF_Off', flipSyncState);
     end
 
     % Visual off
@@ -281,7 +280,7 @@ for itrial = 1:cfg.ntrials
 
     trials.visual_off_time(itrial) = baseClock + seconds(visOffTime - baseGetSecs);
     code = TRIG_VISUAL;
-    log_event(eventFile, cfg.DIGOUT, visOffTime, [], [], speechVsCatch, [], code, 'Visual Off', flipSyncState);
+    log_event(eventFile, cfg.DIGOUT, visOffTime, [], [], speechVsCatch, [], code, 'Visual_Off', flipSyncState);
 
     % Display trial completion summary
     elapsed = GetSecs() - runStartTime;
@@ -297,7 +296,7 @@ end
 
 %% Cleanup section: log final event and safely close resources
 flipSyncState = ~flipSyncState;
-log_event(eventFile, cfg.DIGOUT, GetSecs(), [], [], [], [], 0, 'End Message', flipSyncState);
+log_event(eventFile, cfg.DIGOUT, GetSecs(), [], [], [], [], 0, 'End_Message', flipSyncState);
 
 fprintf('\nTask %s, session %s, run %i for %s ended at %s\n', ...
     cfg.TASK,cfg.SESSION_LABEL,cfg.RUN_ID,cfg.SUBJECT,datestr(now,'HH:MM:SS'));
