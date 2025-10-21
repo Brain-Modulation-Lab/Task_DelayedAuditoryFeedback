@@ -1,0 +1,59 @@
+                      SUBJECT: 'test0715'
+                SESSION_LABEL: 'intraop'
+                    DATA_TYPE: 'task'
+                         TASK: 'daf'
+                 TASK_VERSION: 1
+                TASK_FUNCTION: 'test_task.m'
+                daf_stim_file: 'daf_sentences.tsv'
+                     n_blocks: 1
+                   max_trials: 30
+            audio_sample_rate: 44100
+             audio_frame_size: 128
+          audio_playback_gain: 15
+                fix_cross_dur: 0
+                    delay_dur: 0
+                text_stim_dur: 12
+               stim_font_size: 50
+       stim_max_char_per_line: 30
+                   catchRatio: 0
+             max_stim_repeats: 2
+            max_delay_repeats: 4
+    same_trials_across_blocks: 1
+              delay_values_ms: [0 150]
+           maxAllowedDelay_ms: 1000
+              LAG_DIAGNOSTICS: 1
+               SKIP_SYNC_TEST: 1
+           CONSERVE_VRAM_MODE: 4096
+                    PATH_TASK: '/Users/samhansen/Documents/MATLAB/Guenther/Task_DelayedAuditoryFeedback/'
+              PATH_SOURCEDATA: '/Users/samhansen/Documents/MATLAB/Guenther/Task_DelayedAuditoryFeedback/stimuli'
+             AUDIO_DEVICE_OUT: 'MacBook Pro Speakers'
+              AUDIO_DEVICE_IN: 'MacBook Pro Microphone'
+          HOST_AUDIO_API_NAME: 'CoreAudio'
+                 TEST_SOUND_S: 10
+          CALIBRATION_BEEPS_N: 5
+                    AUDIO_AMP: 1
+                  GO_BEEP_AMP: 0.5000
+                  KEYBOARD_ID: []
+                   PATH_AUDIO: '/Users/samhansen/Documents/MATLAB/Guenther/Task_DelayedAuditoryFeedback/stimuli/sub-test0715/ses-intraop/audio'
+                       RUN_ID: 19
+                     PATH_LOG: '/Users/samhansen/Documents/MATLAB/Guenther/Task_DelayedAuditoryFeedback/stimuli/sub-test0715/ses-intraop/task'
+                    BASE_NAME: 'sub-test0715_ses-intraop_task-daf_run-19_'
+                 LOG_FILENAME: '/Users/samhansen/Documents/MATLAB/Guenther/Task_DelayedAuditoryFeedback/stimuli/sub-test0715/ses-intraop/task/sub-test0715_ses-intraop_task-daf_run-19_log.txt'
+               EVENT_FILENAME: '/Users/samhansen/Documents/MATLAB/Guenther/Task_DelayedAuditoryFeedback/stimuli/sub-test0715/ses-intraop/task/sub-test0715_ses-intraop_task-daf_run-19_events.tsv'
+               TRIAL_FILENAME: '/Users/samhansen/Documents/MATLAB/Guenther/Task_DelayedAuditoryFeedback/stimuli/sub-test0715/ses-intraop/task/sub-test0715_ses-intraop_task-daf_run-19_trials.tsv'
+               AUDIO_FILENAME: '/Users/samhansen/Documents/MATLAB/Guenther/Task_DelayedAuditoryFeedback/stimuli/sub-test0715/ses-intraop/audio/sub-test0715_ses-intraop_task-daf_run-19.wav'
+
+Launching task
+Initializing (non-PTB) at 19:10:31 for subject test0715, daf task, session intraop, run 19
+
+[Warning: Reported by audioDeviceWriter: The System object has reinitialized because the
+setup method was called on an initialized System object. This will affect performance.] 
+[> In <a href="matlab:matlab.lang.internal.introspective.errorDocCallback('test_task', '/Users/samhansen/Documents/MATLAB/Guenther/Task_DelayedAuditoryFeedback/scripts/test_task.m', 155)" style="font-weight:bold">test_task</a> (<a href="matlab: opentoline('/Users/samhansen/Documents/MATLAB/Guenther/Task_DelayedAuditoryFeedback/scripts/test_task.m',155,0)">line 155</a>)
+In <a href="matlab:matlab.lang.internal.introspective.errorDocCallback('test_start_intraop', '/Users/samhansen/Documents/MATLAB/UMN/EEG_Project/test_start_intraop.m', 142)" style="font-weight:bold">test_start_intraop</a> (<a href="matlab: opentoline('/Users/samhansen/Documents/MATLAB/UMN/EEG_Project/test_start_intraop.m',142,0)">line 142</a>)] 
+Starting trial 1 with stim index 10 and delay 0 ms
+Trial  1 / 20 completed at 00:15 
+Starting trial 2 with stim index 5 and delay 150 ms
+Trial  2 / 20 completed at 00:20 
+
+Task daf, session intraop, run 19 for test0715 ended at 19:23:54
+RUN ID: 19

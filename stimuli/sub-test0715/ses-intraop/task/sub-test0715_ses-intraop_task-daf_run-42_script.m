@@ -13,11 +13,10 @@ function test_task(cfg)
 ITI_S = [1.75, 2.25]; % duration range in seconds of ITI
 
 % Trigger codes for event marking
-TRIG_ITI    = 1;   % ITI
-TRIG_VISUAL = 2;   % Visual on/off
-TRIG_DAF    = 4;   % DAF on/off
-TRIG_KEY    = 8;   % Keypress
-TRIG_ESC    = 16;  % ESC abort
+TRIG_ITI    = 1; % Trigger for start of ITI
+TRIG_VISUAL = 2; % Visual stimulus onset/offset
+TRIG_DAF    = 4; % Delayed auditory feedback on/off
+TRIG_KEY    = 8; % Keyboard escape key press
 
 %% Trial table (wrapped text included)
 [cfg, trials, text_wrapped_all] = create_trials_table(cfg);
@@ -26,8 +25,6 @@ TRIG_ESC    = 16;  % ESC abort
 trials.visual_onset_time = nan(height(trials),1);
 trials.visual_off_time  = nan(height(trials),1);
 trials.fix_time         = nan(height(trials),1);
-trials.start_time = strings(height(trials),1);
-trials.lag_mean = nan(height(trials),1);
 
 %% Initializing log files
 eventFile = fopen(cfg.EVENT_FILENAME, 'w');
@@ -132,11 +129,7 @@ instrOn = now_secs();
 set(hText, 'String', sprintf(instructions), 'FontSize', 55, 'Color', 'black');
 figure(fig);
 wait_any_key(fig);                      % <- any key resumes; ESC sets escPressed
-if getappdata(fig,'escPressed')
-    goto_cleanup = true;
-else
-    log_event(eventFile, cfg.DIGOUT, now_secs(), [], [], [], [], TRIG_KEY, 'Key Press', flipSyncState);
-end
+if getappdata(fig,'escPressed'); goto_cleanup = true; end
 set(hText,'String',''); drawnow;
 
 % --- Clear instructions and display SYNC cue ---
@@ -235,8 +228,6 @@ for itrial = 1:cfg.ntrials
     drawnow;
     itiFixOnTime = now_secs();
     trials.fix_time(itrial) = itiFixOnTime;
-    clk = datetime('now');
-    trials.start_time(itrial) = sprintf('%02d:%02d:%06.3f', hour(clk), minute(clk), second(clk));
 
     ItiDuration   = ITI_S(1) + (ITI_S(2) - ITI_S(1)) .* rand(1);
     flipSyncState = ~flipSyncState;
@@ -249,7 +240,7 @@ for itrial = 1:cfg.ntrials
         if getappdata(fig,'escPressed')
             flipSyncState = ~flipSyncState;
             set_pdiode(hSquare, flipSyncState);
-            log_event(eventFile, cfg.DIGOUT, now_secs(), [], [], speechVsCatch, [], TRIG_ESC, 'Escape', flipSyncState);
+            log_event(eventFile, cfg.DIGOUT, now_secs(), [], [], speechVsCatch, [], TRIG_ITI + TRIG_KEY, 'Escape/Stop', flipSyncState);
             goto_cleanup = true; break;
         end
         sleep_s(0.005);
@@ -271,14 +262,7 @@ for itrial = 1:cfg.ntrials
     % Streaming Loop: mic -> fractional delay -> speakers
     if ~trials.catch_trial(itrial)
         trialStart   = now_secs();
-        % lag diagnostics (per-trial accumulators)
-        lagSum_ms = 0;
-        lagN      = 0;
         frameCounter = 0;
-
-        flipSyncState = ~flipSyncState;
-        set_pdiode(hSquare, flipSyncState);
-        log_event(eventFile, cfg.DIGOUT, now_secs(), [], [], 'speech', [], TRIG_DAF, 'DAF On', flipSyncState);
 
         while (now_secs() - trialStart) < cfg.text_stim_dur && ~getappdata(fig,'escPressed')
 
@@ -296,10 +280,11 @@ for itrial = 1:cfg.ntrials
             writeF(toOut(audioOut));  % exactly one write per frame
 
             if doSoftLag
-                frameDur_ms = (cfg.audio_frame_size / cfg.audio_sample_rate) * 1000;
-                lag_ms      = max((now_secs() - tStart) * 1000 - frameDur_ms, 0);
-                lagSum_ms   = lagSum_ms + lag_ms;
-                lagN        = lagN + 1;
+                frameDur_ms = (cfg.audio_frame_size/cfg.audio_sample_rate)*1000;
+                lag = max((now_secs() - tStart)*1000 - frameDur_ms, 0);
+                lagBuffer(lagIndex) = lag;
+                lagIndex = mod(lagIndex, 5000) + 1;
+                lagCount = min(lagCount+1, 5000);
             end
 
             frameCounter = frameCounter + 1;
@@ -308,12 +293,6 @@ for itrial = 1:cfg.ntrials
             end
 
             pause(0.001); % tame CPU
-        end
-
-        if doSoftLag && lagN > 0
-            trials.lag_mean(itrial) = lagSum_ms / lagN;   % ms
-        else
-            trials.lag_mean(itrial) = NaN;
         end
 
         % Tail flush
@@ -380,6 +359,12 @@ try release(writer);  catch, end
 try release(vfd);     catch, end
 try close(fig);       catch, end
 try fclose(eventFile);catch, end
+
+end % function test_task
+
+%% Helper function (Ternary operator: returns a if cond is true, else b)
+function out = ifelse(cond, a, b)
+    if cond, out = a; else, out = b; end
 end
 
 %% Photodiode helper (white = on, black = off)
@@ -388,21 +373,29 @@ function set_pdiode(h, on)
 end
 
 %%
+function localWriteChunked(x, writerFn, F)
+    % x is NxC with C fixed (1 or 2), F is frame size
+    N = size(x,1); C = size(x,2);
+    i = 1;
+    while i <= N
+        j = min(i+F-1, N);
+        frame = x(i:j, :);
+        if size(frame,1) < F
+            frame(F, C) = 0; % pad
+        end
+        writerFn(frame);
+        i = j + 1;
+    end
+end
+
 function wait_break_any_key(fig, hText)
+% Show break text and wait for ANY key; ESC sets 'escPressed' and exits.
     if ~ishghandle(fig), return; end
     set(hText,'String','Take a break!\n\nPress any key to continue.','Color','black');
     drawnow;
-    tBreak = now; %#ok<NASGU> % purely for local timestamp if you want it
-    wait_any_key(fig);
-    if ishghandle(fig)
-        if ~getappdata(fig,'escPressed')
-            % log keypress to continue
-            log_event(evalin('caller','eventFile'), evalin('caller','cfg.DIGOUT'), ...
-                      evalin('caller','now_secs()'), [], [], [], [], ...
-                      evalin('caller','TRIG_KEYPRESS'), 'Key Press (break)', ...
-                      evalin('caller','flipSyncState'));
-            set(hText,'String',''); drawnow;
-        end
+    wait_any_key(fig); % resumes on any key; ESC sets 'escPressed'
+    if ishghandle(fig) && ~getappdata(fig,'escPressed')
+        set(hText,'String',''); drawnow;
     end
 end
 

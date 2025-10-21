@@ -1,0 +1,5 @@
+trialnum	block_id	stim	stim_idx	delay	catch_trial	start_time	visual_onset_time	visual_off_time	lag_mean	fix_time
+1	1	Flickering lights frustrated the focused photographer's careful composition attempts. Giggling children grabbed colorful balloons from the party decorator.	2	0	0	NaN	5.069238	17.36025775	NaN	3.27722491666667
+2	1	Flickering lights frustrated the focused photographer's careful composition attempts. Giggling children grabbed colorful balloons from the party decorator.	2	150	0	NaN	19.6482852916667	31.9396466666667	NaN	17.6281982083333
+3	1	Slippery salamanders crawled quickly through twisted forest pathways. Brilliant butterflies danced gracefully around blooming magnolia trees.	1	0	0	NaN	34.01010375	46.30401375	NaN	32.2005189583333
+4	1	Flickering lights frustrated the focused photographer's careful composition attempts. Giggling children grabbed colorful balloons from the party decorator.	2	150	0	NaN	48.7268926666667	61.0186638333333	NaN	46.5605567916667

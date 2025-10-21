@@ -1,0 +1,13 @@
+onset	duration	sample	trial_type	stim_file	value	event_code
+55809.398777	0.000000	0	"n/a"	"n/a"	0	"Instructions"
+55810.573442	0.000000	0	"n/a"	"n/a"	8	"Key Press"
+55814.303265	0.000000	0	"n/a"	"n/a"	9	"Key Press"
+55814.312383	1.984695	0	"speech"	"n/a"	1	"Fixation_Cross_Onset"
+55816.305189	0.000000	0	"speech"	"Flickering lights frustrated the focused photographer's careful composition attempts. Giggling children grabbed colorful balloons from the party decorator."	2	"Visual On"
+55828.578764	0.000000	0	"speech"	"n/a"	4	"DAF Off"
+55828.601005	0.000000	0	"speech"	"n/a"	2	"Visual Off"
+55833.877433	0.000000	0	"n/a"	"n/a"	9	"Key Press"
+55833.887732	1.755951	0	"speech"	"n/a"	1	"Fixation_Cross_Onset"
+55835.657031	0.000000	0	"speech"	"Slippery salamanders crawled quickly through twisted forest pathways. Brilliant butterflies danced gracefully around blooming magnolia trees."	2	"Visual On"
+55840.049693	0.000000	0	"speech"	"n/a"	4	"DAF Off"
+55840.049919	0.000000	0	"n/a"	"n/a"	0	"End_Message"

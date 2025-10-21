@@ -1,0 +1,55 @@
+                      SUBJECT: 'test0715'
+                SESSION_LABEL: 'intraop'
+                    DATA_TYPE: 'task'
+                         TASK: 'daf'
+                 TASK_VERSION: 1
+                TASK_FUNCTION: 'test_task.m'
+                daf_stim_file: 'daf_sentences.tsv'
+                     n_blocks: 1
+                   max_trials: 30
+            audio_sample_rate: 44100
+             audio_frame_size: 128
+          audio_playback_gain: 0.5000
+                fix_cross_dur: 0
+                    delay_dur: 0
+                text_stim_dur: 12
+               stim_font_size: 50
+       stim_max_char_per_line: 30
+                   catchRatio: 0
+             max_stim_repeats: 2
+            max_delay_repeats: 4
+    same_trials_across_blocks: 1
+              delay_values_ms: [0 150]
+           maxAllowedDelay_ms: 1000
+              LAG_DIAGNOSTICS: 1
+               SKIP_SYNC_TEST: 1
+           CONSERVE_VRAM_MODE: 4096
+                    PATH_TASK: '/Users/samhansen/Documents/MATLAB/Guenther/Task_DelayedAuditoryFeedback/'
+              PATH_SOURCEDATA: '/Users/samhansen/Documents/MATLAB/Guenther/Task_DelayedAuditoryFeedback/stimuli'
+             AUDIO_DEVICE_OUT: 'MacBook Pro Speakers'
+              AUDIO_DEVICE_IN: 'MacBook Pro Microphone'
+          HOST_AUDIO_API_NAME: 'CoreAudio'
+                 TEST_SOUND_S: 10
+          CALIBRATION_BEEPS_N: 5
+                    AUDIO_AMP: 1
+                  GO_BEEP_AMP: 0.5000
+                  KEYBOARD_ID: []
+                   PATH_AUDIO: '/Users/samhansen/Documents/MATLAB/Guenther/Task_DelayedAuditoryFeedback/stimuli/sub-test0715/ses-intraop/audio'
+                       RUN_ID: 17
+                     PATH_LOG: '/Users/samhansen/Documents/MATLAB/Guenther/Task_DelayedAuditoryFeedback/stimuli/sub-test0715/ses-intraop/task'
+                    BASE_NAME: 'sub-test0715_ses-intraop_task-daf_run-17_'
+                 LOG_FILENAME: '/Users/samhansen/Documents/MATLAB/Guenther/Task_DelayedAuditoryFeedback/stimuli/sub-test0715/ses-intraop/task/sub-test0715_ses-intraop_task-daf_run-17_log.txt'
+               EVENT_FILENAME: '/Users/samhansen/Documents/MATLAB/Guenther/Task_DelayedAuditoryFeedback/stimuli/sub-test0715/ses-intraop/task/sub-test0715_ses-intraop_task-daf_run-17_events.tsv'
+               TRIAL_FILENAME: '/Users/samhansen/Documents/MATLAB/Guenther/Task_DelayedAuditoryFeedback/stimuli/sub-test0715/ses-intraop/task/sub-test0715_ses-intraop_task-daf_run-17_trials.tsv'
+               AUDIO_FILENAME: '/Users/samhansen/Documents/MATLAB/Guenther/Task_DelayedAuditoryFeedback/stimuli/sub-test0715/ses-intraop/audio/sub-test0715_ses-intraop_task-daf_run-17.wav'
+
+{Error using <a href="matlab:matlab.lang.internal.introspective.errorDocCallback('cd')" style="font-weight:bold">cd</a>
+Unable to change current folder to
+'/Users/samhansen/Documents/MATLAB/Guenther/Task_DelayedAuditoryFeedback/scripts/./scripts'
+(Name is nonexistent or not a folder).
+
+Error in <a href="matlab:matlab.lang.internal.introspective.errorDocCallback('test_start_intraop', '/Users/samhansen/Documents/MATLAB/UMN/EEG_Project/test_start_intraop.m', 119)" style="font-weight:bold">test_start_intraop</a> (<a href="matlab: opentoline('/Users/samhansen/Documents/MATLAB/UMN/EEG_Project/test_start_intraop.m',119,0)">line 119</a>)
+cd('./scripts');
+^^^^^^^^^^^^^^^
+} 
+test_start_intraop
