@@ -9,7 +9,7 @@ cfg = [];
 cfg.SUBJECT       = 'test0715';
 cfg.SESSION_LABEL = 'intraop';
 cfg.DATA_TYPE     = 'task';
-cfg.RECORD_AUDIO = 0;
+cfg.RECORD_AUDIO = 1;
 
 % Task metadata (match preop naming so Task_*.m runs unchanged)
 cfg.TASK          = 'daf';
@@ -80,13 +80,11 @@ else
 end
 
 % Misc parity with preop
-cfg.TEST_SOUND_S        = 10;
+% % % cfg.TEST_SOUND_S        = 10;
 cfg.CALIBRATION_BEEPS_N = 5;
-cfg.AUDIO_AMP           = 1;
-cfg.GO_BEEP_AMP         = 0.5;
+% % % cfg.AUDIO_AMP           = 1;
+% % % cfg.GO_BEEP_AMP         = 0.5;
 cfg.KEYBOARD_ID         = [];
-
-
 
 % --- Warnings/PTB setup (apply prefs so toggles take effect) ---
 warning('on','all'); beep off;
@@ -98,6 +96,20 @@ Screen('Preference','Verbosity', 3);
 PsychDebugWindowConfiguration;   % windowed + alpha for bench testing (comment out on OR if undesired)
 
 close all force; Screen('CloseAll'); % close all normal matlab figures and PTB windows
+
+%% Initialize external audio recording from USB interface 
+if cfg.RECORD_AUDIO
+    if isempty(gcp())
+        parpool('local', 1);
+        wait(); 
+    end
+    
+    % Get the worker to construct a data queue on which it can receive messages from the client
+    workerQueueConstant = parallel.pool.Constant(@parallel.pool.PollableDataQueue);
+    
+    % Get the worker to send the queue object back to the client
+    workerQueueClient = fetchOutputs(parfeval(@(x) x.Value, 1, workerQueueConstant));
+end
 
 % --- Paths & output folders (match preop structure) ---
 pathSub            = fullfile(cfg.PATH_SOURCEDATA, ['sub-' cfg.SUBJECT]);
@@ -135,34 +147,38 @@ onCleanupTasks = cell(10,1);
 onCleanupTasks{10} = onCleanup(@() diary('off'));
 disp(cfg);
 
-%% Initialize external audio recording from USB interface 
-if cfg.RECORD_AUDIO
-    if isempty(gcp())
-        parpool('local', 1);
-        wait(); 
-    end
-    
-    % Get the worker to construct a data queue on which it can receive messages from the client
-    workerQueueConstant = parallel.pool.Constant(@parallel.pool.PollableDataQueue);
-    
-    % Get the worker to send the queue object back to the client
-    workerQueueClient = fetchOutputs(parfeval(@(x) x.Value, 1, workerQueueConstant));
-end
-
 %% Change folder 
 % change to main scripts folder, like we do in Speech Motor Sequence Learning (SMSL) scripts
 cd('./scripts'); 
 
+%% Start audio recording
+if cfg.RECORD_AUDIO
+    cfg.AUDIO_FILENAME = [cfg.PATH_AUDIO filesep cfg.BASE_NAME(1:end-1) '.wav'];
+    
+    % Get the worker to start waiting for messages
+    filename = cfg.AUDIO_FILENAME;
+    % TODO check that @record_audio is on the path
+    if ~(exist('record_audio')==2)
+        error('record_audio() function not found. Add it to the MATLAB path.'); 
+    end
+    future = parfeval(@record_audio, 1, filename, workerQueueConstant);
+    future.Diary
+    
+    onCleanupTasks{6} = onCleanup(@() send(workerQueueClient, 'stop'));
+end
+
+
+
 %%
 
-% Use same worker name as preop for parity (or swap to your preferred worker)
-if ~(exist('record_audio_preop','file')==2)
-    clear onCleanupTasks
-    error('record_audio_preop() not found on path.');
-end
-future = parfeval(@record_audio_preop, 1, cfg.AUDIO_FILENAME, workerQueueConstant);
-future.Diary;
-onCleanupTasks{6} = onCleanup(@() send(workerQueueClient, 'stop'));
+% % % % Use same worker name as preop for parity (or swap to your preferred worker)
+% % % if ~(exist('record_audio_preop','file')==2)
+% % %     clear onCleanupTasks
+% % %     error('record_audio_preop() not found on path.');
+% % % end
+% % % future = parfeval(@record_audio_preop, 1, cfg.AUDIO_FILENAME, workerQueueConstant);
+% % % future.Diary;
+% % % onCleanupTasks{6} = onCleanup(@() send(workerQueueClient, 'stop'));
 
 
 
