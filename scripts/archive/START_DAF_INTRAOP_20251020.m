@@ -1,4 +1,5 @@
 % Intraop Launcher for DAF
+%% version of launcher script before AM tried to start getting it to interface with Trellis
 
 figure;
 
@@ -9,7 +10,6 @@ cfg = [];
 cfg.SUBJECT       = 'test0715';
 cfg.SESSION_LABEL = 'intraop';
 cfg.DATA_TYPE     = 'task';
-cfg.RECORD_AUDIO = 0;
 
 % Task metadata (match preop naming so Task_*.m runs unchanged)
 cfg.TASK          = 'daf';
@@ -86,8 +86,6 @@ cfg.AUDIO_AMP           = 1;
 cfg.GO_BEEP_AMP         = 0.5;
 cfg.KEYBOARD_ID         = [];
 
-
-
 % --- Warnings/PTB setup (apply prefs so toggles take effect) ---
 warning('on','all'); beep off;
 PsychDefaultSetup(2);
@@ -135,19 +133,12 @@ onCleanupTasks = cell(10,1);
 onCleanupTasks{10} = onCleanup(@() diary('off'));
 disp(cfg);
 
-%% Initialize external audio recording from USB interface 
-if cfg.RECORD_AUDIO
-    if isempty(gcp())
-        parpool('local', 1);
-        wait(); 
-    end
-    
-    % Get the worker to construct a data queue on which it can receive messages from the client
-    workerQueueConstant = parallel.pool.Constant(@parallel.pool.PollableDataQueue);
-    
-    % Get the worker to send the queue object back to the client
-    workerQueueClient = fetchOutputs(parfeval(@(x) x.Value, 1, workerQueueConstant));
+% --- Optional: parallel worker for external audio recording (same pattern as preop) ---
+if isempty(gcp())
+    parpool('local',1);
 end
+workerQueueConstant = parallel.pool.Constant(@parallel.pool.PollableDataQueue);
+workerQueueClient   = fetchOutputs(parfeval(@(x) x.Value, 1, workerQueueConstant));
 
 %% Change folder 
 % change to main scripts folder, like we do in Speech Motor Sequence Learning (SMSL) scripts
