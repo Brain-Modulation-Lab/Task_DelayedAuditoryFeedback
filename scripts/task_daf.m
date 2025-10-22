@@ -56,7 +56,7 @@ if ispc % If running on a Windows
     audio_reader = audioDeviceReader('Device', cfg.AUDIO_DEVICE_IN, ... % Live mic input  
         'SampleRate', cfg.audio_sample_rate, ...
         'SamplesPerFrame', cfg.audio_frame_size, ...
-        'Driver','ASIO'); % WASAPI is lower latency than DirectSound 
+        'Driver','ASIO'); % WASAPI and ASIO are lower latency than DirectSound 
 elseif ismac % If running on a Mac
     [~,host] = system('scutil --get LocalHostName');
     cfg.host     = deblank(host);

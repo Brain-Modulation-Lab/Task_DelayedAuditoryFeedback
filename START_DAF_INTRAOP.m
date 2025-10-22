@@ -5,9 +5,11 @@ figure;
 % --- Centralized configuration structure ---
 cfg = [];
 
-% Subject/session metadata
-cfg.SUBJECT       = 'daftestsub';
 cfg.SESSION_LABEL = 'intraop';
+% cfg.SESSION_LABEL = 'preop'; 
+
+% Subject metadata
+cfg.SUBJECT       = 'daftestsub';
 cfg.DATA_TYPE     = 'task';
 cfg.RECORD_AUDIO = 1;
 
@@ -15,10 +17,9 @@ cfg.RECORD_AUDIO = 1;
 cfg.TASK          = 'daf';
 cfg.TASK_VERSION  = 1;
 cfg.TASK_FUNCTION = 'task_daf.m';
-cfg.daf_stim_file = 'daf_sentences.tsv'; % Stim text file
 
 % Core DAF parameters REQUIRED by Task_DelayedAuditoryFeedback
-cfg.n_blocks              = 2;          % number of blocks
+
 cfg.max_trials            = inf;         % optional cap (same default as preop)
 cfg.audio_sample_rate     = 44100;      % Audio sample rate in Hz
 cfg.audio_frame_size      = 128;        % block size Task_* uses for streaming; Sam's default = 128
@@ -34,8 +35,21 @@ cfg.max_delay_repeats     = 4;          % max consecutive repeats of same delays
 cfg.same_trials_across_blocks = true;   % if true: trials randomized in first block only, same order repeated across blocks
 
 % DAF delay conditions (ms)
-cfg.delay_values_ms          = [0 150];        % you can set [0 100 150 200] etc. Must be <= maxAllowedDelay_ms
 cfg.maxAllowedDelay_ms    = 1000;       % defensive check (mirrors preop)
+
+% determine filename of stim list
+cfg.daf_stim_file = 'daf_sentences_short.tsv'; % version with only 2 sentences 
+cfg.daf_stim_file = ['daf_sentences_', cfg.SESSION_LABEL, '.tsv']; % Stim text file depending on which session
+
+switch cfg.SESSION_LABEL
+    case 'preop'
+        cfg.delay_values_ms = [0 100 150 200 250]
+        cfg.n_blocks        = 2;          % number of blocks
+    case 'intraop'
+        cfg.delay_values_ms= [0 150];        % you can set [0 100 150 200] etc. Must be <= maxAllowedDelay_ms
+        cfg.n_blocks        = 3;          % number of blocks
+end
+
 
 if any(cfg.delay_values_ms > cfg.maxAllowedDelay_ms)
     error('One or more delayOptions exceed the maximum allowed delay of %d ms.', cfg.maxAllowedDelay_ms);
