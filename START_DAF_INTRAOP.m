@@ -22,7 +22,7 @@ cfg.TASK_FUNCTION = 'task_daf.m';
 
 cfg.max_trials            = inf;         % optional cap (same default as preop)
 cfg.audio_sample_rate     = 44100;      % Audio sample rate in Hz
-cfg.audio_frame_size      = 128;        % block size Task_* uses for streaming; Sam's default = 128
+cfg.audio_frame_size      = 60;        % block size Task_* uses for streaming; Sam's default = 128
 cfg.audio_playback_gain   = 0.1;          % DAF output gain
 cfg.fix_cross_dur         = 0.0;        % pre-sentence fix (Task_* uses its own ITI_S but we keep parity)
 % % % cfg.delay_dur             = 0.0;        % pre-visual onset delay 
@@ -55,6 +55,9 @@ if any(cfg.delay_values_ms > cfg.maxAllowedDelay_ms)
     error('One or more delayOptions exceed the maximum allowed delay of %d ms.', cfg.maxAllowedDelay_ms);
 end
 
+% check protocol
+cfg.protocol = 'udp';
+
 % Diagnostics / flags (used by Task_* optionally)
 cfg.no_audio_debug_mode   = true;
 cfg.LAG_DIAGNOSTICS       = true;
@@ -72,8 +75,19 @@ cfg.LOCAL_TEST            = 0;
 if strcmpi(getenv('COMPUTERNAME'), 'BML-ALIENWARE2') %% intrasurgical rig laptop
     cfg.PATH_TASK       = 'D:\Task\Task_DelayedAuditoryFeedback';
     cfg.PATH_SOURCEDATA = 'D:\DBS\sourcedata';
-    cfg.AUDIO_DEVICE_IN = 'Focusrite USB ASIO'; 
-    cfg.AUDIO_DEVICE_OUT = 'Speakers (Radial USB Pro)';
+    switch cfg.SESSION_LABEL
+        case 'preop'
+            cfg.AUDIO_DEVICE_IN = 'Microphone Array (Intel® Smart Sound Technology for Digital Microphones)'; % laptop onboard mic
+            cfg.AUDIO_DEVICE_OUT = 'Default'; % 3.5mm audio jack for headphones
+            cfg.audio_reader_driver = 'DirectSound'; 
+        case 'intraop'
+            cfg.AUDIO_DEVICE_IN = 'Focusrite USB ASIO'; 
+%             cfg.AUDIO_DEVICE_OUT = 'Speakers (Radial USB Pro)';r
+            cfg.AUDIO_DEVICE_OUT = 'Focusrite USB ASIO'; 
+            cfg.audio_reader_driver = 'ASIO'; 
+            cfg.audio_writer_driver = 'ASIO'; 
+
+    end
 %     cfg.AUDIO_DEVICE_OUT = 'Speakers (HIFI Audio)'; % for testing without Radial USB
 elseif ismac
     cfg.PATH_TASK       = '/Users/samhansen/Documents/MATLAB/Guenther/Task_DelayedAuditoryFeedback/';
@@ -112,18 +126,21 @@ PsychDebugWindowConfiguration;   % windowed + alpha for bench testing (comment o
 close all force; Screen('CloseAll'); % close all normal matlab figures and PTB windows
 
 %% Initialize external audio recording from USB interface 
-if cfg.RECORD_AUDIO
-    if isempty(gcp())
-        parpool('local', 1);
-        wait(); 
-    end
-    
-    % Get the worker to construct a data queue on which it can receive messages from the client
-    workerQueueConstant = parallel.pool.Constant(@parallel.pool.PollableDataQueue);
-    
-    % Get the worker to send the queue object back to the client
-    workerQueueClient = fetchOutputs(parfeval(@(x) x.Value, 1, workerQueueConstant));
+% myCluster = parcluster; delete(myCluster.Jobs)
+if isempty(gcp('nocreate'))
+    parpool('local', 1);
+    %wait(); 
 end
+
+% Get the worker to construct a data queue on which it can receive messages from the client
+workerQueueConstant = parallel.pool.Constant(@parallel.pool.PollableDataQueue);
+
+% Get the worker to send the queue object back to the client
+workerQueueClient = fetchOutputs(parfeval(@(x) x.Value, 1, workerQueueConstant));
+
+%% Warnings
+warning('on','all'); %enabling warnings
+beep off
 
 % --- Paths & output folders (match preop structure) ---
 pathSub            = fullfile(cfg.PATH_SOURCEDATA, ['sub-' cfg.SUBJECT]);
@@ -203,36 +220,54 @@ end
 digout = 0;
 if exist('xippmex','file')==3
     try
-        digout = xippmex();
-        disp('Using UDP mode') 
+        switch cfg.protocol
+            case 'tcp'
+                try
+                    digout = xippmex('tcp');
+                    xippmex('addoper',129);
+                    disp('Using TCP mode')
+                catch
+                    digout = xippmex();
+                    disp('Using UDP mode')
+                    warning('Inconsistent network protocol!')
+                end
+            case 'udp'
+                try
+                    digout = xippmex();
+                    disp('Using UDP mode')
+
+                catch
+                    digout = xippmex('tcp');
+                    xippmex('addoper',129);
+                    disp('Using TCP mode')
+                    warning('Inconsistent network protocol!')
+                end
+        end
         onCleanupTasks{9} = onCleanup(@() xippmex('close'));
     catch err
         warning('xippmex failed %s: %s\n', err.identifier, err.message);
     end
 end
-
 if digout
     fprintf('Ripple system found.\n')
     
-    %check status of recording
+    %ceck status of recording
     rippleRec = xippmex('trial');
     
     if isempty(strfind(rippleRec.filebase,cfg.SUBJECT))
         warning('Ripple''s file basename (%s) does NOT contain the subject''s id (%s)',rippleRec.filebase,cfg.SUBJECT);
-        str = input('Press enter to continue or ctrl-c to exit\n','s');
     end
     if ~strcmp(rippleRec.status, 'recording') 
         warning('Ripple system connected but NOT recording. DRY RUN.');
-        str = input('Press enter to continue or ctrl-c to exit\n','s');
     else
         fprintf('Ripple system recording to file %s%04d\n', rippleRec.filebase, rippleRec.incr_num);
     end
     
+    onCleanupTasks{9} = onCleanup(@() xippmex('close'));  
 else
     fprintf(2,['\n***************************************',...
              '\n** Ripple system NOT found! DRY RUN! **',...
              '\n***************************************\n']);
-    str = input('Press enter to continue or ctrl-c to exit\n','s');
 end
 cfg.DIGOUT = digout;
 

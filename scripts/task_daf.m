@@ -56,7 +56,7 @@ if ispc % If running on a Windows
     audio_reader = audioDeviceReader('Device', cfg.AUDIO_DEVICE_IN, ... % Live mic input  
         'SampleRate', cfg.audio_sample_rate, ...
         'SamplesPerFrame', cfg.audio_frame_size, ...
-        'Driver','ASIO'); % WASAPI and ASIO are lower latency than DirectSound 
+        'Driver',cfg.audio_reader_driver); % WASAPI and ASIO are lower latency than DirectSound 
 elseif ismac % If running on a Mac
     [~,host] = system('scutil --get LocalHostName');
     cfg.host     = deblank(host);
@@ -66,7 +66,8 @@ elseif ismac % If running on a Mac
 end
 
 audio_writer = audioDeviceWriter('Device', cfg.AUDIO_DEVICE_OUT,...
-    'SampleRate', cfg.audio_sample_rate); 
+    'SampleRate', cfg.audio_sample_rate,...
+    'Driver',cfg.audio_writer_driver); 
 
 vfd = dsp.VariableFractionalDelay('MaximumDelay', round(cfg.audio_sample_rate)); % Delay buffer for DAF
 for k = 1:10, audio_writer(audio_reader()); end % Prime audio pipeline (avoid startup glitch)
@@ -158,7 +159,7 @@ for itrial = 1:cfg.ntrials
 
         disp('Press Spacebar to continue experiment')  %Message to experimenter
 
-        WaitSecs(3); %Forced pause to prevent inadvertently skipping the break
+        WaitSecs(1); %Forced pause to prevent inadvertently skipping the break
 
         [keyPressTime, keyCode] = KbWait(cfg.KEYBOARD_ID, 2);
         log_event(eventFile, cfg.DIGOUT, keyPressTime, [], [], [], [], TRIG_KEYPRESS, 'Key Press', flipSyncState);
