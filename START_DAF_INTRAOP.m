@@ -26,7 +26,7 @@ cfg.audio_frame_size      = 60;        % block size Task_* uses for streaming; S
 cfg.audio_playback_gain   = 0.1;          % DAF output gain
 cfg.fix_cross_dur         = 0.0;        % pre-sentence fix (Task_* uses its own ITI_S but we keep parity)
 % % % cfg.delay_dur             = 0.0;        % pre-visual onset delay 
-cfg.text_stim_dur         = 7;       % sentence display/speaking time in sec; ok to make this shorter than expected response, because it's also keypress-controlled
+cfg.text_stim_dur         = 10;       % sentence display/speaking time in sec; ok to make this shorter than expected response, because it's also keypress-controlled
 cfg.stim_font_size        = 50;         % use 50 on intraop rig
 cfg.stim_max_char_per_line= 30;         % maximum number of chars per line in ortho stim figure, for text wrapping
 cfg.catchRatio            = 0;          % proportion of trials which are no-speech catch trials
@@ -35,7 +35,7 @@ cfg.max_delay_repeats     = 4;          % max consecutive repeats of same delays
 cfg.same_trials_across_blocks = true;   % if true: trials randomized in first block only, same order repeated across blocks
 
 % DAF delay conditions (ms)
-cfg.maxAllowedDelay_ms    = 1000;       % defensive check (mirrors preop)
+cfg.maxAllowedDelay_ms    = 1000;       % delay_values_ms must be below this value
 
 % determine filename of stim list
 cfg.daf_stim_file = 'daf_sentences_short.tsv'; % version with only 2 sentences 
@@ -46,8 +46,9 @@ switch cfg.SESSION_LABEL
         cfg.delay_values_ms = [0 100 150 200 250]
         cfg.n_blocks        = 2;          % number of blocks
     case 'intraop'
-        cfg.delay_values_ms= [0 150];        % you can set [0 100 150 200] etc. Must be <= maxAllowedDelay_ms
-        cfg.n_blocks        = 3;          % number of blocks
+%         cfg.delay_values_ms= [0 150];     
+        cfg.delay_values_ms= [0 100]; 
+        cfg.n_blocks        = 4;          % number of blocks
 end
 
 
