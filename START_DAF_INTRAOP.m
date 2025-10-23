@@ -1,4 +1,4 @@
-% Intraop Launcher for DAF
+ b% Intraop Launcher for DAF
 figure;
 
 % --- Centralized configuration structure ---
@@ -65,7 +65,7 @@ elseif ismac
     cfg.AUDIO_DEVICE_OUT = 'MacBook Pro Speakers';
     cfg.AUDIO_DEVICE_IN  = 'MacBook Pro Microphone';
     cfg.HOST_AUDIO_API_NAME = 'CoreAudio';
-elseif strcmpi(getenv('COMPUTERNAME'), '677-GUE-WL-0010') % Andrew Meier work laptop
+elseif any(strcmpi(getenv('COMPUTERNAME'), {'677-GUE-WL-0010','amsmeier'})) % Andrew Meier work laptop or AMD Ryzen Strix
     cfg.PATH_TASK = 'C:\docs\code\Task_DelayedAuditoryFeedback'; 
     cfg.PATH_SOURCEDATA= 'C:\ieeg_stut'; 
     % cfg.AUDIO_DEVICE_IN = 'Headphones (WF-C500)';
