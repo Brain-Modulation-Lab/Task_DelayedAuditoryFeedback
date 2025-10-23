@@ -7,9 +7,12 @@
 cfg = struct();
 
 % Point to a WAV file
-cfg.audio_path = '/Users/samhansen/Documents/MATLAB/Guenther/Task_DelayedAuditoryFeedback/analysis/sub-daftestsub_ses-intraop_task-daf_run-24.wav';
-cfg.trials_path = '/Users/samhansen/Documents/MATLAB/Guenther/Task_DelayedAuditoryFeedback/analysis/sub-daftestsub_ses-intraop_task-daf_run-24_trials.tsv';
-%cfg.events_path = '/Users/samhansen/Documents/MATLAB/Guenther/Task_DelayedAuditoryFeedback/analysis/sub-daftestsub_ses-intraop_task-daf_run-24_events.tsv';
+% cfg.audio_path = '/Users/samhansen/Documents/MATLAB/Guenther/Task_DelayedAuditoryFeedback/analysis/sub-daftestsub_ses-intraop_task-daf_run-24.wav';
+% cfg.trials_path = '/Users/samhansen/Documents/MATLAB/Guenther/Task_DelayedAuditoryFeedback/analysis/sub-daftestsub_ses-intraop_task-daf_run-24_trials.tsv';
+%cfg.events_path = '/Users/samhansen/Documents/MATLAB/Guenther/Task_DelayedAud\itoryFeedback/analysis/sub-daftestsub_ses-intraop_task-daf_run-24_events.tsv';
+
+cfg.audio_path = 'C:\bml_DBS\sub-DM1053\ses-preop\audio\251023_0750.wav'; 
+cfg.trials_path = 'C:\bml_DBS\sub-DM1053\ses-preop\task\sub-DM1053_ses-preop_task-daf_run-03_trials.tsv'; 
 
 cfg.output_dir = 'trials_out';
 cfg.channel_index = 1; % which channel to export (choose from praat)
@@ -18,7 +21,7 @@ cfg.channel_index = 1; % which channel to export (choose from praat)
 cfg.use_next_onset = true; % true: end at next onset (with guard); false: fixed duration
 cfg.trial_duration_s = 6.0; % used if use_next_onset == false
 cfg.boundary_guard_s = 0.05; % keep this much before next onset
-cfg.max_duration_s = 20.0; % hard cap
+cfg.max_duration_s = 15.0; % hard cap
 
 % Padding around each trial
 cfg.pre_pad_s = 0.15;
