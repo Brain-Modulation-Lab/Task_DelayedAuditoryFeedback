@@ -1,0 +1,4 @@
+onset	duration	sample	trial_type	stim_file	value	event_code
+45137.197963	0.000000	0	"n/a"	"n/a"	32768	"Instructions"
+45141.071529	2.168585	0	"speech"	"n/a"	1	"Fixation_Cross_Onset"
+45143.246616	0.000000	0	"speech"	"Fluttering curtains revealed glimpses of the mysterious neighbor's activities. Scrambling students struggled with difficult calculus problems before examinations."	32770	"Visual Onset"

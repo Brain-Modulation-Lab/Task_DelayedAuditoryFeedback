@@ -1,0 +1,5 @@
+trialnum	block_id	stim	stim_idx	delay	catch_trial	start_time	visual_onset_time	visual_off_time	lag_mean	fix_time
+1	1	Slippery salamanders crawled quickly through twisted forest pathways. Brilliant butterflies danced gracefully around blooming magnolia trees.	1	150	0	17:03:20.031	4.45123341666667	16.7394482916667	0.0819093632958801	2.38613879166667
+2	1	Slippery salamanders crawled quickly through twisted forest pathways. Brilliant butterflies danced gracefully around blooming magnolia trees.	1	150	0	17:03:34.642	18.8492040416667	31.14301	0.0574111347042186	16.9968044583333
+3	1	Flickering lights frustrated the focused photographer's careful composition attempts. Giggling children grabbed colorful balloons from the party decorator.	2	0	0	17:03:49.047	33.5283563333333	45.8190468333333	0.0490290680363238	31.4014961666667
+4	1	Flickering lights frustrated the focused photographer's careful composition attempts. Giggling children grabbed colorful balloons from the party decorator.	2	0	0	17:04:03.714	47.9516491666667	60.2411292916667	0.0533930114737014	46.0686168333333

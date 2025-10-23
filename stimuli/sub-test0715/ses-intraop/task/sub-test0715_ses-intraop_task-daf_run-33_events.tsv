@@ -1,0 +1,3 @@
+onset	duration	sample	trial_type	stim_file	value	event_code
+55809.506447	0.000000	0	"n/a"	"n/a"	32768	"Instructions"
+55812.026174	1.918860	0	"speech"	"n/a"	1	"Fixation_Cross_Onset"

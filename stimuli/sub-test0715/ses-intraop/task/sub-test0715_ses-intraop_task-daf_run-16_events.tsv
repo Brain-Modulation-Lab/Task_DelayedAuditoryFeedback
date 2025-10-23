@@ -1,0 +1,8 @@
+onset	duration	sample	trial_type	stim_file	value	event_code
+52548.638359	0.000000	0	"n/a"	"n/a"	32768	"Instructions"
+52552.689533	1.765445	0	"speech"	"n/a"	1	"Fixation_Cross_Onset"
+52554.463143	0.000000	0	"speech"	"Whistling winds whipped through weathered shutters during stormy nights. Curious cats carefully climbed over slippery ceramic roof tiles."	32770	"Visual Onset"
+52559.128810	0.000000	0	"speech"	"n/a"	4	"DAF Off"
+52559.133954	0.000000	0	"speech"	"n/a"	32770	"Visual Off"
+52559.181059	0.000000	0	"speech"	"n/a"	8	"Stop Button"
+52559.181364	0.000000	0	"n/a"	"n/a"	32768	"End_Message"
