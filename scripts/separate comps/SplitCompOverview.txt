@@ -1,0 +1,23 @@
+Master computer scripts
+	⁃	start_daf_intraop_master.m
+	⁃	task_daf_master.m
+	⁃	create_trials_table.m
+	⁃	log_event.m
+	⁃	record_audio.m (optional)
+
+DAF computer scripts
+	⁃	start_daf_engine.m
+	⁃	daf_engine.m
+
+Startup sequence
+	1.	start_daf_engine.m
+	2.	start_daf_intraop_master.m
+	3.	task_daf_master.m
+
+Overview
+	⁃	USB serial link communicate with ASCII commands
+	⁃	Master and engine exchange timestamps at beginning of run to align clocks
+	⁃	Master computer sends text commands via USB to engine
+	⁃	Set <delay>, start <delay>, stop
+	⁃	Engine sends confirmation message to master
+	⁃	DAF computer saves its own basic log for debugging purposes
