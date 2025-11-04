@@ -1,0 +1,3 @@
+onset	duration	sample	trial_type	stim_file	value	event_code
+59416.317309	0.000000	0	"control"	"n/a"	32776	"Key_Space"
+59416.448233	0.000000	0	"n/a"	"n/a"	0	"Instructions_End"

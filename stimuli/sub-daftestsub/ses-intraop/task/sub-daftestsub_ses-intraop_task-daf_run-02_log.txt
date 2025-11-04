@@ -1,0 +1,94 @@
+                SESSION_LABEL: 'intraop'
+                      SUBJECT: 'daftestsub'
+                    DATA_TYPE: 'task'
+                 RECORD_AUDIO: 0
+                   LagMetrics: 0
+                          PTB: 0
+                         TASK: 'daf'
+                 TASK_VERSION: 1
+                TASK_FUNCTION: 'task_daf_master_TCP.m'
+                  ENGINE_HOST: '192.168.0.185'
+                  ENGINE_PORT: 4444
+            NET_ACK_TIMEOUT_S: 0.1000
+              NET_MAX_RETRIES: 2
+                   max_trials: Inf
+            audio_sample_rate: 48000
+             audio_frame_size: 60
+          audio_playback_gain: 0.1000
+                fix_cross_dur: 0
+                text_stim_dur: 10
+               stim_font_size: 50
+       stim_max_char_per_line: 30
+                   catchRatio: 0
+             max_stim_repeats: 2
+            max_delay_repeats: 4
+    same_trials_across_blocks: 1
+           maxAllowedDelay_ms: 1000
+                daf_stim_file: 'daf_sentences_intraop.tsv'
+              delay_values_ms: [0 100]
+                     n_blocks: 4
+                    PATH_TASK: '/Users/samhansen/Documents/MATLAB/Guenther/Task_DelayedAuditoryFeedback/scripts'
+              PATH_SOURCEDATA: '/Users/samhansen/Documents/MATLAB/Guenther/Task_DelayedAuditoryFeedback/stimuli'
+                   PATH_AUDIO: '/Users/samhansen/Documents/MATLAB/Guenther/Task_DelayedAuditoryFeedback/stimuli/sub-daftestsub/ses-intraop/audio'
+                       RUN_ID: 2
+                     PATH_LOG: '/Users/samhansen/Documents/MATLAB/Guenther/Task_DelayedAuditoryFeedback/stimuli/sub-daftestsub/ses-intraop/task'
+                    BASE_NAME: 'sub-daftestsub_ses-intraop_task-daf_run-02_'
+                 LOG_FILENAME: '/Users/samhansen/Documents/MATLAB/Guenther/Task_DelayedAuditoryFeedback/stimuli/sub-daftestsub/ses-intraop/task/sub-daftestsub_ses-intraop_task-daf_run-02_log.txt'
+               EVENT_FILENAME: '/Users/samhansen/Documents/MATLAB/Guenther/Task_DelayedAuditoryFeedback/stimuli/sub-daftestsub/ses-intraop/task/sub-daftestsub_ses-intraop_task-daf_run-02_events.tsv'
+               TRIAL_FILENAME: '/Users/samhansen/Documents/MATLAB/Guenther/Task_DelayedAuditoryFeedback/stimuli/sub-daftestsub/ses-intraop/task/sub-daftestsub_ses-intraop_task-daf_run-02_trials.tsv'
+               AUDIO_FILENAME: '/Users/samhansen/Documents/MATLAB/Guenther/Task_DelayedAuditoryFeedback/stimuli/sub-daftestsub/ses-intraop/audio/sub-daftestsub_ses-intraop_task-daf_run-02.wav'
+
+[Master] Connected to 192.168.0.185:4444 on attempt 1
+DAF TCP connected to 192.168.0.185:4444
+Launching task
+[Timing] Backend: MATLAB
+DAF TCP ready to 192.168.0.185:4444
+[Warning: Error in state of SceneNode.
+String scalar or character vector must have valid
+interpreter syntax:
+INSTRUCTIONS\\n\\nWhen text appears, read it out loud as
+accurately as possible.\\n\\nPress SPACE to begin.
+] 
+[> In <a href="matlab:matlab.lang.internal.introspective.errorDocCallback('defaulterrorcallback', '/Applications/MATLAB_R2025a.app/toolbox/matlab/graphics/graphics/objectsystem/defaulterrorcallback.m', 12)" style="font-weight:bold">defaulterrorcallback</a> (<a href="matlab: opentoline('/Applications/MATLAB_R2025a.app/toolbox/matlab/graphics/graphics/objectsystem/defaulterrorcallback.m',12,0)">line 12</a>)
+In <a href="matlab:matlab.lang.internal.introspective.errorDocCallback('task_daf_master_TCP', '/Users/samhansen/Documents/MATLAB/Guenther/Task_DelayedAuditoryFeedback/scripts/separate comps/TCP/task_daf_master_TCP.m', 97)" style="font-weight:bold">task_daf_master_TCP</a> (<a href="matlab: opentoline('/Users/samhansen/Documents/MATLAB/Guenther/Task_DelayedAuditoryFeedback/scripts/separate comps/TCP/task_daf_master_TCP.m',97,0)">line 97</a>)
+In <a href="matlab:matlab.lang.internal.introspective.errorDocCallback('start_daf_intraop_master_TCP', '/Users/samhansen/Documents/MATLAB/Guenther/Task_DelayedAuditoryFeedback/scripts/separate comps/TCP/start_daf_intraop_master_TCP.m', 173)" style="font-weight:bold">start_daf_intraop_master_TCP</a> (<a href="matlab: opentoline('/Users/samhansen/Documents/MATLAB/Guenther/Task_DelayedAuditoryFeedback/scripts/separate comps/TCP/start_daf_intraop_master_TCP.m',173,0)">line 173</a>)] 
+{Error using <a href="matlab:matlab.lang.internal.introspective.errorDocCallback('setappdata')" style="font-weight:bold">setappdata</a>
+Too many output arguments.
+
+Error in <a href="matlab:matlab.lang.internal.introspective.errorDocCallback('task_daf_master_TCP>@(~,e)(strcmpi(e.Key,''space'')&&setappdata(hfig,''SPACE_FLAG'',true))|(strcmpi(e.Key,''escape'')&&setappdata(hfig,''ESC_FLAG'',true))', '/Users/samhansen/Documents/MATLAB/Guenther/Task_DelayedAuditoryFeedback/scripts/separate comps/TCP/task_daf_master_TCP.m', 68)" style="font-weight:bold">task_daf_master_TCP>@(~,e)(strcmpi(e.Key,'space')&&setappdata(hfig,'SPACE_FLAG',true))|(strcmpi(e.Key,'escape')&&setappdata(hfig,'ESC_FLAG',true))</a> (<a href="matlab: opentoline('/Users/samhansen/Documents/MATLAB/Guenther/Task_DelayedAuditoryFeedback/scripts/separate comps/TCP/task_daf_master_TCP.m',68,0)">line 68</a>)
+    ( strcmpi(e.Key,'space')  && setappdata(hfig,'SPACE_FLAG',true) ) | ...
+                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+} 
+Error using <a href="matlab:matlab.lang.internal.introspective.errorDocCallback('matlab.ui.internal.controller.FigureController/handleClientEvent', '/Applications/MATLAB_R2025a.app/toolbox/matlab/uitools/uicomponents/components/+matlab/+ui/+internal/+controller/FigureController.m', 818)" style="font-weight:bold">matlab.ui.internal.controller.FigureController/handleClientEvent</a> (<a href="matlab: opentoline('/Applications/MATLAB_R2025a.app/toolbox/matlab/uitools/uicomponents/components/+matlab/+ui/+internal/+controller/FigureController.m',818,0)">line 818</a>)
+Error while evaluating Figure WindowKeyPressFcn.
+
+{Error using <a href="matlab:matlab.lang.internal.introspective.errorDocCallback('setappdata')" style="font-weight:bold">setappdata</a>
+Too many output arguments.
+
+Error in <a href="matlab:matlab.lang.internal.introspective.errorDocCallback('task_daf_master_TCP>@(~,e)(strcmpi(e.Key,''space'')&&setappdata(hfig,''SPACE_FLAG'',true))|(strcmpi(e.Key,''escape'')&&setappdata(hfig,''ESC_FLAG'',true))', '/Users/samhansen/Documents/MATLAB/Guenther/Task_DelayedAuditoryFeedback/scripts/separate comps/TCP/task_daf_master_TCP.m', 68)" style="font-weight:bold">task_daf_master_TCP>@(~,e)(strcmpi(e.Key,'space')&&setappdata(hfig,'SPACE_FLAG',true))|(strcmpi(e.Key,'escape')&&setappdata(hfig,'ESC_FLAG',true))</a> (<a href="matlab: opentoline('/Users/samhansen/Documents/MATLAB/Guenther/Task_DelayedAuditoryFeedback/scripts/separate comps/TCP/task_daf_master_TCP.m',68,0)">line 68</a>)
+    ( strcmpi(e.Key,'space')  && setappdata(hfig,'SPACE_FLAG',true) ) | ...
+                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+} 
+Error using <a href="matlab:matlab.lang.internal.introspective.errorDocCallback('matlab.ui.internal.controller.FigureController/handleClientEvent', '/Applications/MATLAB_R2025a.app/toolbox/matlab/uitools/uicomponents/components/+matlab/+ui/+internal/+controller/FigureController.m', 818)" style="font-weight:bold">matlab.ui.internal.controller.FigureController/handleClientEvent</a> (<a href="matlab: opentoline('/Applications/MATLAB_R2025a.app/toolbox/matlab/uitools/uicomponents/components/+matlab/+ui/+internal/+controller/FigureController.m',818,0)">line 818</a>)
+Error while evaluating Figure WindowKeyPressFcn.
+
+{Error using <a href="matlab:matlab.lang.internal.introspective.errorDocCallback('setappdata')" style="font-weight:bold">setappdata</a>
+Too many output arguments.
+
+Error in <a href="matlab:matlab.lang.internal.introspective.errorDocCallback('task_daf_master_TCP>@(~,e)(strcmpi(e.Key,''space'')&&setappdata(hfig,''SPACE_FLAG'',true))|(strcmpi(e.Key,''escape'')&&setappdata(hfig,''ESC_FLAG'',true))', '/Users/samhansen/Documents/MATLAB/Guenther/Task_DelayedAuditoryFeedback/scripts/separate comps/TCP/task_daf_master_TCP.m', 68)" style="font-weight:bold">task_daf_master_TCP>@(~,e)(strcmpi(e.Key,'space')&&setappdata(hfig,'SPACE_FLAG',true))|(strcmpi(e.Key,'escape')&&setappdata(hfig,'ESC_FLAG',true))</a> (<a href="matlab: opentoline('/Users/samhansen/Documents/MATLAB/Guenther/Task_DelayedAuditoryFeedback/scripts/separate comps/TCP/task_daf_master_TCP.m',68,0)">line 68</a>)
+    ( strcmpi(e.Key,'space')  && setappdata(hfig,'SPACE_FLAG',true) ) | ...
+                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+} 
+Error using <a href="matlab:matlab.lang.internal.introspective.errorDocCallback('matlab.ui.internal.controller.FigureController/handleClientEvent', '/Applications/MATLAB_R2025a.app/toolbox/matlab/uitools/uicomponents/components/+matlab/+ui/+internal/+controller/FigureController.m', 818)" style="font-weight:bold">matlab.ui.internal.controller.FigureController/handleClientEvent</a> (<a href="matlab: opentoline('/Applications/MATLAB_R2025a.app/toolbox/matlab/uitools/uicomponents/components/+matlab/+ui/+internal/+controller/FigureController.m',818,0)">line 818</a>)
+Error while evaluating Figure WindowKeyPressFcn.
+
+{Error using <a href="matlab:matlab.lang.internal.introspective.errorDocCallback('setappdata')" style="font-weight:bold">setappdata</a>
+Too many output arguments.
+
+Error in <a href="matlab:matlab.lang.internal.introspective.errorDocCallback('task_daf_master_TCP>@(~,e)(strcmpi(e.Key,''space'')&&setappdata(hfig,''SPACE_FLAG'',true))|(strcmpi(e.Key,''escape'')&&setappdata(hfig,''ESC_FLAG'',true))', '/Users/samhansen/Documents/MATLAB/Guenther/Task_DelayedAuditoryFeedback/scripts/separate comps/TCP/task_daf_master_TCP.m', 68)" style="font-weight:bold">task_daf_master_TCP>@(~,e)(strcmpi(e.Key,'space')&&setappdata(hfig,'SPACE_FLAG',true))|(strcmpi(e.Key,'escape')&&setappdata(hfig,'ESC_FLAG',true))</a> (<a href="matlab: opentoline('/Users/samhansen/Documents/MATLAB/Guenther/Task_DelayedAuditoryFeedback/scripts/separate comps/TCP/task_daf_master_TCP.m',68,0)">line 68</a>)
+    ( strcmpi(e.Key,'space')  && setappdata(hfig,'SPACE_FLAG',true) ) | ...
+                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+} 
+Error using <a href="matlab:matlab.lang.internal.introspective.errorDocCallback('matlab.ui.internal.controller.FigureController/handleClientEvent', '/Applications/MATLAB_R2025a.app/toolbox/matlab/uitools/uicomponents/components/+matlab/+ui/+internal/+controller/FigureController.m', 818)" style="font-weight:bold">matlab.ui.internal.controller.FigureController/handleClientEvent</a> (<a href="matlab: opentoline('/Applications/MATLAB_R2025a.app/toolbox/matlab/uitools/uicomponents/components/+matlab/+ui/+internal/+controller/FigureController.m',818,0)">line 818</a>)
+Error while evaluating Figure WindowKeyPressFcn.
+

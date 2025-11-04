@@ -1,0 +1,8 @@
+onset	duration	sample	trial_type	stim_file	value	event_code
+59413.949283	0.000000	0	"control"	"n/a"	32776	"Key_Space"
+59413.956483	0.000000	0	"n/a"	"n/a"	0	"Instructions_End"
+59414.033161	0.000000	0	"speech"	"n/a"	32769	"Fixation_Cross_Onset"
+59414.036255	0.000000	0	"speech"	"n/a"	4	"DAF_On_cmd(ms=0)"
+59416.142614	0.000000	0	"speech"	"Sparkling streams splashed softly against smooth limestone river rocks. Playful pandas picked perfectly ripe bamboo shoots for breakfast."	32770	"Visual Onset"
+59426.170456	0.000000	0	"speech"	"n/a"	4	"DAF_Off_cmd"
+59426.180440	0.000000	0	"speech"	"n/a"	32770	"Visual Off"

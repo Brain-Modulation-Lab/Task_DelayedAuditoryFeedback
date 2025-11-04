@@ -45,16 +45,6 @@ if ~(exist('create_trials_table','file')==2)
     error('create_trials_table.m not found on path %s', cfg.PATH_TASK);
 end
 [cfg, trials, text_wrapped_all] = create_trials_table(cfg);
-% After: [cfg, trials, text_wrapped_all] = create_trials_table(cfg);
-% Ensure 'block' column exists; if not, synthesize equal-sized blocks.
-if cfg.n_blocks > 1 && ~ismember('block', trials.Properties.VariableNames)
-    n = height(trials);
-    nb = cfg.n_blocks;
-    % make ~equal partitions 1..nb
-    blk = ceil((1:n)' / ceil(n/nb));
-    blk(blk > nb) = nb;       % cap in case of rounding
-    trials.block = blk;
-end
 ntrials = height(trials);
 
 %% Event log
@@ -66,31 +56,17 @@ screenSize = get(0,'ScreenSize');
 hfig = figure('Name','DAF','Color','white','MenuBar','none','ToolBar','none', ...
     'Position',[0 0 screenSize(3) screenSize(4)], 'NumberTitle','off');
 ax = axes('Parent',hfig,'Position',[0 0 1 1],'Visible','off');
-hText = text(0.5,0.5,'', ...
-    'Parent',ax, ...
-    'FontSize',cfg.stim_font_size, ...
-    'FontWeight','bold', ...
-    'HorizontalAlignment','center', ...
-    'VerticalAlignment','middle', ...
-    'Units','normalized', ...
-    'Interpreter','none');
+hText = text(0.5,0.5,'','Parent',ax,'FontSize',cfg.stim_font_size,'FontWeight','bold',...
+    'HorizontalAlignment','center','VerticalAlignment','middle','Units','normalized');
 pdiode_square_length = 0.05;
 hSquare = annotation('rectangle','FaceColor',[1 1 1],'EdgeColor','none', ...
     'Position',[0, 1-pdiode_square_length, pdiode_square_length, pdiode_square_length]);
 
 setappdata(hfig,'SPACE_FLAG',[]);
 setappdata(hfig,'ESC_FLAG',[]);
-set(hfig,'WindowKeyPressFcn', @onKey);
-
-% nested handler
-function onKey(~, e)
-    k = lower(e.Key);
-    if strcmp(k,'space')
-        setappdata(hfig,'SPACE_FLAG', true);
-    elseif strcmp(k,'escape')
-        setappdata(hfig,'ESC_FLAG', true);
-    end
-end
+set(hfig,'WindowKeyPressFcn', @(~,e) ...
+    ( strcmpi(e.Key,'space')  && setappdata(hfig,'SPACE_FLAG',true) ) | ...
+    ( strcmpi(e.Key,'escape') && setappdata(hfig,'ESC_FLAG',true)  ) );
 
 TRIG_ITI = 1; TRIG_VIS = 2; TRIG_DAF = 4; TRIG_KEY = 8; TRIG_ESC = 16;
 
@@ -117,12 +93,8 @@ sendSyncBeep = @()  netSend(c, 'SYNCBEEP', [], cmdFH, cfg, true);
 doDigOut = isfield(cfg,'DIGOUT') && logical(cfg.DIGOUT);
 
 %% Instructions screen
-instructions = sprintf([ ...
-    'INSTRUCTIONS\n\n' ...
-    'When text appears, read it out loud as accurately as possible.\n\n' ...
-    'Press SPACE to begin.']);
-set(hText,'String', instructions, 'FontSize',45,'Color','black'); 
-drawnow;
+instructions = "INSTRUCTIONS\n\nWhen text appears, read it out loud as accurately as possible.\n\nPress SPACE to begin.";
+set(hText,'String',instructions,'FontSize',45,'Color','black'); drawnow;
 flipState = 0;
 while true
     [space, esc] = KeyPoll(hfig);
@@ -154,7 +126,7 @@ if haveDAF
         cfg.ENGINE_OFFSET_S = offEst; cfg.ENGINE_RTT_S = rtt;
         fprintf('TSYNC: offset(engine-master)=%.3f ms, RTT=%.3f ms\n', 1000*offEst, 1000*rtt);
     catch ME
-        warning('TSYNC failed: %s', ME.getReport('basic','hyperlinks','off'));
+        warning('TSYNC failed: %s', message);
     end
 end
     function t=Tnow, t=T.now(); end
@@ -236,10 +208,13 @@ for itrial = 1:ntrials
             log_event(eventFH, doDigOut, T.now(), [], [], 'control', [], 0, sprintf('Block_%d_Break_Start', currentBlock), flipState);
             set(hText,'String',sprintf('Block %d/%d finished.\nPress spacebar to continue.', currentBlock, cfg.n_blocks),'FontSize',28,'Color','blue'); drawnow;
             fprintf('Block %d/%d finished; press spacebar to continue...\n', currentBlock, cfg.n_blocks);
-            set(hfig,'WindowKeyPressFcn', @onKey);  % restore
+            set(hfig,'WindowKeyPressFcn', @(src,evt) strcmp(evt.Key,'space') && uiresume(hfig));
             uiwait(hfig);
             flipState = ~flipState;
             log_event(eventFH, doDigOut, T.now(), [], [], 'control', [], 0, sprintf('Block_%d_Break_End', currentBlock), flipState);
+            set(hfig, 'WindowKeyPressFcn', @(~,e) ...
+                ( strcmpi(e.Key,'space') && setappdata(hfig,'SPACE_FLAG',true) ) | ...
+                ( strcmpi(e.Key,'escape') && setappdata(hfig,'ESC_FLAG',true) ));
             set(hText,'String',''); drawnow;
         end
     end
@@ -307,7 +282,7 @@ function s = num2strOrEmpty(x), if isempty(x), s=''; else, s=num2str(x); end, en
 % TSYNC over TCP (line protocol)
 function [offset_EminusM, rtt] = do_tsync_tcp(c, nowFcn, drainFcn)
     tM1 = nowFcn();
-    write(c, uint8(['TSYNC' 10]));
+    write(c, uint8("TSYNC\n"));
     % wait up to 250 ms for ENGINE_T
     t0 = nowFcn(); tE = NaN;
     while nowFcn()-t0 < 0.25
@@ -382,8 +357,8 @@ end
 end
 
 function [space, esc] = KeyPoll(h)
-    space = ~isempty(getappdata(h,'SPACE_FLAG'));
-    esc   = ~isempty(getappdata(h,'ESC_FLAG'));
-    if space, setappdata(h,'SPACE_FLAG',[]); end
-    if esc,   setappdata(h,'ESC_FLAG',[]);   end
+space = ~isempty(getappdata(h,'SPACE_FLAG'));
+esc   = ~isempty(getappdata(h,'ESC_FLAG'));
+if space, setappdata(h,'SPACE_FLAG',[]); end
+if esc,   setappdata(h,'ESC_FLAG',[]);   end
 end

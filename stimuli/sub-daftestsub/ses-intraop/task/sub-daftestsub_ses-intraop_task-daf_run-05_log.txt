@@ -1,0 +1,45 @@
+                SESSION_LABEL: 'intraop'
+                      SUBJECT: 'daftestsub'
+                    DATA_TYPE: 'task'
+                 RECORD_AUDIO: 0
+                   LagMetrics: 0
+                          PTB: 0
+                         TASK: 'daf'
+                 TASK_VERSION: 1
+                TASK_FUNCTION: 'task_daf_master_TCP.m'
+                  ENGINE_HOST: '192.168.0.185'
+                  ENGINE_PORT: 4444
+            NET_ACK_TIMEOUT_S: 0.1000
+              NET_MAX_RETRIES: 2
+                   max_trials: Inf
+            audio_sample_rate: 48000
+             audio_frame_size: 60
+          audio_playback_gain: 0.1000
+                fix_cross_dur: 0
+                text_stim_dur: 10
+               stim_font_size: 50
+       stim_max_char_per_line: 30
+                   catchRatio: 0
+             max_stim_repeats: 2
+            max_delay_repeats: 4
+    same_trials_across_blocks: 1
+           maxAllowedDelay_ms: 1000
+                daf_stim_file: 'daf_sentences_intraop.tsv'
+              delay_values_ms: [0 100]
+                     n_blocks: 4
+                    PATH_TASK: '/Users/samhansen/Documents/MATLAB/Guenther/Task_DelayedAuditoryFeedback/scripts'
+              PATH_SOURCEDATA: '/Users/samhansen/Documents/MATLAB/Guenther/Task_DelayedAuditoryFeedback/stimuli'
+                   PATH_AUDIO: '/Users/samhansen/Documents/MATLAB/Guenther/Task_DelayedAuditoryFeedback/stimuli/sub-daftestsub/ses-intraop/audio'
+                       RUN_ID: 5
+                     PATH_LOG: '/Users/samhansen/Documents/MATLAB/Guenther/Task_DelayedAuditoryFeedback/stimuli/sub-daftestsub/ses-intraop/task'
+                    BASE_NAME: 'sub-daftestsub_ses-intraop_task-daf_run-05_'
+                 LOG_FILENAME: '/Users/samhansen/Documents/MATLAB/Guenther/Task_DelayedAuditoryFeedback/stimuli/sub-daftestsub/ses-intraop/task/sub-daftestsub_ses-intraop_task-daf_run-05_log.txt'
+               EVENT_FILENAME: '/Users/samhansen/Documents/MATLAB/Guenther/Task_DelayedAuditoryFeedback/stimuli/sub-daftestsub/ses-intraop/task/sub-daftestsub_ses-intraop_task-daf_run-05_events.tsv'
+               TRIAL_FILENAME: '/Users/samhansen/Documents/MATLAB/Guenther/Task_DelayedAuditoryFeedback/stimuli/sub-daftestsub/ses-intraop/task/sub-daftestsub_ses-intraop_task-daf_run-05_trials.tsv'
+               AUDIO_FILENAME: '/Users/samhansen/Documents/MATLAB/Guenther/Task_DelayedAuditoryFeedback/stimuli/sub-daftestsub/ses-intraop/audio/sub-daftestsub_ses-intraop_task-daf_run-05.wav'
+
+[Master] Connected to 192.168.0.185:4444 on attempt 1
+DAF TCP connected to 192.168.0.185:4444
+Launching task
+[Timing] Backend: MATLAB
+DAF TCP ready to 192.168.0.185:4444

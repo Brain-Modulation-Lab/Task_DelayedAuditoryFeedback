@@ -88,18 +88,28 @@ hfig = figure('Name','DAF','Color','white','MenuBar','none','ToolBar','none', 'P
 ax = axes('Parent',hfig,'Position',[0 0 1 1],'Visible','off');
 
 % Create text object centered on figure for stimuli
-hText = text(0.5,0.5,'','Parent',ax,'FontSize',cfg.stim_font_size,'FontWeight','bold', 'HorizontalAlignment','center','VerticalAlignment','middle','Units','normalized');
+hText = text(0.5,0.5,'','Parent',ax,...
+    'FontSize',cfg.stim_font_size,'FontWeight','bold',...
+    'HorizontalAlignment','center','VerticalAlignment','middle',...
+    'Units','normalized','Interpreter','none');
 
 % Small white square for photodiode timing marker (upper-left corner)
 pdiode_square_length = 0.05;
 hSquare = annotation('rectangle','FaceColor',[1 1 1],'EdgeColor','none', 'Position',[0, 1-pdiode_square_length, pdiode_square_length, pdiode_square_length]);
 
 % Configure keypress event handling for space and escape keys
-setappdata(hfig,'__SPACE__',[]);
-setappdata(hfig,'__ESC__',[]);
-set(hfig,'WindowKeyPressFcn', @(~,e) ...
-    ( strcmpi(e.Key,'space')  && setappdata(hfig,'__SPACE__',true) ) | ...
-    ( strcmpi(e.Key,'escape') && setappdata(hfig,'__ESC__',true)  ) );
+setappdata(hfig,'SPACE_FLAG',[]);
+setappdata(hfig,'ESC_FLAG',[]);
+set(hfig,'WindowKeyPressFcn', @onKey);
+
+function onKey(~, e)
+    k = lower(e.Key);
+    if strcmp(k,'space')
+        setappdata(hfig,'SPACE_FLAG', true);
+    elseif strcmp(k,'escape')
+        setappdata(hfig,'ESC_FLAG', true);
+    end
+end
 
 %% Define trigger code constants for event types
 TRIG_ITI = 1; % Fixation cross display
@@ -142,7 +152,9 @@ sendSyncBeep = @() usbSend(s, 'SYNCBEEP', [], cmdFH, cfg);
 doDigOut = isfield(cfg,'DIGOUT') && logical(cfg.DIGOUT);
 
 %% Show instructions screen and wait for space keypress or escape abort
-instructions = "INSTRUCTIONS\n\nWhen text appears, read it out loud as accurately as possible.\n\nPress SPACE to begin.";
+instructions = sprintf(['INSTRUCTIONS\n\n' ...
+    'When text appears, read it out loud as accurately as possible.\n\n' ...
+    'Press SPACE to begin.']);
 set(hText,'String',instructions,'FontSize',45,'Color','black'); drawnow;
 flipState = 0;
 
@@ -270,8 +282,7 @@ for itrial = 1:ntrials
             log_event(eventFH, doDigOut, T.now(), [], [], 'control', [], 0, sprintf('Block_%d_Break_Start', currentBlock), flipState);
 
             % Display break message on screen and console
-            set(hText, 'String', sprintf('Block %d/%d finished.\nPress spacebar to continue.', ...
-                currentBlock, cfg.n_blocks), 'FontSize', 28, 'Color', 'blue');
+            set(hfig,'WindowKeyPressFcn', @onKey);
             drawnow;
             fprintf('Block %d/%d finished; press spacebar to continue...\n', currentBlock, cfg.n_blocks);
             
@@ -283,9 +294,7 @@ for itrial = 1:ntrials
             flipState = ~flipState;
             log_event(eventFH, doDigOut, T.now(), [], [], 'control', [], 0, sprintf('Block_%d_Break_End', currentBlock), flipState);
             % Restore original callbacks
-            set(hfig, 'WindowKeyPressFcn', @(~,e) ...
-                ( strcmpi(e.Key,'space') && setappdata(hfig,'__SPACE__',true) ) | ...
-                ( strcmpi(e.Key,'escape') && setappdata(hfig,'__ESC__',true) ));
+            set(hfig,'WindowKeyPressFcn', @onKey);
             set(hText,'String',''); drawnow;
         end
     end
@@ -452,8 +461,8 @@ end
 
 % Poll keyboard appdata to detect edge-triggered space and escape key events
 function [space, esc] = KeyPoll(h)
-    space = ~isempty(getappdata(h,'__SPACE__'));
-    esc   = ~isempty(getappdata(h,'__ESC__'));
-    if space, setappdata(h,'__SPACE__',[]); end
-    if esc,   setappdata(h,'__ESC__',[]); end
+    space = ~isempty(getappdata(h,'SPACE_FLAG'));
+    esc   = ~isempty(getappdata(h,'ESC_FLAG'));
+    if space, setappdata(h,'SPACE_FLAG',[]); end
+    if esc,   setappdata(h,'ESC_FLAG',[]);   end
 end

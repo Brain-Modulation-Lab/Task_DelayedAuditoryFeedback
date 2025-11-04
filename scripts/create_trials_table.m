@@ -5,7 +5,7 @@ function [cfg, trials, text_wrapped_all] = create_trials_table(cfg)
 %   % cfg.TRIAL_TABLE is also populated.
 
 %% Load stimuli
-stimtable = readtable(fullfile(cfg.PATH_TASK,'stimuli',cfg.daf_stim_file), ...
+stimtable = readtable(fullfile(cfg.PATH_SOURCEDATA,cfg.daf_stim_file), ...
     'FileType','text', 'Delimiter','tab');
 unique_stim_list = stimtable.stim;
 

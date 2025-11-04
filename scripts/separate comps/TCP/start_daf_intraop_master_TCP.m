@@ -15,16 +15,16 @@ cfg.TASK_VERSION  = 1;
 cfg.TASK_FUNCTION = 'task_daf_master_TCP.m';
 
 % === TCP ENGINE CONNECTION ===
-cfg.ENGINE_HOST       = '10.0.0.2';   % <-- set to engine (Windows) IP
+cfg.ENGINE_HOST       = '192.168.0.185';   % <-- set to engine (Windows) IP
 cfg.ENGINE_PORT       = 4444;         % TCP port engine listens on
 cfg.NET_ACK_TIMEOUT_S = 0.10;         % "ACK" wait timeout for PING/SYNCBEEP, etc.
 cfg.NET_MAX_RETRIES   = 2;            % retries when waiting for ACK
 
 % Core DAF parameters
 cfg.max_trials             = inf;
-cfg.audio_sample_rate      = 44100;
+cfg.audio_sample_rate      = 48000;
 cfg.audio_frame_size       = 60;
-cfg.audio_playback_gain    = 0.1;
+cfg.audio_playback_gain    = 1;
 cfg.fix_cross_dur          = 0.0;
 cfg.text_stim_dur          = 10;
 cfg.stim_font_size         = 50;
@@ -69,16 +69,29 @@ if usePTB && exist('Screen','file')>0
 end
 
 %% Parallel pool for optional audio recording
-if isempty(gcp('nocreate')), parpool('local',1); end
-workerQueue = parallel.pool.PollableDataQueue;
-workerQueueConstant = parallel.pool.Constant(workerQueue);
+workerQueue = [];
+workerQueueConstant = [];
+
+if isfield(cfg,'RECORD_AUDIO') && cfg.RECORD_AUDIO
+    hasPCT = (exist('parpool','file') == 2) && license('test','Distrib_Computing_Toolbox');
+    if ~hasPCT
+        warning('Parallel Computing Toolbox not available. Disabling RECORD_AUDIO.');
+        cfg.RECORD_AUDIO = false;
+    else
+        if isempty(gcp('nocreate'))
+            parpool('local', 1);
+        end
+        workerQueue = parallel.pool.PollableDataQueue;
+        workerQueueConstant = parallel.pool.Constant(workerQueue);
+    end
+end
 
 %% Paths (unchanged)
 if strcmpi(getenv('COMPUTERNAME'), 'BML-ALIENWARE2')
     cfg.PATH_TASK       = 'D:\Task\Task_DelayedAuditoryFeedback';
     cfg.PATH_SOURCEDATA = 'D:\DBS\sourcedata';
 elseif ismac
-    cfg.PATH_TASK       = '/Users/samhansen/Documents/MATLAB/Guenther/Task_DelayedAuditoryFeedback/';
+    cfg.PATH_TASK       = '/Users/samhansen/Documents/MATLAB/Guenther/Task_DelayedAuditoryFeedback/scripts';
     cfg.PATH_SOURCEDATA = '/Users/samhansen/Documents/MATLAB/Guenther/Task_DelayedAuditoryFeedback/stimuli';
 else
     cfg.PATH_TASK       = '~/git/Task_DelayedAuditoryFeedback';
@@ -119,7 +132,7 @@ oc = onCleanup(@() diary('off'));
 disp(cfg);
 
 %% Scripts folder
-cd('./scripts');
+%cd('./scripts');
 
 %% Optional audio recording
 if cfg.RECORD_AUDIO
@@ -142,7 +155,7 @@ end
 
 %% === OPEN TCP CLIENT TO ENGINE ===
 try
-    c = tcpclient(cfg.ENGINE_HOST, cfg.ENGINE_PORT, 'Timeout', 0.05);
+    c = connectEngineWithRetry(cfg.ENGINE_HOST, cfg.ENGINE_PORT, 10, 3); % 10 tries, 3s timeout
     cfg.DAF_TCP = c;
     cfg.NET_RXBUF = uint8([]);  % receive buffer for line parsing
     fprintf("DAF TCP connected to %s:%d\n", cfg.ENGINE_HOST, cfg.ENGINE_PORT);
@@ -170,3 +183,20 @@ try
 catch
 end
 end
+
+function c = connectEngineWithRetry(host, port, attempts, timeout)
+    lastErr = [];
+    for k = 1:attempts
+        try
+            c = tcpclient(host, port, 'Timeout', timeout);
+            fprintf('[Master] Connected to %s:%d on attempt %d\n', host, port, k);
+            return
+        catch ME
+            lastErr = ME;
+            fprintf('[Master] Connect attempt %d failed: %s\n', k, ME.message);
+            pause(0.5);
+        end
+    end
+    error('Failed to connect to engine after %d attempts: %s', attempts, lastErr.message);
+end
+
