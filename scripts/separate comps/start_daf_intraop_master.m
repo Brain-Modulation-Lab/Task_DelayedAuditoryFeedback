@@ -46,7 +46,7 @@ cfg.max_stim_repeats       = 2;       % Max number of repeats per stimulus
 cfg.max_delay_repeats      = 4;       % Max repeats per delay condition
 cfg.same_trials_across_blocks = true; % Use same trials repeated across blocks
 cfg.maxAllowedDelay_ms = 1000;         % Maximum allowed DAF delay (ms)
-cfg.daf_stim_file = ['daf_sentences_' cfg.SESSION_LABEL '.tsv']; % Stimulus sentences file per session
+cfg.daf_stim_file = ['daf_sentences_extra_alliteration' cfg.SESSION_LABEL '.tsv']; % Stimulus sentences file per session
 
 switch cfg.SESSION_LABEL % Set delay values and number of blocks according to session type
     case 'preop'
