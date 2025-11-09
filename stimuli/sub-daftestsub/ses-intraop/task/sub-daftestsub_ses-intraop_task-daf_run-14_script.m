@@ -64,30 +64,6 @@ end
 [cfg, trials, text_wrapped_all] = create_trials_table(cfg); % Create and load trial parameters table and wrapped text for display
 ntrials = height(trials);
 
-% Ensure a 'block' column exists for break handling
-if cfg.n_blocks < 1, cfg.n_blocks = 1; end
-if ~ismember('block', trials.Properties.VariableNames)
-    if cfg.n_blocks == 1
-        trials.block = ones(ntrials,1,'uint16');
-    else
-        edges = round(linspace(0, ntrials, cfg.n_blocks+1));
-        blockVec = zeros(ntrials,1,'uint16');
-        for b = 1:cfg.n_blocks
-            if edges(b) < edges(b+1)
-                blockVec(edges(b)+1 : edges(b+1)) = b;
-            end
-        end
-        % In rare rounding cases, fill any zeros with last nonzero
-        if any(blockVec==0)
-            last = 1;
-            for j = 1:ntrials
-                if blockVec(j)==0, blockVec(j)=last; else, last=blockVec(j); end
-            end
-        end
-        trials.block = blockVec;
-    end
-end
-
 %% Open event log file and write header line
 eventFH = fopen(cfg.EVENT_FILENAME, 'w');
 fprintf(eventFH,'onset\tduration\tsample\ttrial_type\tstim_file\tvalue\tevent_code\n');
@@ -217,6 +193,27 @@ for itrial = 1:ntrials
     itiDur = ITI_S(1) + rand*(ITI_S(2)-ITI_S(1));
     T.wait(itiDur);
 
+    % After ITI, require spacebar press to continue to next trial
+    if cfg.STOP_BETWEEN_TRIALS 
+        set(hText,'String','Press SPACE to continue.','Color','black');
+        drawnow;  
+        while true
+            [space, esc] = KeyPoll(hfig); % Handle escape abort
+            if esc
+                if haveDAF, sendStop(); end
+                safeQuit();
+                fclose(eventFH); fclose(cmdFH); close(hfig);
+                return;
+            end
+            if space
+                break; % Proceed to next trial
+            end
+            T.wait(0.01);
+        end
+        set(hText,'String','');
+        drawnow;
+    end
+
     % Send DAF ON command relative to fixation onset (if not catch trial)
     if haveDAF && ~isCatch
         if cfg.DAF_START_OFFSET_S ~= 0
@@ -262,24 +259,6 @@ for itrial = 1:ntrials
     tVisOff = T.now();
     flipState = ~flipState;
     log_event(eventFH, doDigOut, tVisOff, [], [], tern(isCatch,'catch','speech'), [], TRIG_VIS, 'Visual Off', flipState);
-
-    % Optional pause between trials (message in command window)
-    if cfg.STOP_BETWEEN_TRIALS
-        fprintf('Trial %d/%d complete. Press SPACE to continue...\n', itrial, ntrials);
-        while true
-            [space, esc] = KeyPoll(hfig);
-            if esc
-                if haveDAF, sendStop(); end
-                flipState = ~flipState;
-                log_event(eventFH, doDigOut, T.now(), [], [], tern(isCatch,'catch','speech'), [], TRIG_ESC, 'Key_Esc', flipState);
-                safeQuit(); fclose(eventFH); fclose(cmdFH); close(hfig); return
-            end
-            if space
-                break;
-            end
-            T.wait(0.01);
-        end
-    end
 
     % Append current trial row to trial results file
     if itrial == 1
@@ -393,17 +372,12 @@ function sendMidiCommand(cfg, cmdFH, T, cmdType, varargin)
                 case 'programchange'
                     % Send program change message selecting a preset number
                     % varargin{1} = preset number
-                    pn = varargin{1};
-                    if iscell(pn), pn = pn{1}; end
-                    pn = double(pn);
-                    midisend(cfg.DAF_MIDI, 'programchange', cfg.MIDI_CHANNEL, pn);
+                    midisend(cfg.DAF_MIDI, 'programchange', cfg.MIDI_CHANNEL, varargin{1});
                 case 'controlchange'
                     % Send control change message to modify device parameter
                     % varargin{1} = control change number (CC #)
                     % varargin{2} = control value (0-127)
-                    cc = double(varargin{1});
-                    vv = double(varargin{2});
-                    midisend(cfg.DAF_MIDI, 'controlchange', cfg.MIDI_CHANNEL, cc, vv);
+                    midisend(cfg.DAF_MIDI, 'controlchange', cfg.MIDI_CHANNEL, varargin{1}, varargin{2});
                 otherwise
                     error('Unknown MIDI command type: %s', cmdType);
             end
@@ -414,14 +388,10 @@ function sendMidiCommand(cfg, cmdFH, T, cmdType, varargin)
     end
     
     % Create a string representation of the MIDI command arguments for logging
-    if isempty(varargin)
-        argsStr = "";
-    else
-        % convert varargin (which may contain doubles/chars) into a string array
-        argsStr = string(varargin);          % 1xN string array
-    end
-    argstr = strjoin(argsStr, ',');
-    fprintf(cmdFH, '%.6f\t%s\t%s\t\t%d\t%s\n', T.now(), upper(cmdType), char(argstr), attempt-1, 'sendMidiCommand');
+    argstr = strjoin(cellfun(@(x) string(x), varargin, 'UniformOutput', false), ',');
+    
+    % Log the send attempt in the command log file for audit and debugging
+    fprintf(cmdFH, '%.6f\t%s\t%s\t\t%d\t%s\n', T.now(), upper(cmdType), argstr, attempt-1, 'sendMidiCommand');
     
     % Warn if the command failed after all retries
     if ~success

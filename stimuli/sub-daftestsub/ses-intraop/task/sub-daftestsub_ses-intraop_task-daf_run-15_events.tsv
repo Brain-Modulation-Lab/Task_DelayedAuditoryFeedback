@@ -1,0 +1,10 @@
+onset	duration	sample	trial_type	stim_file	value	event_code
+49659.945631	0.000000	0	"control"	"n/a"	32800	"Audio_0ms_Preset_Engaged"
+49667.684750	0.000000	0	"control"	"n/a"	8	"Key_Space"
+49667.687104	0.000000	0	"control"	"n/a"	32768	"Instructions_End"
+49668.129238	0.000000	0	"control"	"n/a"	32	"MIDI_SET_Preset_ms=100"
+49668.141667	0.000000	0	"speech"	"n/a"	32769	"Fixation_Cross_Onset"
+49672.906343	0.000000	0	"speech"	"n/a"	4	"DAF_On_cmd(ms=100)"
+49672.918769	0.000000	0	"speech"	"The waiter balanced three plates carefully as laughter echoed across the restaurant."	32770	"Visual Onset"
+49682.941485	0.000000	0	"speech"	"n/a"	4	"DAF_Off_cmd"
+49682.955638	0.000000	0	"speech"	"n/a"	32770	"Visual Off"

@@ -1,0 +1,3 @@
+trialnum	block_id	stim	stim_idx	delay	catch_trial	start_time	visual_onset_time	visual_off_time	lag_mean	block
+1	1	The photographer crouched carefully, adjusting her focus on the flickering candle flame.	18	100	0	NaN	NaN	NaN	NaN	1
+2	1	Heavy traffic thinned slowly as headlights shimmered on the slick city streets.	2	0	0	NaN	NaN	NaN	NaN	1

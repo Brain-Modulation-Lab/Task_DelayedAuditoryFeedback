@@ -217,6 +217,27 @@ for itrial = 1:ntrials
     itiDur = ITI_S(1) + rand*(ITI_S(2)-ITI_S(1));
     T.wait(itiDur);
 
+    % After ITI, require spacebar press to continue to next trial
+    if cfg.STOP_BETWEEN_TRIALS 
+        set(hText,'String','Press SPACE to continue.','Color','black');
+        drawnow;  
+        while true
+            [space, esc] = KeyPoll(hfig); % Handle escape abort
+            if esc
+                if haveDAF, sendStop(); end
+                safeQuit();
+                fclose(eventFH); fclose(cmdFH); close(hfig);
+                return;
+            end
+            if space
+                break; % Proceed to next trial
+            end
+            T.wait(0.01);
+        end
+        set(hText,'String','');
+        drawnow;
+    end
+
     % Send DAF ON command relative to fixation onset (if not catch trial)
     if haveDAF && ~isCatch
         if cfg.DAF_START_OFFSET_S ~= 0
@@ -262,24 +283,6 @@ for itrial = 1:ntrials
     tVisOff = T.now();
     flipState = ~flipState;
     log_event(eventFH, doDigOut, tVisOff, [], [], tern(isCatch,'catch','speech'), [], TRIG_VIS, 'Visual Off', flipState);
-
-    % Optional pause between trials (message in command window)
-    if cfg.STOP_BETWEEN_TRIALS
-        fprintf('Trial %d/%d complete. Press SPACE to continue...\n', itrial, ntrials);
-        while true
-            [space, esc] = KeyPoll(hfig);
-            if esc
-                if haveDAF, sendStop(); end
-                flipState = ~flipState;
-                log_event(eventFH, doDigOut, T.now(), [], [], tern(isCatch,'catch','speech'), [], TRIG_ESC, 'Key_Esc', flipState);
-                safeQuit(); fclose(eventFH); fclose(cmdFH); close(hfig); return
-            end
-            if space
-                break;
-            end
-            T.wait(0.01);
-        end
-    end
 
     % Append current trial row to trial results file
     if itrial == 1

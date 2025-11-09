@@ -1,0 +1,10 @@
+t_send_getsecs	command	arg1	arg2	retries	message
+0.105927	PROGRAMCHANGE	1		0	sendMidiCommand
+2.039890	PROGRAMCHANGE	2		0	sendMidiCommand
+2.044052	PROGRAMCHANGE	1		0	sendMidiCommand
+14.090870	PROGRAMCHANGE	1		0	sendMidiCommand
+14.111099	PROGRAMCHANGE	1		0	sendMidiCommand
+14.113772	PROGRAMCHANGE	1		0	sendMidiCommand
+26.328827	PROGRAMCHANGE	1		0	sendMidiCommand
+26.355257	PROGRAMCHANGE	2		0	sendMidiCommand
+26.356528	PROGRAMCHANGE	1		0	sendMidiCommand

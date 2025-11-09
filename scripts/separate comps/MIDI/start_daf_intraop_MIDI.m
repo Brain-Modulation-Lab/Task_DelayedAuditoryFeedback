@@ -43,7 +43,7 @@ cfg.maxAllowedDelay_ms = 1000;        % Maximum allowed DAF delay (ms)
 cfg.DAF_START_OFFSET_S = 0.000;       % Optional time offset between fixation and DAF start 
 
 % Stimulus sentences file per session
-cfg.daf_stim_file = ['daf_sentences_extra_alliteration' cfg.SESSION_LABEL '.tsv'];
+cfg.daf_stim_file = 'daf_sentences_extra_alliteration.tsv';
 
 % Set delay values and number of blocks according to session type
 switch cfg.SESSION_LABEL
@@ -66,11 +66,13 @@ cfg.MIDI_OUT_NAME = 'Eventide H90';
 cfg.MIDI_CHANNEL  = 1;                
 
 % get extra piece of hardware for 1ms granularity
-% Preset per delay mapping
+% Preset per delay mapping 
 cfg.USE_PRESETS = true;
-delays = int32(round(cfg.delay_values_ms(:)'));            % row vector of int32
-presetNums = num2cell(1:numel(delays));
-cfg.PRESET_MAP = containers.Map(num2cell(delays), presetNums);
+delays = int32(round(cfg.delay_values_ms(:)'));  % row vector of int32
+cfg.PRESET_MAP = containers.Map('KeyType','int32','ValueType','double');
+for i = 1:numel(delays)
+    cfg.PRESET_MAP(delays(i)) = i;  % numeric value, not cell
+end
 
 % Ensure all delays have a preset
 assert(all(isKey(cfg.PRESET_MAP, num2cell(cfg.delay_values_ms))), 'PRESET_MAP must cover all delay_values_ms.');
