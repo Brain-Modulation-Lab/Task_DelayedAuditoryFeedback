@@ -19,7 +19,6 @@ cfg.RECORD_AUDIO  = false;          % Whether to record microphone audio during 
 cfg.LagMetrics    = false;          % Whether to enable lag metrics
 cfg.PTB           = false;          % Use Psychtoolbox for timing and display (false disables it)
 cfg.STOP_BETWEEN_TRIALS = true;     % Require space to proceed between all trials (after ITI plays)
-cfg.ALWAYS_ON_0MS = true;           % Plays audio back through headphones throughout experiment
 
 % Task metadata
 cfg.TASK          = 'daf';              % Task name
@@ -40,7 +39,9 @@ cfg.max_stim_repeats       = 2;       % Max number of repeats per stimulus
 cfg.max_delay_repeats      = 4;       % Max repeats per delay condition
 cfg.same_trials_across_blocks = true; % Use same trials repeated across blocks
 cfg.maxAllowedDelay_ms = 1000;        % Maximum allowed DAF delay (ms)
-cfg.DAF_START_OFFSET_S = 0.000;       % Optional time offset between fixation and DAF start 
+cfg.DAF_START_OFFSET_S = 0.000;       % Optional time offset between fixation and DAF start
+cfg.MIX_CC      = NaN;    % Wet/dry mix CC (0=dry, 127=wet). H90 example: 21
+cfg.BYPASS_CC   = NaN;    % Bypass CC (127=bypass, 0=engage). H90 example: 22
 
 % Stimulus sentences file per session
 cfg.daf_stim_file = 'daf_sentences_extra_alliteration.tsv';
@@ -62,16 +63,31 @@ end
 
 %% MIDI setup
 cfg.DAF_CONTROL   = 'midi';
-cfg.MIDI_OUT_NAME = 'Eventide H90';
+cfg.MIDI_OUT_NAME = 'Eclipse';
 cfg.MIDI_CHANNEL  = 1;                
 
-% get extra piece of hardware for 1ms granularity
 % Preset per delay mapping 
 cfg.USE_PRESETS = true;
 delays = int32(round(cfg.delay_values_ms(:)'));  % row vector of int32
-cfg.PRESET_MAP = containers.Map('KeyType','int32','ValueType','double');
-for i = 1:numel(delays)
-    cfg.PRESET_MAP(delays(i)) = i;  % numeric value, not cell
+
+% H90 map
+H90_PRESET_MAP = containers.Map(num2cell(delays), num2cell(1:numel(delays)));
+
+% Eclipse placeholder map FILL IN HERE
+ECLIPSE_PRESET_MAP = containers.Map(num2cell(delays), num2cell(-1 * ones(size(delays)))); 
+% ^ Replace -1 entries with real Program numbers later.
+
+% Choose settings based on the configured target name
+if contains(cfg.MIDI_OUT_NAME, 'Eventide H90', 'IgnoreCase', true)
+    cfg.PRESET_MAP = H90_PRESET_MAP;
+    cfg.MIX_CC      = 21;   % example H90 mapping
+    cfg.BYPASS_CC   = 22;   % example H90 mapping
+    fprintf('[MIDI] Using H90 PRESET_MAP (target: %s)\n', cfg.MIDI_OUT_NAME);
+else
+    cfg.PRESET_MAP = ECLIPSE_PRESET_MAP;
+    cfg.MIX_CC      = NaN;  % set if Eclipse supports a global mix CC
+    cfg.BYPASS_CC   = NaN;  % set if Eclipse supports bypass via CC
+    fprintf('[MIDI] Using Eclipse v4 PRESET_MAP (target: %s)\n', cfg.MIDI_OUT_NAME);
 end
 
 % Ensure all delays have a preset

@@ -150,11 +150,11 @@ doDigOut = isfield(cfg,'DIGOUT') && logical(cfg.DIGOUT);
 
 % Turn constant audio playback on
 flipState = 0;
-if haveDAF && cfg.ALWAYS_ON_0MS
-    midiPreloadPreset(cfg, 0, cmdFH, T);   % preload 0 ms preset
-    midiEngage(cfg, cmdFH, T);             % engage audio continuously
+if haveDAF
+    midiPreloadPreset(cfg, 0, cmdFH, T); % load 0 ms preset
+    midiEngage(cfg, cmdFH, T);  % engage (mix up, bypass off) if CCs are set
     flipState = ~flipState;
-    log_event(eventFH, doDigOut, T.now(), [], [], 'control', [], TRIG_SET, 'Audio_0ms_Preset_Engaged', flipState);
+    log_event(eventFH, doDigOut, T.now(), [], [], 'control', [], TRIG_SET, 'Audio_armed_0ms', flipState);
 end
 
 %% Show instructions screen and wait for space keypress or escape abort
@@ -203,9 +203,6 @@ for itrial = 1:ntrials
     end
 
     % ITI + fixation
-    if haveDAF && cfg.ALWAYS_ON_0MS
-        midiPreloadPreset(cfg, 0, cmdFH, T);   % hold 0 ms between trials
-    end
     set(hText,'String','*','Color', tern(~isCatch,[0.7 0.7 0.7],'red'));
     set(hSquare,'FaceColor',[0.3 0.3 0.3]);
     drawnow;
@@ -447,25 +444,60 @@ function midiPreloadPreset(cfg, delay_ms, cmdFH, T)
 %
     % Round and convert delay to int32 as keys for map lookup
     key = int32(round(delay_ms));
-    
-    % Offline mode: no MIDI device, just log the intended change
-    if ~isfield(cfg, 'DAF_MIDI') || isempty(cfg.DAF_MIDI)
+
+    % Offline: no MIDI device
+    if ~isfield(cfg,'DAF_MIDI') || isempty(cfg.DAF_MIDI)
         fprintf('[DAF-OFFLINE] SET %d\n', key);
         fprintf(cmdFH, '%.6f\tSET\t%d\t%s\t%d\t%s\n', T.now(), key, "NA", 0, 'no_midi');
         return;
     end
-    
-    % Lookup preset number for given delay key
-    if isKey(cfg.PRESET_MAP, key)
-        pn = cfg.PRESET_MAP(key);
-    else
-        % If exact delay not found, choose closest preset available
-        keys = cell2mat(cfg.PRESET_MAP.keys);  % int32 array of keys
-        [~, ix] = min(abs(double(keys) - double(key)));
-        pn = cfg.PRESET_MAP(keys(ix));
+
+    % Eclipse branch (SysEx keypress emulation via EclipseMIDIcomm)
+    if isfield(cfg,'IS_ECLIPSE') && cfg.IS_ECLIPSE && isfield(cfg,'ECL') && ~isempty(cfg.ECL)
+        try
+            pn = NaN;
+            if isfield(cfg,'PRESET_MAP') && isa(cfg.PRESET_MAP,'containers.Map') && isKey(cfg.PRESET_MAP, key)
+                pn = cfg.PRESET_MAP(key);
+            end
+            if ~isnan(pn) && pn >= 0
+                cfg.ECL.LoadProgram(pn);
+                fprintf(cmdFH,'%.6f\tSET_ECLIPSE_PROGRAM\t%d\t\t0\tLoadProgram\n', T.now(), pn);
+            else
+                cfg.ECL.SetDelay(double(key));
+                fprintf(cmdFH,'%.6f\tSET_ECLIPSE_DELAY\t%d\t\t0\tSetDelay\n', T.now(), key);
+            end
+        catch
+            warning('Eclipse Set failed, falling back to 0 ms.');
+            try, cfg.ECL.SetDelay(0); end %#ok<TRYNC>
+        end
+        return;
     end
-    
-    % Send the program change MIDI command to load the preset
+
+    % H90 / generic MIDI path (Program Change; optional bank CCs)
+    % Resolve preset number from map (closest if needed)
+    if isfield(cfg,'PRESET_MAP') && isa(cfg.PRESET_MAP,'containers.Map') && ~isempty(cfg.PRESET_MAP)
+        if isKey(cfg.PRESET_MAP, key)
+            pn = cfg.PRESET_MAP(key);
+        else
+            keys = cell2mat(cfg.PRESET_MAP.keys);
+            [~, ix] = min(abs(double(keys) - double(key)));
+            pn = cfg.PRESET_MAP(keys(ix));
+        end
+    else
+        pn = 0; % fallback
+    end
+
+    % Optional Bank Select
+    if isfield(cfg,'BANK_MSB_CC') && ~isempty(cfg.BANK_MSB_CC) && ~isnan(cfg.BANK_MSB_CC) ...
+    && isfield(cfg,'BANK_MSB')    && ~isempty(cfg.BANK_MSB)
+        sendMidiCommand(cfg, cmdFH, T, 'controlchange', cfg.BANK_MSB_CC, cfg.BANK_MSB);
+    end
+    if isfield(cfg,'BANK_LSB_CC') && ~isempty(cfg.BANK_LSB_CC) && ~isnan(cfg.BANK_LSB_CC) ...
+    && isfield(cfg,'BANK_LSB')    && ~isempty(cfg.BANK_LSB)
+        sendMidiCommand(cfg, cmdFH, T, 'controlchange', cfg.BANK_LSB_CC, cfg.BANK_LSB);
+    end
+
+    % Program Change to select preset
     sendMidiCommand(cfg, cmdFH, T, 'programchange', pn);
 end
 
@@ -484,20 +516,24 @@ function midiEngage(cfg, cmdFH, T)
 %   Called at the start of a trial where delay effect should be engaged (audio delay effect ON).
 %   Typically sends control change to mix wet signal and disable bypass.
 %
-    % Offline mode: log engage command if no MIDI device present
-    if ~isfield(cfg, 'DAF_MIDI') || isempty(cfg.DAF_MIDI)
+    % Offline
+    if ~isfield(cfg,'DAF_MIDI') || isempty(cfg.DAF_MIDI)
         fprintf('[DAF-OFFLINE] START\n');
         fprintf(cmdFH, '%.6f\tSTART\t\t%s\t%d\t%s\n', T.now(), "NA", 0, 'no_midi');
         return;
     end
-    
-    % Optional send MIX control change to set wet level to max (127)
-    if isfield(cfg, 'MIX_CC') && ~isempty(cfg.MIX_CC) && ~isnan(cfg.MIX_CC)
+
+    % Eclipse → no toggle; keep deterministic control via SetDelay
+    if isfield(cfg,'IS_ECLIPSE') && cfg.IS_ECLIPSE && isfield(cfg,'ECL') && ~isempty(cfg.ECL)
+        fprintf(cmdFH,'%.6f\tSTART_ECLIPSE\t\t\t0\tnoop\n', T.now());
+        return;
+    end
+
+    % H90 / generic: MIX to 127 (all wet), BYPASS off (engage)
+    if isfield(cfg,'MIX_CC') && ~isempty(cfg.MIX_CC) && ~isnan(cfg.MIX_CC)
         sendMidiCommand(cfg, cmdFH, T, 'controlchange', cfg.MIX_CC, 127);
     end
-    
-    % Optional send BYPASS control change to disable bypass (engage delay)
-    if isfield(cfg, 'BYPASS_CC') && ~isempty(cfg.BYPASS_CC) && ~isnan(cfg.BYPASS_CC)
+    if isfield(cfg,'BYPASS_CC') && ~isempty(cfg.BYPASS_CC) && ~isnan(cfg.BYPASS_CC)
         sendMidiCommand(cfg, cmdFH, T, 'controlchange', cfg.BYPASS_CC, 0);
     end
 end
@@ -517,20 +553,29 @@ function midiBypass(cfg, cmdFH, T)
 %   Called at the end of trials or at task cleanup to disable the delay effect,
 %   typically setting mix level to zero and enabling bypass on hardware.
 %
-    % Offline mode: log bypass command if no MIDI device present
-    if ~isfield(cfg, 'DAF_MIDI') || isempty(cfg.DAF_MIDI)
+    % Offline
+    if ~isfield(cfg,'DAF_MIDI') || isempty(cfg.DAF_MIDI)
         fprintf('[DAF-OFFLINE] STOP\n');
         fprintf(cmdFH, '%.6f\tSTOP\t\t%s\t%d\t%s\n', T.now(), "NA", 0, 'no_midi');
         return;
     end
-    
-    % Optional send MIX control change to set wet level to zero
-    if isfield(cfg, 'MIX_CC') && ~isempty(cfg.MIX_CC) && ~isnan(cfg.MIX_CC)
+
+    % Eclipse → set 0 ms; no risky toggles
+    if isfield(cfg,'IS_ECLIPSE') && cfg.IS_ECLIPSE && isfield(cfg,'ECL') && ~isempty(cfg.ECL)
+        try
+            cfg.ECL.SetDelay(0);
+        catch
+            warning('Eclipse SetDelay(0) failed.');
+        end
+        fprintf(cmdFH,'%.6f\tSTOP_ECLIPSE\t0\t\t0\tsetdelay0\n', T.now());
+        return;
+    end
+
+    % H90 / generic: MIX to 0, BYPASS on (127)
+    if isfield(cfg,'MIX_CC') && ~isempty(cfg.MIX_CC) && ~isnan(cfg.MIX_CC)
         sendMidiCommand(cfg, cmdFH, T, 'controlchange', cfg.MIX_CC, 0);
     end
-    
-    % Optional send BYPASS control change to enable bypass (disable effect)
-    if isfield(cfg, 'BYPASS_CC') && ~isempty(cfg.BYPASS_CC) && ~isnan(cfg.BYPASS_CC)
+    if isfield(cfg,'BYPASS_CC') && ~isempty(cfg.BYPASS_CC) && ~isnan(cfg.BYPASS_CC)
         sendMidiCommand(cfg, cmdFH, T, 'controlchange', cfg.BYPASS_CC, 127);
     end
 end
