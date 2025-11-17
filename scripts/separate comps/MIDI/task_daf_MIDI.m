@@ -300,8 +300,7 @@ for itrial = 1:ntrials
             fprintf('Block %d/%d finished; press spacebar to continue...\n', currentBlock, cfg.n_blocks);
             
             % Change keypress callback to catch space and release uiwait
-            set(hfig, 'WindowKeyPressFcn', @(src,evt) ...
-                strcmp(evt.Key, 'space') && uiresume(hfig));
+            set(hfig, 'WindowKeyPressFcn', @(src,evt) strcmp(evt.Key, 'space') && uiresume(hfig));
             uiwait(hfig);  % Wait for spacebar press
             if ~ishandle(hfig), break; end                 % window closed during break
             set(hfig,'WindowKeyPressFcn', @onKey);         % restore callback safely
@@ -468,7 +467,7 @@ function midiPreloadPreset(cfg, delay_ms, cmdFH, T)
             end
         catch
             warning('Eclipse Set failed, falling back to 0 ms.');
-            try, cfg.ECL.SetDelay(0); end %#ok<TRYNC>
+            try cfg.ECL.SetDelay(0); end %#ok<TRYNC>
         end
         return;
     end
@@ -579,5 +578,4 @@ function midiBypass(cfg, cmdFH, T)
         sendMidiCommand(cfg, cmdFH, T, 'controlchange', cfg.BYPASS_CC, 127);
     end
 end
-
 end

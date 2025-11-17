@@ -9,6 +9,124 @@ function start_daf_intraop_MIDI
 % No input arguments; all configuration is inside the function.
 %
 % The configuration is stored in the 'cfg' struct, passed to the task function.
+%
+% -------------------------------------------------------------------------
+% EVENTIDE H90 — COMMAND FLOW (PRESET + CC CONTROL)
+%
+% 1) Startup
+%    a. Load 0-ms preset
+%       - Script: midiPreloadPreset(cfg, 0)
+%       - Sends Program Change (PC):
+%           midisend(..., 'programchange', channel, presetNumFor0ms)
+%       - Selects the preset you programmed for 0 ms delay.
+%
+%    b. Engage effect (turn delay ON)
+%       - Script: midiEngage(cfg)
+%       - Sends two Control Change (CC) messages:
+%           CC MIX_CC = 127   → fully wet (all delayed signal)
+%           CC BYPASS_CC = 0  → bypass OFF (effect active)
+%       - MIX=127 = fully affected; BYPASS=0 = effect engaged.
+%
+% 2) During each non-catch trial
+%    a. Preload trial delay
+%       - Script: sendSet(delay_ms)
+%       - Sends Program Change:
+%           PC → PRESET_MAP(delay_ms)
+%       - Selects the preset corresponding to that delay.
+%
+%    b. DAF ON
+%       - Script: sendStart() → midiEngage(cfg)
+%       - Re-sends:
+%           CC MIX_CC = 127
+%           CC BYPASS_CC = 0
+%       - Reinforces "effect ON, fully wet."
+%
+%    c. DAF OFF
+%       - Script: midiPreloadPreset(cfg, 0)
+%       - Sends Program Change selecting 0-ms preset.
+%       - Returns effect to 0 ms but NOT bypassed.
+%
+% 3) Final cleanup
+%    a. Bypass the device
+%       - Script: midiBypass(cfg)
+%       - Sends:
+%           CC MIX_CC = 0     → no wet signal
+%           CC BYPASS_CC = 127 → full bypass
+%       - Leaves H90 in a safe, neutral state.
+%
+% -------------------------------------------------------------------------
+% ECLIPSE v4 — COMMAND FLOW (PRESET MODE, OPTION A)
+%
+% 1) Startup
+%    a. Load 0-ms preset
+%       - Script: midiPreloadPreset(cfg, 0)
+%       - Eclipse branch:
+%           cfg.ECL.LoadProgram(PRESET_MAP(0))
+%       - SysEx-based preset recall handled by EclipseMIDIcomm.
+%
+%    b. DAF_ON
+%       - Script: midiEngage(cfg)
+%       - Eclipse branch sends NO command (log only: START_ECLIPSE)
+%       - Preset internally defines mix/bypass state.
+%
+% 2) During each non-catch trial
+%    a. Preload delay preset
+%       - Script: sendSet(delay_ms)
+%       - Executes:
+%           cfg.ECL.LoadProgram(PRESET_MAP(delay_ms))
+%       - Recalls the exact Eclipse preset for that delay.
+%
+%    b. DAF ON
+%       - Script: midiEngage(cfg)
+%       - Sends NO Eclipse command (log only).
+%       - Reason: Eclipse presets define effect engagement.
+%
+%    c. DAF OFF
+%       - Script: midiPreloadPreset(cfg, 0)
+%       - Executes:
+%           cfg.ECL.LoadProgram(PRESET_MAP(0))
+%       - Resets to the 0-ms program.
+%
+% 3) Final cleanup
+%    a. Force 0-ms
+%       - Script: midiBypass(cfg)
+%       - Eclipse branch:
+%           cfg.ECL.SetDelay(0)
+%       - Ensures device ends with zero delay even if a preset was wrong.
+% -------------------------------------------------------------------------
+%
+% -------------------------------------------------------------------------
+% FOR ECLIPSE V4:
+% 1: Fill in ECLIPSE_PRESET_MAP with REAL program numbers:
+%
+%    Replace the placeholder line:
+%
+%       ECLIPSE_PRESET_MAP = containers.Map( ...
+%           num2cell(delays), ...
+%           num2cell(-1 * ones(size(delays))) );
+%
+%    with something like:
+%
+%       % Example if cfg.delay_values_ms = [0 100 150 200 250]
+%       ECLIPSE_PRESET_MAP = containers.Map( ...
+%           num2cell(delays), ...
+%           num2cell([ 10 11 12 13 14 ]) );
+%
+%    e.g.:
+%       10 = Eclipse preset for 0 ms
+%       11 = Eclipse preset for 100 ms
+%       12 = Eclipse preset for 150 ms
+%       13 = Eclipse preset for 200 ms
+%       14 = Eclipse preset for 250 m
+%
+% 2: Confirm MIDI device name:
+%       cfg.MIDI_OUT_NAME must match the name shown in mididevinfo.
+% 3: Optional:
+%       If Eclipse supports CC controls for mix/bypass, enter:
+%           cfg.MIX_CC    = <your CC#>;
+%           cfg.BYPASS_CC = <your CC#>;
+%       Otherwise leave them as NaN.
+% -------------------------------------------------------------------------
 
 %% Setup experiment configuration
 cfg = struct();
@@ -83,15 +201,18 @@ if contains(cfg.MIDI_OUT_NAME, 'Eventide H90', 'IgnoreCase', true)
     cfg.MIX_CC      = 21;   % example H90 mapping
     cfg.BYPASS_CC   = 22;   % example H90 mapping
     fprintf('[MIDI] Using H90 PRESET_MAP (target: %s)\n', cfg.MIDI_OUT_NAME);
+    cfg.IS_ECLIPSE = false;
 else
     cfg.PRESET_MAP = ECLIPSE_PRESET_MAP;
     cfg.MIX_CC      = NaN;  % set if Eclipse supports a global mix CC
     cfg.BYPASS_CC   = NaN;  % set if Eclipse supports bypass via CC
     fprintf('[MIDI] Using Eclipse v4 PRESET_MAP (target: %s)\n', cfg.MIDI_OUT_NAME);
+    cfg.IS_ECLIPSE = true;
+    cfg.ECL = EclipseMIDIcomm();
 end
 
 % Ensure all delays have a preset
-assert(all(isKey(cfg.PRESET_MAP, num2cell(cfg.delay_values_ms))), 'PRESET_MAP must cover all delay_values_ms.');
+assert(all(isKey(cfg.PRESET_MAP, num2cell(int32(round(cfg.delay_values_ms))))), 'PRESET_MAP must cover all delay_values_ms.');
 
 %% PTB optional setup
 usePTB = false;
