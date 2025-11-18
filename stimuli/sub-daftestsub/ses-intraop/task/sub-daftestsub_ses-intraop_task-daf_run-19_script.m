@@ -20,11 +20,6 @@ if ~isfield(cfg,'EVENT_FILENAME') || ~isfield(cfg,'TRIAL_FILENAME')
     error('cfg EVENT/TRIAL filenames missing.');
 end
 
-% Set default values for optional config parameters
-if ~isfield(cfg,'DAF_START_OFFSET_S'), cfg.DAF_START_OFFSET_S = 0; end
-if ~isfield(cfg,'text_stim_dur'),      cfg.text_stim_dur      = 10; end
-if ~isfield(cfg,'n_blocks'),           cfg.n_blocks           = 1;  end
-
 %% Setup timing function backend: Psychtoolbox (PTB) or MATLAB native timer
 usePTB = false;
 if isfield(cfg,'PTB')  % Interpret PTB field as boolean or string true
@@ -56,7 +51,7 @@ cmdFile = fullfile(cmdPath,[cmdBase '.tsv']);
 cmdFH = fopen(cmdFile,'w');
 fprintf(cmdFH, 't_send_getsecs\tcommand\targ1\targ2\tretries\tmessage\n'); % Write tab-separated header line to the commands log
 
-%% Load and prepare trial table
+%% Load and prepare trial table (double check files)
 addpath(cfg.PATH_TASK);
 if ~(exist('create_trials_table','file')==2)
     error('create_trials_table.m not found on path %s', cfg.PATH_TASK);
@@ -129,21 +124,15 @@ TRIG_VIS = 2; % Visual stimulus onset
 TRIG_DAF = 4; % DAF audio playback event
 TRIG_KEY = 8; % Key press event (space)
 TRIG_ESC = 16; % Escape pressed
-TRIG_SET = 32; % Set event
-% add break
+TRIG_SET = 32; % Begin playback
+TRIG_BREAK = 64; % add break
 
 %% Setup MIDI
 haveDAF = isfield(cfg,'DAF_MIDI') && ~isempty(cfg.DAF_MIDI) && ...
-          isfield(cfg,'USE_PRESETS') && cfg.USE_PRESETS && ...
           isfield(cfg,'PRESET_MAP') && isa(cfg.PRESET_MAP,'containers.Map');
 if ~haveDAF
     warning('DAF_MIDI missing or PRESET_MAP absent — running without DAF (visuals/logging only).');
 end
-
-% Define MIDI helper function handles for sending preset recall, engage, and bypass commands
-sendSet    = @(ms) midiPreloadPreset(cfg, ms, cmdFH, T);
-sendStart  = @()  midiEngage(cfg, cmdFH, T);
-sendStop   = @()  midiBypass(cfg, cmdFH, T);
 
 % Check if digital out is present
 doDigOut = isfield(cfg,'DIGOUT') && logical(cfg.DIGOUT);
@@ -151,8 +140,7 @@ doDigOut = isfield(cfg,'DIGOUT') && logical(cfg.DIGOUT);
 % Turn constant audio playback on
 flipState = 0;
 if haveDAF
-    midiPreloadPreset(cfg, 0, cmdFH, T); % load 0 ms preset
-    midiEngage(cfg, cmdFH, T);  % engage (mix up, bypass off) if CCs are set
+    sendDelay(0);
     flipState = ~flipState;
     log_event(eventFH, doDigOut, T.now(), [], [], 'control', [], TRIG_SET, 'Audio_armed_0ms', flipState);
 end
@@ -194,13 +182,6 @@ ITI_S = [1.75, 2.25]; % Inter-trial interval range in seconds
 for itrial = 1:ntrials
     isCatch = trials.catch_trial(itrial);
     delay_ms_planned = trials.delay(itrial);
-    
-    % Preload MIDI preset for delay on Eventide H90 before trial begins
-    if haveDAF && ~isCatch
-        sendSet(delay_ms_planned);
-        flipState = ~flipState;
-        log_event(eventFH, true, T.now(), [], [], 'control', [], TRIG_SET, sprintf('MIDI_SET_Preset_ms=%d', delay_ms_planned), flipState);
-    end
 
     % ITI + fixation
     set(hText,'String','*','Color', tern(~isCatch,[0.7 0.7 0.7],'red'));
@@ -219,7 +200,7 @@ for itrial = 1:ntrials
         if cfg.DAF_START_OFFSET_S ~= 0
             T.until(tFixOn + cfg.DAF_START_OFFSET_S);
         end
-        sendStart(); % Sends MIDI commands to engage Eventide delay effect
+        sendDelay(delay_ms_planned); % Sends MIDI commands to engage delay effect... !!!!DAF DELAY CURRENTLY BEING PLAYED BACK CHANGES HERE!!!!
         flipState = ~flipState;
         log_event(eventFH, doDigOut, T.now(), [], [], 'speech', [], TRIG_DAF, sprintf('DAF_On_cmd(ms=%d)', delay_ms_planned), flipState);
     end
@@ -237,7 +218,7 @@ for itrial = 1:ntrials
     while T.now() - tSpeakStart < cfg.text_stim_dur
         [~, esc] = KeyPoll(hfig);
         if esc
-            if haveDAF, sendStop(); end
+            if haveDAF, sendDelay(0); end
             flipState = ~flipState;
             log_event(eventFH, doDigOut, T.now(), [], [], tern(isCatch,'catch','speech'), [], TRIG_ESC, 'Key_Esc', flipState);
             safeQuit(); fclose(eventFH); fclose(cmdFH); close(hfig); return
@@ -247,7 +228,7 @@ for itrial = 1:ntrials
 
     % DAF OFF
     if haveDAF && ~isCatch
-        midiPreloadPreset(cfg, 0, cmdFH, T); % reset delay to 0 ms preset without stopping audio
+        sendDelay(0);
         flipState = ~flipState;
         log_event(eventFH, doDigOut, T.now(), [], [], 'speech', [], TRIG_DAF, 'DAF_Off_cmd', flipState);
     end
@@ -266,7 +247,7 @@ for itrial = 1:ntrials
         while true
             [space, esc] = KeyPoll(hfig);
             if esc
-                if haveDAF, sendStop(); end
+                if haveDAF, sendDelay(0); end
                 flipState = ~flipState;
                 log_event(eventFH, doDigOut, T.now(), [], [], tern(isCatch,'catch','speech'), [], TRIG_ESC, 'Key_Esc', flipState);
                 safeQuit(); fclose(eventFH); fclose(cmdFH); close(hfig); return
@@ -292,7 +273,7 @@ for itrial = 1:ntrials
         % If this is the last trial in the block and not the last overall trial
         if itrial == blockTrials(end) && itrial < ntrials
             flipState = ~flipState;
-            log_event(eventFH, doDigOut, T.now(), [], [], 'control', [], 0, sprintf('Block_%d_Break_Start', currentBlock), flipState);
+            log_event(eventFH, doDigOut, T.now(), [], [], 'control', [], TRIG_BREAK, sprintf('Block_%d_Break_Start', currentBlock), flipState);
 
             % Display break message on screen and console
             set(hfig,'WindowKeyPressFcn', @onKey);
@@ -306,7 +287,7 @@ for itrial = 1:ntrials
             set(hfig,'WindowKeyPressFcn', @onKey);         % restore callback safely
 
             flipState = ~flipState;
-            log_event(eventFH, doDigOut, T.now(), [], [], 'control', [], 0, sprintf('Block_%d_Break_End', currentBlock), flipState);
+            log_event(eventFH, doDigOut, T.now(), [], [], 'control', [], TRIG_BREAK, sprintf('Block_%d_Break_End', currentBlock), flipState);
             % Restore original callbacks
             set(hfig,'WindowKeyPressFcn', @onKey);
             set(hText,'String',''); drawnow;
@@ -316,9 +297,9 @@ end
 
 %% Cleanup
 if haveDAF
-    sendStop();
+    sendDelay(0);
     if isfield(cfg, 'DAF_MIDI') && ~isempty(cfg.DAF_MIDI)
-        clear cfg.DAF_MIDI;
+        release(cfg.DAF_MIDI)
     end
 end
 fclose(eventFH);
@@ -326,7 +307,55 @@ fclose(cmdFH);
 close(hfig);
 fprintf('Task complete.\n');
 
-%% Nested helpers
+%% MIDI HELPERS
+% ========================================================================
+%   sendDelay — select preset for a given delay (ms)
+%   Used both to:
+%     - start trial DAF:  sendDelay(delay_ms_planned)
+%     - "turn off" DAF:   sendDelay(0)  (0 ms preset)
+% ========================================================================
+function sendDelay(delay_ms)
+
+    keyDelay = int32(round(delay_ms));
+
+    % Offline / no device
+    if ~haveDAF || isempty(cfg.DAF_MIDI)
+        fprintf('[OFFLINE] START %d ms\n', keyDelay);
+        fprintf(cmdFH,'%.6f\tSTART\t%d\t\t0\toffline\n', T.now(), keyDelay);
+        return;
+    end
+
+    % Look up preset for this delay
+    if ~isKey(cfg.PRESET_MAP, keyDelay)
+        warning('sendDelay: No preset mapping for %d ms.', keyDelay);
+        fprintf(cmdFH,'%.6f\tSTART_FAIL\t%d\t\t0\tno_preset\n', T.now(), keyDelay);
+        return;
+    end
+
+    programNum = cfg.PRESET_MAP(keyDelay);
+
+    % Program Change with retries
+    maxRetries = 3;
+    success    = false;
+    attempt    = 0;
+
+    while ~success && attempt < maxRetries
+        attempt = attempt + 1;
+        try
+            midisend(cfg.DAF_MIDI, 'programchange', cfg.MIDI_CHANNEL, double(programNum)); % actual sending line
+            success = true;
+        catch
+            pause(0.05); % brief backoff
+        end
+    end
+
+    % Logging: delay_ms, programNum, retries
+    fprintf(cmdFH,'%.6f\tPROGRAMCHANGE\t%d\t%d\t%d\tpreset_select\n', T.now(), keyDelay, programNum, attempt-1);
+    if ~success
+        warning('sendDelay: Failed to send PROGRAMCHANGE to %d (preset %d) after %d attempts.', keyDelay, programNum, maxRetries);
+    end
+end
+
 function out = tern(cond, a, b)
     if cond, out=a; else, out=b; end
 end
@@ -343,7 +372,7 @@ end
 function safeQuit()
     fprintf('ESC pressed → quitting task\n');
     if isfield(cfg, 'DAF_MIDI') && ~isempty(cfg.DAF_MIDI)
-        clear cfg.DAF_MIDI;
+        cfg.DAF_MIDI = [];
     end
 end
 
@@ -355,227 +384,8 @@ function playSyncBeepLocal()
     y  = 0.5*sin(2*pi*1000*t);
     try sound(y, fs); catch, end
 end
-
-function sendMidiCommand(cfg, cmdFH, T, cmdType, varargin)
-% Helper for robust MIDI communication
-% Sends one of two types of MIDI messages ('programchange' or 'controlchange')
-% with up to 3 retry attempts if sending fails (for reliability).
-%
-% Inputs:
-%   cfg     - Configuration struct containing MIDI device handle and settings.
-%   cmdFH   - File handle for the command log file (to log MIDI events).
-%   T       - Timing struct with function handle T.now() for current time.
-%   cmdType - String specifying MIDI command type: 'programchange' or 'controlchange'.
-%   varargin- Additional parameters depending on cmdType:
-%               For 'programchange': varargin{1} is the preset number (integer).
-%               For 'controlchange': varargin{1} is control change number (CC#),
-%                                   varargin{2} is control value (0-127).
-%
-% Outputs:
-%   None (side effects: sends MIDI message, logs command)
-%
-% Usage:
-%   Called by midiPreloadPreset, midiEngage, midiBypass to send MIDI instructions
-%   reliably to the Eventide H90 device. Ensures commands are sent, with retries
-%   upon transient communication failure.
-%
-    maxRetries = 3;     % Max times to attempt sending MIDI command
-    success = false;    % Flag to track if command was sent successfully
-    attempt = 0;        % Retry counter
-    while ~success && attempt < maxRetries
-        attempt = attempt + 1;
-        try
-            switch lower(cmdType)
-                case 'programchange'
-                    % Send program change message selecting a preset number
-                    % varargin{1} = preset number
-                    pn = varargin{1};
-                    if iscell(pn), pn = pn{1}; end
-                    pn = double(pn);
-                    midisend(cfg.DAF_MIDI, 'programchange', cfg.MIDI_CHANNEL, pn);
-                case 'controlchange'
-                    % Send control change message to modify device parameter
-                    % varargin{1} = control change number (CC #)
-                    % varargin{2} = control value (0-127)
-                    cc = double(varargin{1});
-                    vv = double(varargin{2});
-                    midisend(cfg.DAF_MIDI, 'controlchange', cfg.MIDI_CHANNEL, cc, vv);
-                otherwise
-                    error('Unknown MIDI command type: %s', cmdType);
-            end
-            success = true;  % Command sent successfully, exit retry loop
-        catch
-            pause(0.1);  % Short delay before retrying on error
-        end
-    end
-    
-    % Create a string representation of the MIDI command arguments for logging
-    if isempty(varargin)
-        argsStr = "";
-    else
-        % convert varargin (which may contain doubles/chars) into a string array
-        argsStr = string(varargin);          % 1xN string array
-    end
-    argstr = strjoin(argsStr, ',');
-    fprintf(cmdFH, '%.6f\t%s\t%s\t\t%d\t%s\n', T.now(), upper(cmdType), char(argstr), attempt-1, 'sendMidiCommand');
-    
-    % Warn if the command failed after all retries
-    if ~success
-        warning('Failed to send MIDI command %s after %d attempts.', cmdType, maxRetries);
-    end
 end
 
-function midiPreloadPreset(cfg, delay_ms, cmdFH, T)
-% Preload the MIDI preset corresponding to a requested delay by sending a program change.
+% run again on virtual MIDI
 %
-% Inputs:
-%   cfg        - Configuration struct with MIDI info and preset map.
-%   delay_ms   - Desired delay in milliseconds (numeric scalar).
-%   cmdFH      - File handle for logging MIDI commands.
-%   T          - Timing struct with T.now() for timestamp.
-%
-% Output:
-%   None (side effects: sends MIDI program change to load delay preset)
-%
-% Usage:
-%   Called before each trial to set delay time by switching the Eventide preset.
-%   If no MIDI device is present, it logs the preset change for offline debugging.
-%
-    % Round and convert delay to int32 as keys for map lookup
-    key = int32(round(delay_ms));
-
-    % Offline: no MIDI device
-    if ~isfield(cfg,'DAF_MIDI') || isempty(cfg.DAF_MIDI)
-        fprintf('[DAF-OFFLINE] SET %d\n', key);
-        fprintf(cmdFH, '%.6f\tSET\t%d\t%s\t%d\t%s\n', T.now(), key, "NA", 0, 'no_midi');
-        return;
-    end
-
-    % Eclipse branch (SysEx keypress emulation via EclipseMIDIcomm)
-    if isfield(cfg,'IS_ECLIPSE') && cfg.IS_ECLIPSE && isfield(cfg,'ECL') && ~isempty(cfg.ECL)
-        try
-            pn = NaN;
-            if isfield(cfg,'PRESET_MAP') && isa(cfg.PRESET_MAP,'containers.Map') && isKey(cfg.PRESET_MAP, key)
-                pn = cfg.PRESET_MAP(key);
-            end
-            if ~isnan(pn) && pn >= 0
-                cfg.ECL.LoadProgram(pn);
-                fprintf(cmdFH,'%.6f\tSET_ECLIPSE_PROGRAM\t%d\t\t0\tLoadProgram\n', T.now(), pn);
-            else
-                cfg.ECL.SetDelay(double(key));
-                fprintf(cmdFH,'%.6f\tSET_ECLIPSE_DELAY\t%d\t\t0\tSetDelay\n', T.now(), key);
-            end
-        catch
-            warning('Eclipse Set failed, falling back to 0 ms.');
-            try cfg.ECL.SetDelay(0); end %#ok<TRYNC>
-        end
-        return;
-    end
-
-    % H90 / generic MIDI path (Program Change; optional bank CCs)
-    % Resolve preset number from map (closest if needed)
-    if isfield(cfg,'PRESET_MAP') && isa(cfg.PRESET_MAP,'containers.Map') && ~isempty(cfg.PRESET_MAP)
-        if isKey(cfg.PRESET_MAP, key)
-            pn = cfg.PRESET_MAP(key);
-        else
-            keys = cell2mat(cfg.PRESET_MAP.keys);
-            [~, ix] = min(abs(double(keys) - double(key)));
-            pn = cfg.PRESET_MAP(keys(ix));
-        end
-    else
-        pn = 0; % fallback
-    end
-
-    % Optional Bank Select
-    if isfield(cfg,'BANK_MSB_CC') && ~isempty(cfg.BANK_MSB_CC) && ~isnan(cfg.BANK_MSB_CC) ...
-    && isfield(cfg,'BANK_MSB')    && ~isempty(cfg.BANK_MSB)
-        sendMidiCommand(cfg, cmdFH, T, 'controlchange', cfg.BANK_MSB_CC, cfg.BANK_MSB);
-    end
-    if isfield(cfg,'BANK_LSB_CC') && ~isempty(cfg.BANK_LSB_CC) && ~isnan(cfg.BANK_LSB_CC) ...
-    && isfield(cfg,'BANK_LSB')    && ~isempty(cfg.BANK_LSB)
-        sendMidiCommand(cfg, cmdFH, T, 'controlchange', cfg.BANK_LSB_CC, cfg.BANK_LSB);
-    end
-
-    % Program Change to select preset
-    sendMidiCommand(cfg, cmdFH, T, 'programchange', pn);
-end
-
-function midiEngage(cfg, cmdFH, T)
-% Sends MIDI control changes to engage (turn on) the delay effect on the Eventide hardware.
-%
-% Inputs:
-%   cfg    - Configuration struct containing MIDI device and mapping info.
-%   cmdFH  - File handle for tone command logging.
-%   T      - Timing struct with timestamp function T.now().
-%
-% Output:
-%   None (sends MIDI control changes; logs commands)
-%
-% Usage:
-%   Called at the start of a trial where delay effect should be engaged (audio delay effect ON).
-%   Typically sends control change to mix wet signal and disable bypass.
-%
-    % Offline
-    if ~isfield(cfg,'DAF_MIDI') || isempty(cfg.DAF_MIDI)
-        fprintf('[DAF-OFFLINE] START\n');
-        fprintf(cmdFH, '%.6f\tSTART\t\t%s\t%d\t%s\n', T.now(), "NA", 0, 'no_midi');
-        return;
-    end
-
-    % Eclipse → no toggle; keep deterministic control via SetDelay
-    if isfield(cfg,'IS_ECLIPSE') && cfg.IS_ECLIPSE && isfield(cfg,'ECL') && ~isempty(cfg.ECL)
-        fprintf(cmdFH,'%.6f\tSTART_ECLIPSE\t\t\t0\tnoop\n', T.now());
-        return;
-    end
-
-    % H90 / generic: MIX to 127 (all wet), BYPASS off (engage)
-    if isfield(cfg,'MIX_CC') && ~isempty(cfg.MIX_CC) && ~isnan(cfg.MIX_CC)
-        sendMidiCommand(cfg, cmdFH, T, 'controlchange', cfg.MIX_CC, 127);
-    end
-    if isfield(cfg,'BYPASS_CC') && ~isempty(cfg.BYPASS_CC) && ~isnan(cfg.BYPASS_CC)
-        sendMidiCommand(cfg, cmdFH, T, 'controlchange', cfg.BYPASS_CC, 0);
-    end
-end
-
-function midiBypass(cfg, cmdFH, T)
-% Sends MIDI control changes to bypass (turn off) the delay effect on the Eventide hardware.
-%
-% Inputs:
-%   cfg    - Configuration struct containing MIDI device and settings.
-%   cmdFH  - File handle for MIDI command logging.
-%   T      - Timing struct for timestamping.
-%
-% Output:
-%   None (sends MIDI control changes to bypass effect; logs commands)
-%
-% Usage:
-%   Called at the end of trials or at task cleanup to disable the delay effect,
-%   typically setting mix level to zero and enabling bypass on hardware.
-%
-    % Offline
-    if ~isfield(cfg,'DAF_MIDI') || isempty(cfg.DAF_MIDI)
-        fprintf('[DAF-OFFLINE] STOP\n');
-        fprintf(cmdFH, '%.6f\tSTOP\t\t%s\t%d\t%s\n', T.now(), "NA", 0, 'no_midi');
-        return;
-    end
-
-    % Eclipse → set 0 ms; no risky toggles
-    if isfield(cfg,'IS_ECLIPSE') && cfg.IS_ECLIPSE && isfield(cfg,'ECL') && ~isempty(cfg.ECL)
-        try
-            cfg.ECL.SetDelay(0);
-        catch
-            warning('Eclipse SetDelay(0) failed.');
-        end
-        fprintf(cmdFH,'%.6f\tSTOP_ECLIPSE\t0\t\t0\tsetdelay0\n', T.now());
-        return;
-    end
-
-    % H90 / generic: MIX to 0, BYPASS on (127)
-    if isfield(cfg,'MIX_CC') && ~isempty(cfg.MIX_CC) && ~isnan(cfg.MIX_CC)
-        sendMidiCommand(cfg, cmdFH, T, 'controlchange', cfg.MIX_CC, 0);
-    end
-    if isfield(cfg,'BYPASS_CC') && ~isempty(cfg.BYPASS_CC) && ~isnan(cfg.BYPASS_CC)
-        sendMidiCommand(cfg, cmdFH, T, 'controlchange', cfg.BYPASS_CC, 127);
-    end
-end
-end
+% check trials table as well

@@ -88,10 +88,10 @@ allDelay = zeros(pairs_per_block * cfg.n_blocks, 1);
 writeIdx = 1;
 for b = 1:cfg.n_blocks
     if isfield(cfg,'same_trials_across_blocks') && cfg.same_trials_across_blocks && b > 1
-        % Reuse block 1's order verbatim
-        src1 = 1; src2 = pairs_per_block;
-        fs = allStim(src1:src2);
-        fd = allDelay(src1:src2);
+        % Reuse same (stim, delay) set but reshuffle
+        [~, order] = sort(rand(size(allStim(1:pairs_per_block))));
+        fs = allStim(order(1:pairs_per_block));  % reuse Block 1 pool but new order
+        fd = allDelay(order(1:pairs_per_block));
     else
         [fs, fd] = constrained_block_shuffle();
     end

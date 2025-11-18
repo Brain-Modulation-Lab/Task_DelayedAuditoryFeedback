@@ -1,0 +1,9 @@
+onset	duration	sample	trial_type	stim_file	value	event_code
+79590.557626	0.000000	0	"control"	"n/a"	32776	"Key_Space"
+79590.559999	0.000000	0	"control"	"n/a"	0	"Instructions_End"
+79590.590254	0.000000	0	"speech"	"n/a"	32769	"Fixation_Cross_Onset"
+79592.644506	0.000000	0	"speech"	"Crickets chirped sporadically in the damp grass after the sudden rainfall."	2	"Visual Onset"
+79602.663003	0.000000	0	"speech"	"n/a"	32770	"Visual Off"
+79604.361494	0.000000	0	"speech"	"n/a"	1	"Fixation_Cross_Onset"
+79606.524830	0.000000	0	"speech"	"Thunder echoed sharply through the narrow canyon, startling the distant horses."	32770	"Visual Onset"
+79609.710177	0.000000	0	"speech"	"n/a"	16	"Key_Esc"

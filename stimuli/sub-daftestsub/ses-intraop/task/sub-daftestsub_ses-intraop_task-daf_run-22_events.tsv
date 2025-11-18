@@ -1,0 +1,6 @@
+onset	duration	sample	trial_type	stim_file	value	event_code
+79587.556993	0.000000	0	"control"	"n/a"	32776	"Key_Space"
+79587.560504	0.000000	0	"control"	"n/a"	0	"Instructions_End"
+79587.588511	0.000000	0	"speech"	"n/a"	32769	"Fixation_Cross_Onset"
+79589.754367	0.000000	0	"speech"	"Rolling waves crashed steadily against the rocky shoreline under the fading light."	2	"Visual Onset"
+79590.691374	0.000000	0	"speech"	"n/a"	32784	"Key_Esc"

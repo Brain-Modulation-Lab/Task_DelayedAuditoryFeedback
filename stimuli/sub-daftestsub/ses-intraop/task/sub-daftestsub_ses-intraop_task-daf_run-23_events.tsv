@@ -1,0 +1,7 @@
+onset	duration	sample	trial_type	stim_file	value	event_code
+79587.822635	0.000000	0	"control"	"n/a"	32776	"Key_Space"
+79587.825933	0.000000	0	"control"	"n/a"	0	"Instructions_End"
+79587.860012	0.000000	0	"speech"	"n/a"	32769	"Fixation_Cross_Onset"
+79589.634123	0.000000	0	"speech"	"The musician adjusted the trembling string until the tone sounded perfectly clear."	2	"Visual Onset"
+79599.655993	0.000000	0	"speech"	"n/a"	32770	"Visual Off"
+79599.729353	0.000000	0	"speech"	"n/a"	16	"Key_Esc"
