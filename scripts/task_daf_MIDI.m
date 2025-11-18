@@ -140,7 +140,13 @@ doDigOut = isfield(cfg,'DIGOUT') && logical(cfg.DIGOUT);
 % Turn constant audio playback on
 flipState = 0;
 if haveDAF
-    sendDelay(0);
+    sendDelay(0); %comment out if using EclipseMidiComm
+
+    %%%%%%%%%%%%%%%%%%% UNCOMMENT OUT BLOCK IF USING ECLIPSEMIDICOMM
+    % Start experiment in DAF_BASE with 0 ms delay (no DAF yet)
+    %cfg.ECLIPSE.hcom.LoadProgram(cfg.ECLIPSE.dafProgramNum);
+    %cfg.ECLIPSE.hcom.SetDelay(0);
+
     flipState = ~flipState;
     log_event(eventFH, doDigOut, T.now(), [], [], 'control', [], TRIG_SET, 'Audio_armed_0ms', flipState);
 end
@@ -296,26 +302,31 @@ for itrial = 1:ntrials
 end
 
 %% Cleanup
-if haveDAF
+if haveDAF %comment out block if using EclipseMidiComm
     sendDelay(0);
     if isfield(cfg, 'DAF_MIDI') && ~isempty(cfg.DAF_MIDI)
         release(cfg.DAF_MIDI)
     end
 end
+
+%%%%%%%%%%%%%%%%%%% UNCOMMENT OUT BLOCK IF USING ECLIPSEMIDICOMM
+% if isfield(cfg,'ECLIPSE') && ~isempty(cfg.ECLIPSE)
+%     cfg.ECLIPSE.hcom.LoadProgram(cfg.ECLIPSE.cleanProgramNum);
+% end
+
 fclose(eventFH);
 fclose(cmdFH);
 close(hfig);
 fprintf('Task complete.\n');
 
 %% MIDI HELPERS
+function sendDelay(delay_ms)
 % ========================================================================
 %   sendDelay — select preset for a given delay (ms)
 %   Used both to:
 %     - start trial DAF:  sendDelay(delay_ms_planned)
 %     - "turn off" DAF:   sendDelay(0)  (0 ms preset)
 % ========================================================================
-function sendDelay(delay_ms)
-
     keyDelay = int32(round(delay_ms));
 
     % Offline / no device
@@ -342,7 +353,11 @@ function sendDelay(delay_ms)
     while ~success && attempt < maxRetries
         attempt = attempt + 1;
         try
-            midisend(cfg.DAF_MIDI, 'programchange', cfg.MIDI_CHANNEL, double(programNum)); % actual sending line
+            midisend(cfg.DAF_MIDI, 'programchange', cfg.MIDI_CHANNEL, double(programNum)); % actual sending line, comment out if using EclipseMidiComm
+
+            %%%%%%%%%%%%%%%%%%% UNCOMMENT OUT BLOCK IF USING ECLIPSEMIDICOMM
+            %cfg.ECLIPSE.hcom.SetDelay(keyDelay);
+
             success = true;
         catch
             pause(0.05); % brief backoff

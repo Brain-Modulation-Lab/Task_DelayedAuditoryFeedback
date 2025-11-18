@@ -13,7 +13,7 @@ function start_daf_intraop_MIDI
 % -------------------------------------------------------------------------
 %
 % -------------------------------------------------------------------------
-% FOR ECLIPSE V4 (legacy):
+% If creating all presets on hardware (NO ECLIPSEMIDICOMM)
 %
 % STEP 1 — Put Eclipse into a usable starting state
 % 1) On the Eclipse front panel:
@@ -63,60 +63,48 @@ function start_daf_intraop_MIDI
 % -------------------------------------------------------------------------
 %
 % -------------------------------------------------------------------------
-% FOR EVENTIDE H90:
+% If using EclipseMidiComm:
 %
-% STEP 1 — Put H90 into a clean starting state
-% 1) On the H90 front panel:
-%    - Press the "PROGRAMS" button to enter the Program browser.
-%    - Turn the main encoder to scroll through Programs.
-%    - Select any delay-based Program as a starting point, for example:
-%        • "Digital Delay"
-%        • "Tape Echo"
-%        • "Vintage Delay"
-%        • "Dual Delay"
-%        • Any Program whose Algorithm includes a Delay Time parameter (ms).
+% STEP 1: Create a CLEAN_PASS program (no DAF, neutral effect)
+% (This is what Eclipse runs after the experiment)
 %
-%    These will all work; the important part is that the Program exposes:
-%       - Delay Time (in milliseconds)
-%       - Mix control
-%       - Bypass state
+% 1) Load a neutral / clean program (e.g. "Thru", "Bypass", or equivalent).
+% 2) Press PARAMETER to edit if necessary.
+% 3) Adjust parameters so audio is effectively unaffected:
+%       - Delay Time: 0 ms
+%       - Feedback: 0
+%       - Mix: 0% wet or equivalent "no effect" setting
+%       - Bypass: ON or equivalent
+%       - Output Level: comfortable working level
+% 4) Store this as a new program:
+%       - Press STORE
+%       - Choose an empty program slot, e.g. Program 100.
+%       - Press ENTER.
+%       - Name it CLEAN_PASS
+%       - Press ENTER again to confirm.
+% 5) Record this program number in the MATLAB script:
+%       cfg.ECLIPSE.cleanProgramNum = 100;
 %
-% STEP 2 — Create the 0 ms DAF preset (DAF_0ms)
-% 1) Press "PARAMETERS" (or click the encoder) to enter parameter edit mode.
-% 2) Adjust parameters as follows:
-%    - Delay Time: 0 ms
-%    - Feedback: 0
-%    - Mix: 100% wet
-%          (or whatever wet/dry setting your protocol requires)
-%    - Bypass: Ensure the effect is active (NOT bypassed)
-%    - Routing: Leave as default unless your setup requires special routing
-% 3) Store the preset:
-%    - Press the "STORE" soft key (bottom of screen)
-%    - When prompted "Store To:", select an empty slot (e.g., Program 21)
-%    - Press the encoder to confirm
-%    - Name it (recommended):  DAF_0ms
-%    - Press encoder again to finalize
-% 4) Record the Program number in cfg.PRESET_MAP:
-%        cfg.PRESET_MAP(int32(0)) = 21;   % Example: 0 ms stored at Program 21
+% -------------------------------------------------------------------------
+% STEP 2: Create the DAF_BASE program (0 ms delay, ready for remote control)
+% (This is the ONLY DAF program needed EclipseMIDIcomm will change its delay)
 %
-% STEP 3 — Create each non-zero DAF preset (e.g., 150 ms, 200 ms)
-% For each delay value in the experiment:
-% 1) Press "PROGRAMS" and load your DAF_0ms preset (e.g., Program 21)
-% 2) Press "PARAMETERS" to enter edit mode.
-% 3) Change only:
-%    - Delay Time: e.g., 150 ms or 200 ms
-%    - Feedback: 0
-%    - Mix: leave as 100% wet (or protocol value)
-% 4) Store the new preset:
-%    - Press the "STORE" soft key
-%    - Choose an empty Program slot (e.g., Program 22)
-%    - Name it (recommended):  DAF_150ms  or  DAF_200ms
-%    - Press encoder to confirm
-% 5) Add each delay to cfg.PRESET_MAP:
-%       cfg.PRESET_MAP(int32(150)) = 22;
-%       cfg.PRESET_MAP(int32(200)) = 23;
-%
-% REPEAT STEP 3 for each delay value in cfg.delay_values_ms.
+% 1) Load a delay capable base program
+% 2) Press PARAMETER to enter edit mode
+% 3) Adjust core parameters:
+%       - Delay Time: 0 ms
+%       - Feedback: 0
+%       - Mix: 100% wet (or protocol value for DAF)
+%       - Bypass: OFF (effect engaged)
+%       - Routing: default unless your setup requires special routing
+% 4) Store this as your DAF base program:
+%       - Press STORE.
+%       - Choose an empty program slot, e.g. Program 201.
+%       - Press ENTER.
+%       - Name it DAF_BASE
+%       - Press ENTER again to confirm.
+% 5) Record this program number in the MATLAB script:
+%       cfg.ECLIPSE.dafProgramNum = 201;
 % -------------------------------------------------------------------------
 
 %% Setup experiment configuration
@@ -179,6 +167,14 @@ if isempty(ix)
     cfg.DAF_MIDI = []; % allow visuals only fallback
 else
     cfg.DAF_MIDI = mididevice('Output', outNames(ix));
+
+    %%%%%%%%%%%%%%%%%%% UNCOMMENT OUT BLOCK IF USING ECLIPSEMIDICOMM
+    %Initialize EclipseMIDIcomm
+    %deviceName = outNames(ix);
+    %cfg.ECLIPSE = struct();
+    %cfg.ECLIPSE.hcom            = EclipseMIDIcomm(deviceName);
+    %cfg.ECLIPSE.cleanProgramNum = 100;  ****** set to custom DafOff (sound playback w/o DAF program) program number
+    %cfg.ECLIPSE.dafProgramNum   = 201;  ****** set to custom DAF program number
 end
 
 % Log a quick probe for audit
