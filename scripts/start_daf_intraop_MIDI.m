@@ -213,9 +213,14 @@ if cfg.RECORD_AUDIO
 end
 
 %% Paths & output folders
-if strcmpi(getenv('COMPUTERNAME'), 'BML-ALIENWARE2')
+if strcmpi(getenv('COMPUTERNAME'), 'BML-ALIENWARE2') % intraop rig laptop
     cfg.PATH_TASK       = 'D:\Task\Task_DelayedAuditoryFeedback';
     cfg.PATH_SOURCEDATA = 'D:\DBS\sourcedata';
+
+elseif strcmpi(getenv('COMPUTERNAME'), '677-GUE-WL-0010') % A Meier work laptop
+    cfg.PATH_TASK       = 'C:\docs\code\Task_DelayedAuditoryFeedback';
+    cfg.PATH_SOURCEDATA = 'C:\sourcedata'; 
+
 elseif ismac
     cfg.PATH_TASK       = '/Users/samhansen/Documents/MATLAB/Guenther/Task_DelayedAuditoryFeedback/';
     cfg.PATH_SOURCEDATA = '/Users/samhansen/Documents/MATLAB/Guenther/Task_DelayedAuditoryFeedback/stimuli';
