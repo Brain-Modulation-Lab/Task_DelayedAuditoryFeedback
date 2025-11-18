@@ -117,7 +117,7 @@ cfg.PTB           = false;          % Use Psychtoolbox for timing and display (f
 cfg.STOP_BETWEEN_TRIALS = true;     % Require space to proceed between all trials (after ITI plays)
 % ----------------------------------
 cfg.MIDI_CHANNEL  = 1;              % Set to MIDI channel as per hardware
-cfg.MIDI_OUT_NAME = 'Eclipse';      % make sure this is the exact name of device
+cfg.MIDI_OUT_NAME = 'M-Audio MIDISPORT Uno';      % name of Stepp Lab usb-to-midi adapter from mididevinfo.m
 % if you don't know this name, run mididevinfo
 % ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
@@ -146,7 +146,7 @@ switch cfg.SESSION_LABEL
         cfg.delay_values_ms = [0 100 150 200 250];
         cfg.n_blocks = 2;
     case 'intraop'
-        cfg.delay_values_ms = [0 150];
+        cfg.delay_values_ms = [150 500];
         cfg.n_blocks = 4;
     otherwise
         error('Unknown session label: %s', cfg.SESSION_LABEL);
@@ -169,12 +169,12 @@ else
     cfg.DAF_MIDI = mididevice('Output', outNames(ix));
 
     %%%%%%%%%%%%%%%%%%% UNCOMMENT OUT BLOCK IF USING ECLIPSEMIDICOMM
-    %Initialize EclipseMIDIcomm
-    %deviceName = outNames(ix);
-    %cfg.ECLIPSE = struct();
-    %cfg.ECLIPSE.hcom            = EclipseMIDIcomm(deviceName);
-    %cfg.ECLIPSE.cleanProgramNum = 100;  ****** set to custom DafOff (sound playback w/o DAF program) program number
-    %cfg.ECLIPSE.dafProgramNum   = 201;  ****** set to custom DAF program number
+    Initialize EclipseMIDIcomm
+    deviceName = outNames(ix);
+    cfg.ECLIPSE = struct();
+    cfg.ECLIPSE.hcom            = EclipseMIDIcomm(deviceName);
+    cfg.ECLIPSE.cleanProgramNum = 1;  % ****** set to custom DafOff (sound playback w/o DAF program) program number
+    cfg.ECLIPSE.dafProgramNum   = 1;  % ****** set to custom DAF program number
 end
 
 % Log a quick probe for audit
@@ -195,7 +195,7 @@ delays = int32(round(cfg.delay_values_ms(:)')); % row vector of delay keys
 
 %%%%%%%%% FILL THESE IN TO MATCH THE FRONT PANEL PRESET SLOTS %%%%%%%%%%%%%%
 % Example: 0 ms stored at program 201, 150 ms at 202
-presetNums = [201 202];    % <--- CHANGE THIS to your actual program numbers
+presetNums = [3 3];    % <--- CHANGE THIS to your actual program numbers
 % AM needs to make sure that presets for delays specified above match the numbers in num2cell in fllowing line... these presets are manually created on the devices control pannel, not in this script
 
 cfg.PRESET_MAP = containers.Map(num2cell(delays), num2cell(presetNums));

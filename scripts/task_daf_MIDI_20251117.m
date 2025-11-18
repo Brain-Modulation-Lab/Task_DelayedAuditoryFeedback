@@ -143,9 +143,9 @@ if haveDAF
     sendDelay(0); %comment out if using EclipseMidiComm
 
     %%%%%%%%%%%%%%%%%%% UNCOMMENT OUT BLOCK IF USING ECLIPSEMIDICOMM
-    Start experiment in DAF_BASE with 0 ms delay (no DAF yet)
-    cfg.ECLIPSE.hcom.LoadProgram(cfg.ECLIPSE.dafProgramNum);
-    cfg.ECLIPSE.hcom.SetDelay(0);
+    % Start experiment in DAF_BASE with 0 ms delay (no DAF yet)
+    %cfg.ECLIPSE.hcom.LoadProgram(cfg.ECLIPSE.dafProgramNum);
+    %cfg.ECLIPSE.hcom.SetDelay(0);
 
     flipState = ~flipState;
     log_event(eventFH, doDigOut, T.now(), [], [], 'control', [], TRIG_SET, 'Audio_armed_0ms', flipState);
@@ -310,9 +310,9 @@ if haveDAF %comment out block if using EclipseMidiComm
 end
 
 %%%%%%%%%%%%%%%%%%% UNCOMMENT OUT BLOCK IF USING ECLIPSEMIDICOMM
-if isfield(cfg,'ECLIPSE') && ~isempty(cfg.ECLIPSE)
-    cfg.ECLIPSE.hcom.LoadProgram(cfg.ECLIPSE.cleanProgramNum);
-end
+% if isfield(cfg,'ECLIPSE') && ~isempty(cfg.ECLIPSE)
+%     cfg.ECLIPSE.hcom.LoadProgram(cfg.ECLIPSE.cleanProgramNum);
+% end
 
 fclose(eventFH);
 fclose(cmdFH);
@@ -353,12 +353,12 @@ function sendDelay(delay_ms)
     while ~success && attempt < maxRetries
         attempt = attempt + 1;
         try
-            % midisend(cfg.DAF_MIDI, 'programchange', cfg.MIDI_CHANNEL, double(programNum)); % actual sending line, comment out if using EclipseMidiComm
+            midisend(cfg.DAF_MIDI, 'programchange', cfg.MIDI_CHANNEL, double(programNum)); % actual sending line, comment out if using EclipseMidiComm
 
             %%%%%%%%%%%%%%%%%%% UNCOMMENT OUT BLOCK IF USING ECLIPSEMIDICOMM
-            cfg.ECLIPSE.hcom.SetDelay(keyDelay);
+            %cfg.ECLIPSE.hcom.SetDelay(keyDelay);
 
-            % success = true;
+            success = true;
         catch
             pause(0.05); % brief backoff
         end
