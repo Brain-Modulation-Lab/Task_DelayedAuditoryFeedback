@@ -114,7 +114,7 @@ cfg.SUBJECT       = 'daftestsub';   % Subject identifier
 cfg.DATA_TYPE     = 'task';         % Data type for folder structure
 cfg.RECORD_AUDIO  = false;          % Whether to record microphone audio during the task
 cfg.PTB           = false;          % Use Psychtoolbox for timing and display (false disables it)
-cfg.STOP_BETWEEN_TRIALS = true;     % Require space to proceed between all trials (after ITI plays)
+cfg.STOP_BETWEEN_TRIALS = 0;     % Require space to proceed between all trials (after ITI plays)
 % ----------------------------------
 cfg.MIDI_CHANNEL  = 1;              % Set to MIDI channel as per hardware
 cfg.MIDI_OUT_NAME = 'M-Audio MIDISPORT Uno';      % name of Stepp Lab usb-to-midi adapter from mididevinfo.m
@@ -146,7 +146,7 @@ switch cfg.SESSION_LABEL
         cfg.delay_values_ms = [0 100 150 200 250];
         cfg.n_blocks = 2;
     case 'intraop'
-        cfg.delay_values_ms = [150 500];
+        cfg.delay_values_ms = [0 5];
         cfg.n_blocks = 4;
     otherwise
         error('Unknown session label: %s', cfg.SESSION_LABEL);
@@ -169,7 +169,7 @@ else
     cfg.DAF_MIDI = mididevice('Output', outNames(ix));
 
     %%%%%%%%%%%%%%%%%%% UNCOMMENT OUT BLOCK IF USING ECLIPSEMIDICOMM
-    Initialize EclipseMIDIcomm
+    % Initialize EclipseMIDIcomm
     deviceName = outNames(ix);
     cfg.ECLIPSE = struct();
     cfg.ECLIPSE.hcom            = EclipseMIDIcomm(deviceName);

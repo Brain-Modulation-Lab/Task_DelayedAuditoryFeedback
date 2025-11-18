@@ -143,7 +143,7 @@ if haveDAF
     sendDelay(0); %comment out if using EclipseMidiComm
 
     %%%%%%%%%%%%%%%%%%% UNCOMMENT OUT BLOCK IF USING ECLIPSEMIDICOMM
-    Start experiment in DAF_BASE with 0 ms delay (no DAF yet)
+    % Start experiment in DAF_BASE with 0 ms delay (no DAF yet)
     cfg.ECLIPSE.hcom.LoadProgram(cfg.ECLIPSE.dafProgramNum);
     cfg.ECLIPSE.hcom.SetDelay(0);
 
