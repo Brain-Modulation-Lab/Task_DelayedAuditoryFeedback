@@ -140,7 +140,7 @@ doDigOut = isfield(cfg,'DIGOUT') && logical(cfg.DIGOUT);
 % Turn constant audio playback on
 flipState = 0;
 if haveDAF
-    sendDelay(0); %comment out if using EclipseMidiComm
+    % sendDelay(0); %comment out if using EclipseMidiComm
 
     %%%%%%%%%%%%%%%%%%% UNCOMMENT OUT BLOCK IF USING ECLIPSEMIDICOMM
     % Start experiment in DAF_BASE with 0 ms delay (no DAF yet)
@@ -206,9 +206,16 @@ for itrial = 1:ntrials
         if cfg.DAF_START_OFFSET_S ~= 0
             T.until(tFixOn + cfg.DAF_START_OFFSET_S);
         end
-        sendDelay(delay_ms_planned); % Sends MIDI commands to engage delay effect... !!!!DAF DELAY CURRENTLY BEING PLAYED BACK CHANGES HERE!!!!
+
+        %%%%% non-midcomm version below
+        % sendDelay(delay_ms_planned); % Sends MIDI commands to engage delay effect... !!!!DAF DELAY CURRENTLY BEING PLAYED BACK CHANGES HERE!!!!
+
+        %%%%% midicomm version below
+        cfg.ECLIPSE.hcom.SetDelay(delay_ms_planned);
+
         flipState = ~flipState;
         log_event(eventFH, doDigOut, T.now(), [], [], 'speech', [], TRIG_DAF, sprintf('DAF_On_cmd(ms=%d)', delay_ms_planned), flipState);
+        fprintf(['\n trial ',num2str(itrial),', delay = ', num2str(delay_ms_planned),'\n'])
     end
 
     % Visual on, fixation cross off
@@ -224,7 +231,15 @@ for itrial = 1:ntrials
     while T.now() - tSpeakStart < cfg.text_stim_dur
         [~, esc] = KeyPoll(hfig);
         if esc
-            if haveDAF, sendDelay(0); end
+
+
+            %%%%% midicomm version below
+            % if haveDAF, sendDelay(0); end
+
+            %%%%% non-midicomm version below
+            if haveDAF, cfg.ECLIPSE.hcom.SetDelay(0); end
+
+
             flipState = ~flipState;
             log_event(eventFH, doDigOut, T.now(), [], [], tern(isCatch,'catch','speech'), [], TRIG_ESC, 'Key_Esc', flipState);
             safeQuit(); fclose(eventFH); fclose(cmdFH); close(hfig); return
@@ -234,7 +249,12 @@ for itrial = 1:ntrials
 
     % DAF OFF
     if haveDAF && ~isCatch
-        sendDelay(0);
+            %%%%% midicomm version below
+            % if haveDAF, sendDelay(0); end
+
+            %%%%% non-midicomm version below
+            if haveDAF, cfg.ECLIPSE.hcom.SetDelay(0); end
+            
         flipState = ~flipState;
         log_event(eventFH, doDigOut, T.now(), [], [], 'speech', [], TRIG_DAF, 'DAF_Off_cmd', flipState);
     end

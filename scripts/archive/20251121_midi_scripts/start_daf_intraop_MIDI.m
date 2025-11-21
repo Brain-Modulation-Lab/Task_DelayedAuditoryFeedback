@@ -117,7 +117,7 @@ cfg.PTB           = false;          % Use Psychtoolbox for timing and display (f
 cfg.STOP_BETWEEN_TRIALS = 0;     % Require space to proceed between all trials (after ITI plays)
 % ----------------------------------
 cfg.MIDI_CHANNEL  = 1;              % Set to MIDI channel as per hardware
-cfg.MIDI_OUT_NAME = 'M-Audio MIDISPORT Uno';      % name of Stepp Lab usb-to-midi adapter from mididevinfo.m
+cfg.MIDI_OUT_NAME = 'MIDISPORT Uno Out';      % name of Stepp Lab usb-to-midi adapter from mididevinfo.m
 % if you don't know this name, run mididevinfo
 % ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
@@ -146,11 +146,14 @@ switch cfg.SESSION_LABEL
         cfg.delay_values_ms = [0 100 150 200 250];
         cfg.n_blocks = 2;
     case 'intraop'
-        cfg.delay_values_ms = [0 5];
+        cfg.delay_values_ms = [0 150];
         cfg.n_blocks = 4;
     otherwise
         error('Unknown session label: %s', cfg.SESSION_LABEL);
 end
+
+clc
+close all force
 
 %% MIDI setup
 try
@@ -173,8 +176,8 @@ else
     deviceName = outNames(ix);
     cfg.ECLIPSE = struct();
     cfg.ECLIPSE.hcom            = EclipseMIDIcomm(deviceName);
-    cfg.ECLIPSE.cleanProgramNum = 1;  % ****** set to custom DafOff (sound playback w/o DAF program) program number
-    cfg.ECLIPSE.dafProgramNum   = 1;  % ****** set to custom DAF program number
+    cfg.ECLIPSE.cleanProgramNum = 3;  % ****** set to custom DafOff (sound playback w/o DAF program) program number
+    cfg.ECLIPSE.dafProgramNum   = 3;  % ****** set to custom DAF program number
 end
 
 % Log a quick probe for audit
@@ -194,9 +197,11 @@ end
 delays = int32(round(cfg.delay_values_ms(:)')); % row vector of delay keys
 
 %%%%%%%%% FILL THESE IN TO MATCH THE FRONT PANEL PRESET SLOTS %%%%%%%%%%%%%%
-% Example: 0 ms stored at program 201, 150 ms at 202
-presetNums = [3 3];    % <--- CHANGE THIS to your actual program numbers
-% AM needs to make sure that presets for delays specified above match the numbers in num2cell in fllowing line... these presets are manually created on the devices control pannel, not in this script
+% AM updated 2025/11/21 - Manuel from Cara Stepp lab says that switching to one of these presets cannot by itself change the delay....
+% ... rather the preset is more of a 'menu' of different parameters to change (including delay)
+% ... so we might as well just use one preset where delay is one of the options
+% ... then we use the midicomm from from Manuel to change the delay
+presetNums = [3 4];    % <--- CHANGE THIS to your actual program numbers
 
 cfg.PRESET_MAP = containers.Map(num2cell(delays), num2cell(presetNums));
 
