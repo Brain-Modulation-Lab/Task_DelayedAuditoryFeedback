@@ -117,7 +117,7 @@ cfg.PTB           = false;          % Use Psychtoolbox for timing and display (f
 cfg.STOP_BETWEEN_TRIALS = 0;     % Require space to proceed between all trials (after ITI plays)
 % ----------------------------------
 cfg.MIDI_CHANNEL  = 1;              % Set to MIDI channel as per hardware
-cfg.MIDI_OUT_NAME = 'MIDISPORT Uno Out';      % name of Stepp Lab usb-to-midi adapter from mididevinfo.m
+cfg.MIDI_OUT_NAME = 'H90 Pedal';      % name of Stepp Lab usb-to-midi adapter from mididevinfo.m
 % if you don't know this name, run mididevinfo
 % ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
