@@ -45,9 +45,9 @@ keyCodeEscape = KbName('ESCAPE');
 keyCodeStart = KbName('space');  %space to move to next trial
 device = []; % default keyboard
 
-% % % % Enable keyboard listening without echoing characters to command window
-% % % ListenChar(0);
-% % % ShowCursor;
+% Enable keyboard listening without echoing characters to command window
+ListenChar(0);
+ShowCursor;
 
 %% Audio setup
 if ispc % If running on a Windows
@@ -76,7 +76,7 @@ maxDelayFrames = ceil((maxDelay_ms/1000) * cfg.audio_sample_rate / cfg.audio_fra
 
 %% Stimulus figure setup
 screenSize = get(0, 'ScreenSize'); % Get screen size for centering
-hfig_stim = figure('Name','DAF','Color','white','MenuBar','none','ToolBar','none',... % make stimulus figure
+hfig_stim = figure('Name','DAF','Color','black','MenuBar','none','ToolBar','none',... % make stimulus figure
     'Position', [0 0 screenSize(3) screenSize(4)],'NumberTitle','off'); % position = [left bottom width height]... full screen
 ax = axes('Parent',hfig_stim,'Position',[0 0 1 1],'Visible','off'); % Invisible axes for center-center text
 hText = text(0.5, 0.5, '', ...
@@ -98,11 +98,12 @@ instructions = [
 ];
 set(hText, 'String', sprintf(instructions), ...
     'FontSize', 45, ...
-    'Color', 'black'); % Show instructions
+    'Color', 'white'); % Show instructions
 figure(hfig_stim); % Bring main window to front
 instrOn = GetSecs(); % get instructions presentation time
 
   disp('Press Spacebar to proceed to experiment')  %Experimenter instructions
+
 
 %Waiting for keypress to start experiment
 flipSyncState = 0;
@@ -110,9 +111,11 @@ flipSyncState = 0;
 log_event(eventFile, cfg.DIGOUT, keyPressTime, [], [], [], [], TRIG_KEYPRESS, 'Key Press', flipSyncState);
 
 set(hText, 'String', ''); drawnow; % Clear text
-beepWave = 0.1 * sin(2*pi*1000*(0:1/cfg.audio_sample_rate:0.2)); % 200ms, 1kHz beep
+beepWave = 0.005 * sin(2*pi*1000*(0:1/cfg.audio_sample_rate:0.2)); % 200ms, 1kHz beep
 set(hText, 'String', 'SYNC', 'FontSize', 48, 'Color', 'red'); drawnow; % Show sync message
 syncTime = datetime('now', 'Format', 'yyyy-MM-dd HH:mm:ss.SSS'); % Log sync time (for aligning with other systems)
+  figure(hfig_stim); % Bring main window to front
+
 for i = 1:3
     if i == 1
         refTime = GetSecs; % Start experiment timer at first beep
@@ -169,6 +172,7 @@ for itrial = 1:cfg.ntrials
           clear onCleanupTasks
           return
         end
+          figure(hfig_stim); % Bring main window to front
      end
 
     % Set params depending on whether trial is catch (no speech) or speech trial
@@ -193,8 +197,13 @@ for itrial = 1:cfg.ntrials
       itgStartTime = GetSecs();
       nextTrialRequested = 0;
     else
+    if strcmp(cfg.SESSION_LABEL,'intraop') % only require keypress if it's intraop
       [itgStartTime, keyCode] = KbWait(cfg.KEYBOARD_ID, 2);
       log_event(eventFile, cfg.DIGOUT, itgStartTime, [], [], [], [], TRIG_KEYPRESS + TRIG_ITI, 'Key Press', flipSyncState);
+    else
+        WaitSecs(2)
+    end
+      
       if any(ismember(find(keyCode),keyCodeEscape))
           log_event(eventFile, cfg.DIGOUT, [], [], [], [], [], TRIG_ESC, 'Escape', flipSyncState);
           fprintf("Escape key detected, ending run.\n");
@@ -226,7 +235,7 @@ for itrial = 1:cfg.ntrials
     wrapped_text = text_wrapped_all{trials.stim_idx(itrial)};
 
     WaitSecs('UntilTime', itiFixOnTime + ItiDuration); % wait until ITI is finished before presenting ortho stimulus
-    set(hText, 'String', wrapped_text, 'FontSize', cfg.stim_font_size, 'Color', 'black'); 
+    set(hText, 'String', wrapped_text, 'FontSize', cfg.stim_font_size, 'Color', 'white'); 
     set(hSquare, 'FaceColor', [0 0 0]); % switch photodiode square to black
     drawnow; % Show sentence
     stimOnsetTime = GetSecs(); 
