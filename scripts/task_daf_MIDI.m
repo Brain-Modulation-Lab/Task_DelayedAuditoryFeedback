@@ -124,11 +124,6 @@ flipState = 0;
 % find cc_val for 0ms delay
 zero_delay_cc = delay_to_midi_ccval(0);
 
-% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %      %% DELETE ? 
-% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % if haveDAF
-% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %     flipState = ~flipState;
-% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %     log_event(eventFH, doDigOut, T.now(), [], [], 'control', [], TRIG_SET, 'Audio_armed_0ms', flipState);
-% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % end
 
 %% Show instructions screen and wait for space keypress or escape abort
 instructions = sprintf(['INSTRUCTIONS\n\n' ...
@@ -164,7 +159,7 @@ log_event(eventFH, 0, t0, [], [], 'control', [], 0, 'Instructions_End', flipStat
 %% Main trial loop
 ITI_S = [1.75, 2.25]; % Inter-trial interval range in seconds
 
-for itrial = 159:cfg.ntrials
+for itrial = 1:cfg.ntrials
     isCatch = trials.catch_trial(itrial);
     trials.delay(itrial) = trials.delay(itrial);
 
