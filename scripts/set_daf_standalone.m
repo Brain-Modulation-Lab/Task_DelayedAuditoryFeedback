@@ -13,9 +13,9 @@
 %
 % AM 2026
 
-clear
+% clear
 
-delay_ms = 500; % may want to test out multiple values to check mapping
+% delay_ms = 500; % may want to test out multiple values to check mapping
 eventide_dev_name = 'H90 Pedal';
 chan = 1; % this should already be set on the Eventide
 cc_num = 1; % this should already be set on the Eventide
@@ -26,8 +26,8 @@ midi_info = mididevinfo;
 
 h90_idx = find(contains({midi_info.output.Name}, eventide_dev_name));
 
-h90port = mididevice('Output', midi_info.output(h90_idx).ID)
+h90port = mididevice('Output', midi_info.output(h90_idx).ID);
 
-cc_val = compute_midi_delay_val(delay_ms); % estimate cc_val for desired delay
+% cc_val = compute_midi_delay_val(delay_ms); % estimate cc_val for desired delay
 
-midisend(h90port, 'ControlChange', chan, cc_num, cc_val)
+midisend(h90port, 'ControlChange', chan, cc_num, cc_val);

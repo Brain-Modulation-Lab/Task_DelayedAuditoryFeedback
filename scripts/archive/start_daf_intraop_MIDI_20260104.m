@@ -109,22 +109,21 @@ function start_daf_intraop_MIDI
 
 %% Setup experiment configuration
 cfg = struct();
-% cfg.SESSION_LABEL = 'preop';      % Label for session type (e.g., intraop, preop)
-cfg.SESSION_LABEL = 'intraop'; 
-
+cfg.SESSION_LABEL = 'intraop';      % Label for session type (e.g., intraop, preop)
 cfg.SUBJECT       = 'daftestsub';   % Subject identifier
 cfg.DATA_TYPE     = 'task';         % Data type for folder structure
 cfg.RECORD_AUDIO  = false;          % Whether to record microphone audio during the task
 cfg.PTB           = false;          % Use Psychtoolbox for timing and display (false disables it)
 cfg.STOP_BETWEEN_TRIALS = 0;     % Require space to proceed between all trials (after ITI plays)
 % ----------------------------------
-cfg.midi_dev_name = 'H90 Pedal';      % name of Stepp Lab usb-to-midi adapter from mididevinfo.m
-cfg.midi_chan  = 1;              % Set to MIDI channel as per hardware... should have been pre-set on the midi device
-cfg.midi_cc_num = 1;        % MIDI control change number .... should have been pre-set on the midi device
+cfg.MIDI_CHANNEL  = 1;              % Set to MIDI channel as per hardware
+cfg.MIDI_OUT_NAME = 'H90 Pedal';      % name of Stepp Lab usb-to-midi adapter from mididevinfo.m
+% if you don't know this name, run mididevinfo
+% ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 % Task metadata
 cfg.TASK          = 'daf';              % Task name
-cfg.TASK_VERSION  = 2;                  % Version number
+cfg.TASK_VERSION  = 1;                  % Version number
 cfg.TASK_FUNCTION = 'task_daf_MIDI.m';  % Task main function filename
 
 % Core DAF parameters
@@ -164,13 +163,21 @@ catch
 end
 
 outNames = string({devs.output.Name});
-ix = find(contains(lower(outNames), lower(cfg.midi_dev_name), 'IgnoreCase', true), 1);
+ix = find(contains(lower(outNames), lower(cfg.MIDI_OUT_NAME), 'IgnoreCase', true), 1);
 
 if isempty(ix)
-    warning('MIDI out "%s" not found. Available: %s', cfg.midi_dev_name, strjoin(outNames, ', '));
-    cfg.midi_dev_idx = []; % allow visuals only fallback
+    warning('MIDI out "%s" not found. Available: %s', cfg.MIDI_OUT_NAME, strjoin(outNames, ', '));
+    cfg.DAF_MIDI = []; % allow visuals only fallback
 else
-    cfg.midi_dev_idx = mididevice('Output', outNames(ix));
+    cfg.DAF_MIDI = mididevice('Output', outNames(ix));
+
+    %%%%%%%%%%%%%%%%%%% UNCOMMENT OUT BLOCK IF USING ECLIPSEMIDICOMM
+    % Initialize EclipseMIDIcomm
+    deviceName = outNames(ix);
+    cfg.ECLIPSE = struct();
+    cfg.ECLIPSE.hcom            = EclipseMIDIcomm(deviceName);
+    cfg.ECLIPSE.cleanProgramNum = 3;  % ****** set to custom DafOff (sound playback w/o DAF program) program number
+    cfg.ECLIPSE.dafProgramNum   = 3;  % ****** set to custom DAF program number
 end
 
 % Log a quick probe for audit
@@ -182,9 +189,24 @@ for i = 1:numel(outNames)
     end
     fprintf('  - %s%s\n', outNames(i), sel);
 end
-if isempty(cfg.midi_dev_idx)
+if isempty(cfg.DAF_MIDI)
     warning('Running WITHOUT DAF (no MIDI device). Visuals/logging only.');
 end
+
+% Create delay mapping
+delays = int32(round(cfg.delay_values_ms(:)')); % row vector of delay keys
+
+%%%%%%%%% FILL THESE IN TO MATCH THE FRONT PANEL PRESET SLOTS %%%%%%%%%%%%%%
+% AM updated 2025/11/21 - Manuel from Cara Stepp lab says that switching to one of these presets cannot by itself change the delay....
+% ... rather the preset is more of a 'menu' of different parameters to change (including delay)
+% ... so we might as well just use one preset where delay is one of the options
+% ... then we use the midicomm from from Manuel to change the delay
+presetNums = [3 4];    % <--- CHANGE THIS to your actual program numbers
+
+cfg.PRESET_MAP = containers.Map(num2cell(delays), num2cell(presetNums));
+
+% Ensure all delays have a preset
+assert(all(isKey(cfg.PRESET_MAP, num2cell(delays))), 'PRESET_MAP must cover all cfg.delay_values_ms.');
 
 %% Parallel pool for optional audio recording (master)
 if cfg.RECORD_AUDIO && isempty(gcp('nocreate'))
@@ -211,7 +233,6 @@ else
     cfg.PATH_TASK       = '~/git/Task_DelayedAuditoryFeedback';
     cfg.PATH_SOURCEDATA = '~/Data/DBS/sourcedata';
 end
-cfg.PATH_STIMDIR = [cfg.PATH_TASK, filesep, 'stimuli']; 
 
 % Build subject/session level folders for data storage
 pathSub = fullfile(cfg.PATH_SOURCEDATA, ['sub-' cfg.SUBJECT]);

@@ -21,14 +21,27 @@ if ~isfield(cfg,'EVENT_FILENAME') || ~isfield(cfg,'TRIAL_FILENAME')
 end
 
 %% Setup timing function backend: Psychtoolbox (PTB) or MATLAB native timer
+usePTB = false;
+if isfield(cfg,'PTB')  % Interpret PTB field as boolean or string true
+    if islogical(cfg.PTB), usePTB = cfg.PTB;
+    elseif ischar(cfg.PTB) || isstring(cfg.PTB)
+        usePTB = any(strcmpi(string(cfg.PTB), ["true","on","ptb","1"]));
+    end
+end
 
 % Configure timing functions for experiment
-t0 = tic;                                  % Start baseline time
-T.now   = @() toc(t0);                     % Relative current time in sec
-T.wait  = @(s) pause(max(0,s));            % Wait via pause
-T.until = @(t) pause(max(0, t - T.now())); % Wait until absolute time
-T.backend = 'MATLAB';
-
+if usePTB && exist('GetSecs','file')>0 && exist('WaitSecs','file')>0
+    T.now   = @GetSecs;                        % High precision current time
+    T.wait  = @(s) WaitSecs(max(0,s));         % Wait for seconds s
+    T.until = @(t) WaitSecs('UntilTime', t);   % Wait until absolute time t
+    T.backend = 'PTB';
+else
+    t0 = tic;                                  % Start baseline time
+    T.now   = @() toc(t0);                     % Relative current time in sec
+    T.wait  = @(s) pause(max(0,s));            % Wait via pause
+    T.until = @(t) pause(max(0, t - T.now())); % Wait until absolute time
+    T.backend = 'MATLAB';
+end
 fprintf('[Timing] Backend: %s\n', T.backend);
 
 %% Open command log file to record serial command sends/ack
@@ -44,16 +57,16 @@ if ~(exist('create_trials_table','file')==2)
     error('create_trials_table.m not found on path %s', cfg.PATH_TASK);
 end
 [cfg, trials, text_wrapped_all] = create_trials_table(cfg); % Create and load trial parameters table and wrapped text for display
-cfg.ntrials = height(trials);
+ntrials = height(trials);
 
 % Ensure a 'block' column exists for break handling
 if cfg.n_blocks < 1, cfg.n_blocks = 1; end
 if ~ismember('block', trials.Properties.VariableNames)
     if cfg.n_blocks == 1
-        trials.block = ones(cfg.ntrials,1,'uint16');
+        trials.block = ones(ntrials,1,'uint16');
     else
-        edges = round(linspace(0, cfg.ntrials, cfg.n_blocks+1));
-        blockVec = zeros(cfg.ntrials,1,'uint16');
+        edges = round(linspace(0, ntrials, cfg.n_blocks+1));
+        blockVec = zeros(ntrials,1,'uint16');
         for b = 1:cfg.n_blocks
             if edges(b) < edges(b+1)
                 blockVec(edges(b)+1 : edges(b+1)) = b;
@@ -62,7 +75,7 @@ if ~ismember('block', trials.Properties.VariableNames)
         % In rare rounding cases, fill any zeros with last nonzero
         if any(blockVec==0)
             last = 1;
-            for j = 1:cfg.ntrials
+            for j = 1:ntrials
                 if blockVec(j)==0, blockVec(j)=last; else, last=blockVec(j); end
             end
         end
@@ -105,8 +118,7 @@ function onKey(~, e)
     end
 end
 
-%% devices setup
-% Define trigger code constants for event types
+%% Define trigger code constants for event types
 TRIG_ITI = 1; % Fixation cross display
 TRIG_VIS = 2; % Visual stimulus onset
 TRIG_DAF = 4; % DAF audio playback event
@@ -115,20 +127,29 @@ TRIG_ESC = 16; % Escape pressed
 TRIG_SET = 32; % Begin playback
 TRIG_BREAK = 64; % add break
 
+%% Setup MIDI
+haveDAF = isfield(cfg,'DAF_MIDI') && ~isempty(cfg.DAF_MIDI) && ...
+          isfield(cfg,'PRESET_MAP') && isa(cfg.PRESET_MAP,'containers.Map');
+if ~haveDAF
+    warning('DAF_MIDI missing or PRESET_MAP absent — running without DAF (visuals/logging only).');
+end
+
 % Check if digital out is present
 doDigOut = isfield(cfg,'DIGOUT') && logical(cfg.DIGOUT);
 
 % Turn constant audio playback on
 flipState = 0;
+if haveDAF
+    % sendDelay(0); %comment out if using EclipseMidiComm
 
-% find cc_val for 0ms delay
-zero_delay_cc = delay_to_midi_ccval(0);
+    %%%%%%%%%%%%%%%%%%% UNCOMMENT OUT BLOCK IF USING ECLIPSEMIDICOMM
+    % Start experiment in DAF_BASE with 0 ms delay (no DAF yet)
+    cfg.ECLIPSE.hcom.LoadProgram(cfg.ECLIPSE.dafProgramNum);
+    cfg.ECLIPSE.hcom.SetDelay(0);
 
-% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %      %% DELETE ? 
-% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % if haveDAF
-% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %     flipState = ~flipState;
-% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %     log_event(eventFH, doDigOut, T.now(), [], [], 'control', [], TRIG_SET, 'Audio_armed_0ms', flipState);
-% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % end
+    flipState = ~flipState;
+    log_event(eventFH, doDigOut, T.now(), [], [], 'control', [], TRIG_SET, 'Audio_armed_0ms', flipState);
+end
 
 %% Show instructions screen and wait for space keypress or escape abort
 instructions = sprintf(['INSTRUCTIONS\n\n' ...
@@ -164,9 +185,9 @@ log_event(eventFH, 0, t0, [], [], 'control', [], 0, 'Instructions_End', flipStat
 %% Main trial loop
 ITI_S = [1.75, 2.25]; % Inter-trial interval range in seconds
 
-for itrial = 159:cfg.ntrials
+for itrial = 1:ntrials
     isCatch = trials.catch_trial(itrial);
-    trials.delay(itrial) = trials.delay(itrial);
+    delay_ms_planned = trials.delay(itrial);
 
     % ITI + fixation
     set(hText,'String','*','Color', tern(~isCatch,[0.7 0.7 0.7],'red'));
@@ -181,17 +202,20 @@ for itrial = 159:cfg.ntrials
     T.wait(itiDur);
 
     % Send DAF ON command relative to fixation onset (if not catch trial)
-    if ~isCatch
+    if haveDAF && ~isCatch
         if cfg.DAF_START_OFFSET_S ~= 0
             T.until(tFixOn + cfg.DAF_START_OFFSET_S);
         end
 
-        % send midi command to device to set DAF delay value to the one specified for this trial
-        midisend(cfg.midi_dev_idx, 'ControlChange', cfg.midi_chan, cfg.midi_cc_num, trials.midi_cc_val(itrial))
+        %%%%% non-midcomm version below
+        % sendDelay(delay_ms_planned); % Sends MIDI commands to engage delay effect... !!!!DAF DELAY CURRENTLY BEING PLAYED BACK CHANGES HERE!!!!
+
+        %%%%% midicomm version below
+        cfg.ECLIPSE.hcom.SetDelay(delay_ms_planned);
 
         flipState = ~flipState;
-        log_event(eventFH, doDigOut, T.now(), [], [], 'speech', [], TRIG_DAF, sprintf('DAF_On_cmd(ms=%d)', trials.delay(itrial)), flipState);
-        fprintf(['\n trial ',num2str(itrial), ' / ', num2str(cfg.ntrials), ',   delay = ', num2str(trials.delay(itrial)),'\n'])
+        log_event(eventFH, doDigOut, T.now(), [], [], 'speech', [], TRIG_DAF, sprintf('DAF_On_cmd(ms=%d)', delay_ms_planned), flipState);
+        fprintf(['\n trial ',num2str(itrial),', delay = ', num2str(delay_ms_planned),'\n'])
     end
 
     % Visual on, fixation cross off
@@ -207,8 +231,14 @@ for itrial = 159:cfg.ntrials
     while T.now() - tSpeakStart < cfg.text_stim_dur
         [~, esc] = KeyPoll(hfig);
         if esc
-             % send midi command to device to set DAF delay value to zero
-             midisend(cfg.midi_dev_idx, 'ControlChange', cfg.midi_chan, cfg.midi_cc_num, zero_delay_cc)
+
+
+            %%%%% midicomm version below
+            % if haveDAF, sendDelay(0); end
+
+            %%%%% non-midicomm version below
+            if haveDAF, cfg.ECLIPSE.hcom.SetDelay(0); end
+
 
             flipState = ~flipState;
             log_event(eventFH, doDigOut, T.now(), [], [], tern(isCatch,'catch','speech'), [], TRIG_ESC, 'Key_Esc', flipState);
@@ -217,13 +247,16 @@ for itrial = 159:cfg.ntrials
         T.wait(0.005);
     end
 
-    % DAF ZERO
-    if ~isCatch
-         % send midi command to device to set DAF delay value to zero
-         midisend(cfg.midi_dev_idx, 'ControlChange', cfg.midi_chan, cfg.midi_cc_num, zero_delay_cc)
-    
+    % DAF OFF
+    if haveDAF && ~isCatch
+            %%%%% midicomm version below
+            % if haveDAF, sendDelay(0); end
+
+            %%%%% non-midicomm version below
+            if haveDAF, cfg.ECLIPSE.hcom.SetDelay(0); end
+            
         flipState = ~flipState;
-        log_event(eventFH, doDigOut, T.now(), [], [], 'speech', [], TRIG_DAF, 'DAF_zero_cmd', flipState);
+        log_event(eventFH, doDigOut, T.now(), [], [], 'speech', [], TRIG_DAF, 'DAF_Off_cmd', flipState);
     end
 
     % Visual OFF, reset photodiode square
@@ -236,12 +269,11 @@ for itrial = 159:cfg.ntrials
 
     % Optional pause between trials (message in command window)
     if cfg.STOP_BETWEEN_TRIALS
-        fprintf('Trial %d/%d complete. Press SPACE to continue...\n', itrial, cfg.ntrials);
+        fprintf('Trial %d/%d complete. Press SPACE to continue...\n', itrial, ntrials);
         while true
             [space, esc] = KeyPoll(hfig);
             if esc
-                 % send midi command to device to set DAF delay value to zero
-                 midisend(cfg.midi_dev_idx, 'ControlChange', cfg.midi_chan, cfg.midi_cc_num, zero_delay_cc)
+                if haveDAF, sendDelay(0); end
                 flipState = ~flipState;
                 log_event(eventFH, doDigOut, T.now(), [], [], tern(isCatch,'catch','speech'), [], TRIG_ESC, 'Key_Esc', flipState);
                 safeQuit(); fclose(eventFH); fclose(cmdFH); close(hfig); return
@@ -265,7 +297,7 @@ for itrial = 159:cfg.ntrials
         blockTrials = find(trials.block == currentBlock);  % Trial indices in this block
         
         % If this is the last trial in the block and not the last overall trial
-        if itrial == blockTrials(end) && itrial < cfg.ntrials
+        if itrial == blockTrials(end) && itrial < ntrials
             flipState = ~flipState;
             log_event(eventFH, doDigOut, T.now(), [], [], 'control', [], TRIG_BREAK, sprintf('Block_%d_Break_Start', currentBlock), flipState);
 
@@ -273,12 +305,12 @@ for itrial = 159:cfg.ntrials
             set(hfig,'WindowKeyPressFcn', @onKey);
             drawnow;
             fprintf('Block %d/%d finished; press spacebar to continue...\n', currentBlock, cfg.n_blocks);
-            commandwindow %%% AM note: probably could replace this and next line using the KeyPoll function
-            pause()
-
+            
+            % Change keypress callback to catch space and release uiwait
+            set(hfig, 'WindowKeyPressFcn', @(src,evt) strcmp(evt.Key, 'space') && uiresume(hfig));
+            uiwait(hfig);  % Wait for spacebar press
             if ~ishandle(hfig), break; end                 % window closed during break
             set(hfig,'WindowKeyPressFcn', @onKey);         % restore callback safely
-            figure(hfig) % re-focus on stim window
 
             flipState = ~flipState;
             log_event(eventFH, doDigOut, T.now(), [], [], 'control', [], TRIG_BREAK, sprintf('Block_%d_Break_End', currentBlock), flipState);
@@ -290,21 +322,74 @@ for itrial = 159:cfg.ntrials
 end
 
 %% Cleanup
- % send midi command to device to set DAF delay value to zero
-midisend(cfg.midi_dev_idx, 'ControlChange', cfg.midi_chan, cfg.midi_cc_num, zero_delay_cc)
-if isfield(cfg, 'DAF_MIDI') && ~isempty(cfg.midi_dev_idx)
-    release(cfg.midi_dev_idx)
+if haveDAF %comment out block if using EclipseMidiComm
+    sendDelay(0);
+    if isfield(cfg, 'DAF_MIDI') && ~isempty(cfg.DAF_MIDI)
+        release(cfg.DAF_MIDI)
+    end
 end
 
+%%%%%%%%%%%%%%%%%%% UNCOMMENT OUT BLOCK IF USING ECLIPSEMIDICOMM
+if isfield(cfg,'ECLIPSE') && ~isempty(cfg.ECLIPSE)
+    cfg.ECLIPSE.hcom.LoadProgram(cfg.ECLIPSE.cleanProgramNum);
+end
 
 fclose(eventFH);
 fclose(cmdFH);
 close(hfig);
 fprintf('Task complete.\n');
 
+%% MIDI HELPERS
+function sendDelay(delay_ms)
+% ========================================================================
+%   sendDelay — select preset for a given delay (ms)
+%   Used both to:
+%     - start trial DAF:  sendDelay(delay_ms_planned)
+%     - "turn off" DAF:   sendDelay(0)  (0 ms preset)
+% ========================================================================
+    keyDelay = int32(round(delay_ms));
 
+    % Offline / no device
+    if ~haveDAF || isempty(cfg.DAF_MIDI)
+        fprintf('[OFFLINE] START %d ms\n', keyDelay);
+        fprintf(cmdFH,'%.6f\tSTART\t%d\t\t0\toffline\n', T.now(), keyDelay);
+        return;
+    end
 
-%% SUBFUNCTIONS
+    % Look up preset for this delay
+    if ~isKey(cfg.PRESET_MAP, keyDelay)
+        warning('sendDelay: No preset mapping for %d ms.', keyDelay);
+        fprintf(cmdFH,'%.6f\tSTART_FAIL\t%d\t\t0\tno_preset\n', T.now(), keyDelay);
+        return;
+    end
+
+    programNum = cfg.PRESET_MAP(keyDelay);
+
+    % Program Change with retries
+    maxRetries = 3;
+    success    = false;
+    attempt    = 0;
+
+    while ~success && attempt < maxRetries
+        attempt = attempt + 1;
+        try
+            % midisend(cfg.DAF_MIDI, 'programchange', cfg.MIDI_CHANNEL, double(programNum)); % actual sending line, comment out if using EclipseMidiComm
+
+            %%%%%%%%%%%%%%%%%%% UNCOMMENT OUT BLOCK IF USING ECLIPSEMIDICOMM
+            cfg.ECLIPSE.hcom.SetDelay(keyDelay);
+
+            % success = true;
+        catch
+            pause(0.05); % brief backoff
+        end
+    end
+
+    % Logging: delay_ms, programNum, retries
+    fprintf(cmdFH,'%.6f\tPROGRAMCHANGE\t%d\t%d\t%d\tpreset_select\n', T.now(), keyDelay, programNum, attempt-1);
+    if ~success
+        warning('sendDelay: Failed to send PROGRAMCHANGE to %d (preset %d) after %d attempts.', keyDelay, programNum, maxRetries);
+    end
+end
 
 function out = tern(cond, a, b)
     if cond, out=a; else, out=b; end
@@ -321,8 +406,8 @@ end
 
 function safeQuit()
     fprintf('ESC pressed → quitting task\n');
-    if isfield(cfg, 'DAF_MIDI') && ~isempty(cfg.midi_dev_idx)
-        cfg.midi_dev_idx = [];
+    if isfield(cfg, 'DAF_MIDI') && ~isempty(cfg.DAF_MIDI)
+        cfg.DAF_MIDI = [];
     end
 end
 

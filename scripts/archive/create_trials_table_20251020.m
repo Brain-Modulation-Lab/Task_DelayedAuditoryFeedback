@@ -5,14 +5,14 @@ function [cfg, trials, text_wrapped_all] = create_trials_table(cfg)
 %   % cfg.TRIAL_TABLE is also populated.
 
 %% Load stimuli
-stimtable = readtable(fullfile(cfg.PATH_STIMDIR,cfg.daf_stim_file), ...
+stimtable = readtable(fullfile(cfg.PATH_SOURCEDATA,cfg.daf_stim_file), ...
     'FileType','text', 'Delimiter','tab');
 unique_stim_list = stimtable.stim;
 
 % Counts and delay vector
 cfg.n_unique_stim = numel(unique_stim_list);
-delays_vals = cfg.delay_values_ms(:); % ensure column vector
-nDelays   = numel(delays_vals);
+delayVals = cfg.delay_values_ms(:); % ensure column vector
+nDelays   = numel(delayVals);
 
 %% Build ONE block's full (stim, delay) cross
 % pairs_per_block = nStim * nDelays
@@ -21,7 +21,7 @@ pairs_per_block = cfg.n_unique_stim * nDelays;
 % Cross with ndgrid for exact 1:1 coverage
 [sIdx, dIdx]   = ndgrid(1:cfg.n_unique_stim, 1:nDelays);
 pairStim_block = sIdx(:);
-pairDelay_block = delays_vals(dIdx(:));
+pairDelay_block = delayVals(dIdx(:));
 
 % Helper: constrained permutation (inline, no external functions)
 % Returns a permutation of indices 1:pairs_per_block such that consecutive
@@ -162,14 +162,6 @@ trials.start_time         = nan(ntrials,1);
 trials.visual_onset_time  = nan(ntrials,1);
 trials.visual_off_time    = nan(ntrials,1);
 trials.lag_mean           = nan(ntrials,1);
-trials.midi_cc_val        = nan(ntrials,1);
-
-% get midi cc vals for each delay and the corresponding actual delays
-trials.midi_cc_val        = nan(ntrials,1);
-for itrial = 1:height(trials)
-    [trials.midi_cc_val(itrial), actual_delay_ms] = delay_to_midi_ccval(trials.delay(itrial));
-    trials.delay(itrial) = actual_delay_ms; % overwrite with the actual delay that will be used
-end
 
 % Return in cfg (and as output)
 cfg.TRIAL_TABLE = trials;
