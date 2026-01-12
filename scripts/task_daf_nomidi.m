@@ -1,4 +1,4 @@
-function task_daf_nonptb(cfg)
+function task_daf(cfg)
 
 %%%% run delayed auditory feedback task; in or out of operating room
 % by Sam Hansen (SH), Andrew Meier (AM); adapted from other Brain Modulation Lab (BML) scripts
@@ -15,7 +15,7 @@ TRIG_KEYPRESS = 8;    % Key spacebar keypress (to proceed to next trial)
 TRIG_ESC = 16; % Keyboard escape key press
 
 %% Trial table
-[cfg, trials, text_wrapped_all] = create_trials_table(cfg);
+[cfg, trials, text_wrapped_all] = create_trials_table_nomidi(cfg);
 
 %% Initializing log files
 eventFile = fopen(cfg.EVENT_FILENAME, 'w');

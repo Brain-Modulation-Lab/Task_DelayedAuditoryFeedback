@@ -15,7 +15,6 @@ deviceReader = audioDeviceReader('SampleRate',Fs, ...
 
 setup(deviceReader);
 
-
 fileWriter = dsp.AudioFileWriter(filename, 'FileFormat','WAV');
 disp('Speak into microphone now.')
 

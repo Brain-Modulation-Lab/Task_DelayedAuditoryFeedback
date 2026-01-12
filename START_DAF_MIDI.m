@@ -9,102 +9,8 @@ function start_daf_intraop_MIDI
 % No input arguments; all configuration is inside the function.
 %
 % The configuration is stored in the 'cfg' struct, passed to the task function.
-%
-% -------------------------------------------------------------------------
-%
-% -------------------------------------------------------------------------
-% If creating all presets on hardware (NO ECLIPSEMIDICOMM)
-%
-% STEP 1 — Put Eclipse into a usable starting state
-% 1) On the Eclipse front panel:
-%    - Turn the top left PARAMETER knob (or use arrow keys) until you see the "PROGRAM" page
-%    - Press the PROGRAM soft key to enter program selection mode
-% 2) Pick "Mono Delay"
-% 
-% STEP 2 — Create the 0 ms DAF preset (DAF_0ms)
-% 1) Press PARAMETER to enter editing
-% 2) Navigate parameters using the encoder and arrow keys.
-% 3) Set the key parameters:
-%    - Delay Time: 0 ms
-%    - Feedback: 0
-%    - Mix: 100% wet
-%    - Output Level / Main Level: leave at a comfortable/standard value
-%    - Bypass: make sure the effect is active (not bypassed)
-%    - Routing: leave as default unless special routing is needed
-% 
-% 4) Press the SOFT KEY labeled "STORE" (often soft key 4 under the screen)
-% 5) When prompted "Store Program To:", use the arrow keys to pick an empty slot
-%    (e.g., Program 201)
-% 6) Press ENTER.
-% 7) Name the preset (recommended): DAF_0ms
-% 8) Press ENTER to confirm.
-% 9) Record preset below in cfg.PRESET_MAP
-% 
-% STEP 3 — Create a DAF preset at a non-zero delay (e.g., 200 ms)
-% 
-% For each delay you want (e.g., 150 ms, 200 ms, 250 ms), repeat:
-% 
-% 1) Press PROGRAM and select your saved DAF_0ms preset (Program 201).
-% 2) Press PARAMETER to edit.
-% 3) Change:
-%    - Delay Time: e.g., 200 ms
-%      (You can either use the encoder knob or the keypad sequence such as:
-%       HOTKEY → PROGRAM → K2 → K0 → K0 → ENTER → SOFT4 to load)
-%    - Feedback: keep at 0
-%    - Mix: typically same as 0 ms preset (e.g., 100% wet)
-% 
-% 4) Press STORE.
-% 5) Choose an empty slot, e.g., Program 202.
-% 6) Name it, e.g.: DAF_200ms
-% 7) Press ENTER to confirm.
-% 8) Record preset below in cfg.PRESET_MAP
-% 
-% Repeat STEP 3 for each delay value in the experiment and add each one to cfg.PRESET_MAP
-% -------------------------------------------------------------------------
-%
-% -------------------------------------------------------------------------
-% If using EclipseMidiComm:
-%
-% STEP 1: Create a CLEAN_PASS program (no DAF, neutral effect)
-% (This is what Eclipse runs after the experiment)
-%
-% 1) Load a neutral / clean program (e.g. "Thru", "Bypass", or equivalent).
-% 2) Press PARAMETER to edit if necessary.
-% 3) Adjust parameters so audio is effectively unaffected:
-%       - Delay Time: 0 ms
-%       - Feedback: 0
-%       - Mix: 0% wet or equivalent "no effect" setting
-%       - Bypass: ON or equivalent
-%       - Output Level: comfortable working level
-% 4) Store this as a new program:
-%       - Press STORE
-%       - Choose an empty program slot, e.g. Program 100.
-%       - Press ENTER.
-%       - Name it CLEAN_PASS
-%       - Press ENTER again to confirm.
-% 5) Record this program number in the MATLAB script:
-%       cfg.ECLIPSE.cleanProgramNum = 100;
-%
-% -------------------------------------------------------------------------
-% STEP 2: Create the DAF_BASE program (0 ms delay, ready for remote control)
-% (This is the ONLY DAF program needed EclipseMIDIcomm will change its delay)
-%
-% 1) Load a delay capable base program
-% 2) Press PARAMETER to enter edit mode
-% 3) Adjust core parameters:
-%       - Delay Time: 0 ms
-%       - Feedback: 0
-%       - Mix: 100% wet (or protocol value for DAF)
-%       - Bypass: OFF (effect engaged)
-%       - Routing: default unless your setup requires special routing
-% 4) Store this as your DAF base program:
-%       - Press STORE.
-%       - Choose an empty program slot, e.g. Program 201.
-%       - Press ENTER.
-%       - Name it DAF_BASE
-%       - Press ENTER again to confirm.
-% 5) Record this program number in the MATLAB script:
-%       cfg.ECLIPSE.dafProgramNum = 201;
+
+
 % -------------------------------------------------------------------------
 
 %% Setup experiment configuration
@@ -114,7 +20,7 @@ cfg.SESSION_LABEL = 'intraop';
 
 cfg.SUBJECT       = 'daftestsub';   % Subject identifier
 cfg.DATA_TYPE     = 'task';         % Data type for folder structure
-cfg.RECORD_AUDIO  = false;          % Whether to record microphone audio during the task
+cfg.RECORD_AUDIO  = 1;          % Whether to record microphone audio during the task
 cfg.PTB           = false;          % Use Psychtoolbox for timing and display (false disables it)
 cfg.STOP_BETWEEN_TRIALS = 0;     % Require space to proceed between all trials (after ITI plays)
 % ----------------------------------
@@ -138,17 +44,21 @@ cfg.max_delay_repeats      = 4;       % Max repeats per delay condition
 cfg.same_trials_across_blocks = true; % Use same trials repeated across blocks
 cfg.DAF_START_OFFSET_S = 0.000;       % Optional time offset between fixation and DAF start
 
-% Stimulus sentences file per session
-cfg.daf_stim_file = 'daf_sentences_extra_alliteration.tsv';
+%%%%%% Stimulus sentences file per session
+% cfg.daf_stim_file = 'daf_sentences_extra_alliteration.tsv';
+
 
 % Set delay values and number of blocks according to session type
 switch cfg.SESSION_LABEL
     case 'preop'
-        cfg.delay_values_ms = [0 100 150 200 250];
+        cfg.delay_values_ms = [0 50 100 150]; % 
         cfg.n_blocks = 2;
+        cfg.daf_stim_file = 'daf_sentences_preop.tsv';
     case 'intraop'
         cfg.delay_values_ms = [0 150];
+%         cfg.delay_values_ms = [0 100 150 200];
         cfg.n_blocks = 4;
+        cfg.daf_stim_file = 'daf_sentences_intraop.tsv';
     otherwise
         error('Unknown session label: %s', cfg.SESSION_LABEL);
 end
@@ -186,14 +96,14 @@ if isempty(cfg.midi_dev_idx)
     warning('Running WITHOUT DAF (no MIDI device). Visuals/logging only.');
 end
 
-%% Parallel pool for optional audio recording (master)
-if cfg.RECORD_AUDIO && isempty(gcp('nocreate'))
-    parpool('local',1);
-end
-if cfg.RECORD_AUDIO
-    workerQueue = parallel.pool.PollableDataQueue;
-    workerQueueConstant = parallel.pool.Constant(workerQueue);
-end
+% % % %% Parallel pool for optional audio recording (master)
+% % % if cfg.RECORD_AUDIO && isempty(gcp('nocreate'))
+% % %     parpool('local',1);
+% % % end
+% % % if cfg.RECORD_AUDIO
+% % %     workerQueue = parallel.pool.PollableDataQueue;
+% % %     workerQueueConstant = parallel.pool.Constant(workerQueue);
+% % % end
 
 %% Paths & output folders
 if strcmpi(getenv('COMPUTERNAME'), 'BML-ALIENWARE2') % intraop rig laptop
@@ -225,6 +135,15 @@ for p = {cfg.PATH_SOURCEDATA, pathSub, pathSubSes, pathSubSesDataType, pathSubSe
 end
 cfg.PATH_AUDIO = pathSubSesAudio;
 
+
+
+
+
+
+
+
+
+
 %% Run basename, filenames
 fileBaseName  = ['sub-' cfg.SUBJECT '_ses-' cfg.SESSION_LABEL '_task-' cfg.TASK '_run-'];
 
@@ -252,6 +171,14 @@ diary(cfg.LOG_FILENAME);
 oc = onCleanup(@() diary('off')); % Ensure diary is turned off when function exits
 disp(cfg);  % Display config for verification
 
+%% Start audio recording (optional)
+% parallel worker for external audio recording (same pattern as preop) ---
+if isempty(gcp())
+    parpool('local',1);
+end
+workerQueueConstant = parallel.pool.Constant(@parallel.pool.PollableDataQueue);
+workerQueueClient   = fetchOutputs(parfeval(@(x) x.Value, 1, workerQueueConstant));
+
 %% Change to scripts folder
 scriptPath = fullfile(cfg.PATH_TASK, 'scripts');
 if ~isfolder(scriptPath)
@@ -259,14 +186,19 @@ if ~isfolder(scriptPath)
 end
 cd(scriptPath);
 
-%% Start audio recording (optional)
-if cfg.RECORD_AUDIO
-    if ~(exist('record_audio','file')==2)
-        error('record_audio() not found on path.');
+% Use same worker name as preop for parity (or swap to your preferred worker)
+if strcmp (cfg.SESSION_LABEL,'preop')
+    if ~(exist('record_audio_preop','file')==2)
+        clear onCleanupTasks
+        error('record_audio_preop() not found on path.');
     end
-    future = parfeval(@record_audio, 1, cfg.AUDIO_FILENAME, workerQueueConstant); % Launch async audio recording task with queue for communication
+    future = parfeval(@record_audio_preop, 1, cfg.AUDIO_FILENAME, workerQueueConstant);
     future.Diary;
-    recCleanup = onCleanup(@() send(workerQueue, 'stop'));
+    onCleanupTasks{6} = onCleanup(@() send(workerQueueClient, 'stop'));
+elseif strcmp (cfg.SESSION_LABEL,'intraop')
+    future = parfeval(@record_audio, 1, cfg.AUDIO_FILENAME, workerQueueConstant);
+    future.Diary;
+    onCleanupTasks{6} = onCleanup(@() send(workerQueueClient, 'stop'));
 end
 
 %% Ripple neurophysiology hardware communication setup (optional)

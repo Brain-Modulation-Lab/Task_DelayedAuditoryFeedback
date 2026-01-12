@@ -74,6 +74,11 @@ end
 eventFH = fopen(cfg.EVENT_FILENAME, 'w');
 fprintf(eventFH,'onset\tduration\tsample\ttrial_type\tstim_file\tvalue\tevent_code\n');
 
+
+
+
+
+
 %% Setup graphics (visuals, stimulus text, photodiode square, keyboard callbacks)
 screenSize = get(0,'ScreenSize');
 hfig = figure('Name','DAF','Color','white','MenuBar','none','ToolBar','none', 'Position',[0 0 screenSize(3) screenSize(4)], 'NumberTitle','off');
@@ -127,7 +132,7 @@ zero_delay_cc = delay_to_midi_ccval(0);
 
 %% Show instructions screen and wait for space keypress or escape abort
 instructions = sprintf(['INSTRUCTIONS\n\n' ...
-    'When text appears, read it out loud as accurately as possible.\n\n' ...
+    'When text appears, \n read it out loud as accurately as possible.\n\n' ...
     'Press SPACE to begin.']);
 set(hText,'String',instructions,'FontSize',45,'Color','black'); drawnow;
 

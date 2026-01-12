@@ -1,32 +1,35 @@
 % Intraop Launcher for DAF
+%% version of launcher script before AM tried to start getting it to interface with Trellis
 
 figure;
 
 % --- Centralized configuration structure ---
 cfg = [];
 
-cfg.SESSION_LABEL = 'intraop';
-%cfg.SESSION_LABEL = 'preop'; 
+% Subject/session metadata
+cfg.SUBJECT       = 'test0715';
 
-% Subject metadata
-cfg.SUBJECT       = 'DM1053';
-% cfg.SUBJECT = 'test1023'
+cfg.SESSION_LABEL = 'intraop';
+cfg.SESSION_LABEL = 'preop';
+
 cfg.DATA_TYPE     = 'task';
-cfg.RECORD_AUDIO = 1;
+
 
 % Task metadata (match preop naming so Task_*.m runs unchanged)
 cfg.TASK          = 'daf';
 cfg.TASK_VERSION  = 1;
-cfg.TASK_FUNCTION = 'task_daf.m';
+cfg.TASK_FUNCTION = 'task_daf_nomidi.m';
+
 
 % Core DAF parameters REQUIRED by Task_DelayedAuditoryFeedback
-
-cfg.max_trials            = inf;         % optional cap (same default as preop)
+cfg.n_blocks              = 1;          % number of blocks
+cfg.max_trials            = 30;         % optional cap (same default as preop)
 cfg.audio_sample_rate     = 44100;      % Audio sample rate in Hz
-cfg.audio_frame_size      = 128;        % block size Task_* uses for streaming; Sam's default = 128; can go down to ~60 without problem with intraop
+cfg.audio_frame_size      = 128;        % block size Task_* uses for streaming; Sam's default = 128
+cfg.audio_playback_gain   = 0.1;          % DAF output gain
 cfg.fix_cross_dur         = 0.0;        % pre-sentence fix (Task_* uses its own ITI_S but we keep parity)
-% % % cfg.delay_dur             = 0.0;        % pre-visual onset delay 
-cfg.text_stim_dur         = 10;       % sentence display/speaking time in sec; ok to make this shorter than expected response, because it's also keypress-controlled
+cfg.delay_dur             = 0.0;        % pre-visual onset delay 
+cfg.text_stim_dur         = 12.0;       % sentence display/speaking time 
 cfg.stim_font_size        = 50;         % use 50 on intraop rig
 cfg.stim_max_char_per_line= 30;         % maximum number of chars per line in ortho stim figure, for text wrapping
 cfg.catchRatio            = 0;          % proportion of trials which are no-speech catch trials
@@ -34,34 +37,27 @@ cfg.max_stim_repeats      = 2;          % max consecutive repeats of same stimul
 cfg.max_delay_repeats     = 4;          % max consecutive repeats of same delays within a block
 cfg.same_trials_across_blocks = true;   % if true: trials randomized in first block only, same order repeated across blocks
 
-% DAF delay conditions (ms)
-cfg.maxAllowedDelay_ms    = 1000;       % delay_values_ms must be below this value
+% DAF delay conditions (ms) – Task_* requires cfg.delayOptions
+cfg.maxAllowedDelay_ms    = 1000;       % defensive check (mirrors preop)
 
-% determine filename of stim list
-cfg.daf_stim_file = 'daf_sentences_short.tsv'; % version with only 2 sentences 
-cfg.daf_stim_file = ['daf_sentences_', cfg.SESSION_LABEL, '.tsv']; % Stim text file depending on which session
-
+% Set delay values and number of blocks according to session type
 switch cfg.SESSION_LABEL
     case 'preop'
-        cfg.delay_values_ms = [0 50 100 150 200]
-%         cfg.delay_values_ms = [0];
-        cfg.n_blocks        = 2;          % number of blocks
-        cfg.audio_playback_gain   = 0.5;          % DAF output gain
-
+        cfg.delay_values_ms = [0 50 100 150]; % 
+        cfg.n_blocks = 2;
+        cfg.daf_stim_file = 'daf_sentences_preop.tsv';
     case 'intraop'
-        cfg.delay_values_ms= [0 60]; 
-        cfg.n_blocks        = 4;          % number of blocks
-        cfg.audio_playback_gain   = 0.1;          % DAF output gain
-
+        cfg.delay_values_ms = [0 150];
+%         cfg.delay_values_ms = [0 100 150 200];
+        cfg.n_blocks = 4;
+        cfg.daf_stim_file = 'daf_sentences_intraop.tsv';
+    otherwise
+        error('Unknown session label: %s', cfg.SESSION_LABEL);
 end
-
 
 if any(cfg.delay_values_ms > cfg.maxAllowedDelay_ms)
     error('One or more delayOptions exceed the maximum allowed delay of %d ms.', cfg.maxAllowedDelay_ms);
 end
-
-% check protocol
-cfg.protocol = 'udp';
 
 % Diagnostics / flags (used by Task_* optionally)
 cfg.no_audio_debug_mode   = true;
@@ -75,6 +71,33 @@ cfg.CONSERVE_VRAM_MODE    = 4096;
 % Choose LOCAL_TEST mode explicitly (Task_* branches on this)
 % Set to false on the OR rig; set true on a laptop for quick dry-runs.
 cfg.LOCAL_TEST            = 0;
+
+% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % Paths and device configuration (point at DAF task)
+% % % % % % % % % % % % % % % % % % % % % % % % % % % % % if strcmpi(getenv('COMPUTERNAME'), 'BML-ALIENWARE2') %% intrasurgical rig laptop
+% % % % % % % % % % % % % % % % % % % % % % % % % % % % %     cfg.PATH_TASK       = 'D:\Task\Task_DelayedAuditoryFeedback';
+% % % % % % % % % % % % % % % % % % % % % % % % % % % % %     cfg.PATH_SOURCEDATA = 'D:\DBS\sourcedata';
+% % % % % % % % % % % % % % % % % % % % % % % % % % % % %     cfg.AUDIO_DEVICE_IN = 'Focusrite USB ASIO'; 
+% % % % % % % % % % % % % % % % % % % % % % % % % % % % %     cfg.AUDIO_DEVICE_OUT = 'Speakers (Radial USB Pro)';
+% % % % % % % % % % % % % % % % % % % % % % % % % % % % % %     cfg.AUDIO_DEVICE_OUT = 'Speakers (HIFI Audio)'; % for testing without Radial USB
+% % % % % % % % % % % % % % % % % % % % % % % % % % % % % elseif ismac
+% % % % % % % % % % % % % % % % % % % % % % % % % % % % %     cfg.PATH_TASK       = '/Users/samhansen/Documents/MATLAB/Guenther/Task_DelayedAuditoryFeedback/';
+% % % % % % % % % % % % % % % % % % % % % % % % % % % % %     cfg.PATH_SOURCEDATA = '/Users/samhansen/Documents/MATLAB/Guenther/Task_DelayedAuditoryFeedback/stimuli';
+% % % % % % % % % % % % % % % % % % % % % % % % % % % % %     cfg.AUDIO_DEVICE_OUT = 'MacBook Pro Speakers';
+% % % % % % % % % % % % % % % % % % % % % % % % % % % % %     cfg.AUDIO_DEVICE_IN  = 'MacBook Pro Microphone';
+% % % % % % % % % % % % % % % % % % % % % % % % % % % % %     cfg.HOST_AUDIO_API_NAME = 'CoreAudio';
+% % % % % % % % % % % % % % % % % % % % % % % % % % % % % elseif strcmpi(getenv('COMPUTERNAME'), '677-GUE-WL-0010') % Andrew Meier work laptop
+% % % % % % % % % % % % % % % % % % % % % % % % % % % % %     cfg.PATH_TASK = 'C:\docs\code\Task_DelayedAuditoryFeedback'; 
+% % % % % % % % % % % % % % % % % % % % % % % % % % % % %     cfg.PATH_SOURCEDATA= 'C:\ieeg_stut'; 
+% % % % % % % % % % % % % % % % % % % % % % % % % % % % %     % cfg.AUDIO_DEVICE_IN = 'Headphones (WF-C500)';
+% % % % % % % % % % % % % % % % % % % % % % % % % % % % %     cfg.AUDIO_DEVICE_IN = 'Microphone Array (Intel® Smart Sound Technology for Digital Microphones)'; 
+% % % % % % % % % % % % % % % % % % % % % % % % % % % % %     % cfg.AUDIO_DEVICE_OUT = 'Headset (WF-C500)'; 
+% % % % % % % % % % % % % % % % % % % % % % % % % % % % %     cfg.AUDIO_DEVICE_OUT = 'Speakers (HIFI Audio)'; 
+% % % % % % % % % % % % % % % % % % % % % % % % % % % % % else
+% % % % % % % % % % % % % % % % % % % % % % % % % % % % %     cfg.PATH_TASK       = '~/git/Task_DelayedAuditoryFeedback';
+% % % % % % % % % % % % % % % % % % % % % % % % % % % % %     cfg.PATH_SOURCEDATA = '~/Data/DBS/sourcedata';
+% % % % % % % % % % % % % % % % % % % % % % % % % % % % % end
+
+
 
 % Paths and device configuration (point at DAF task)
 if strcmpi(getenv('COMPUTERNAME'), 'BML-ALIENWARE2') %% intrasurgical rig laptop
@@ -112,12 +135,15 @@ else
     cfg.PATH_TASK       = '~/git/Task_DelayedAuditoryFeedback';
     cfg.PATH_SOURCEDATA = '~/Data/DBS/sourcedata';
 end
+cfg.PATH_STIMDIR = [cfg.PATH_TASK, filesep, 'stimuli']; 
+
+
 
 % Misc parity with preop
-% % % cfg.TEST_SOUND_S        = 10;
+cfg.TEST_SOUND_S        = 10;
 cfg.CALIBRATION_BEEPS_N = 5;
-% % % cfg.AUDIO_AMP           = 1;
-% % % cfg.GO_BEEP_AMP         = 0.5;
+cfg.AUDIO_AMP           = 1;
+cfg.GO_BEEP_AMP         = 0.5;
 cfg.KEYBOARD_ID         = [];
 
 % --- Warnings/PTB setup (apply prefs so toggles take effect) ---
@@ -130,23 +156,6 @@ Screen('Preference','Verbosity', 3);
 PsychDebugWindowConfiguration;   % windowed + alpha for bench testing (comment out on OR if undesired)
 
 close all force; Screen('CloseAll'); % close all normal matlab figures and PTB windows
-
-%% Initialize external audio recording from USB interface 
-% myCluster = parcluster; delete(myCluster.Jobs)
-if isempty(gcp('nocreate'))
-    parpool('local', 1);
-    %wait(); 
-end
-
-% Get the worker to construct a data queue on which it can receive messages from the client
-workerQueueConstant = parallel.pool.Constant(@parallel.pool.PollableDataQueue);
-
-% Get the worker to send the queue object back to the client
-workerQueueClient = fetchOutputs(parfeval(@(x) x.Value, 1, workerQueueConstant));
-
-%% Warnings
-warning('on','all'); %enabling warnings
-beep off
 
 % --- Paths & output folders (match preop structure) ---
 pathSub            = fullfile(cfg.PATH_SOURCEDATA, ['sub-' cfg.SUBJECT]);
@@ -184,38 +193,27 @@ onCleanupTasks = cell(10,1);
 onCleanupTasks{10} = onCleanup(@() diary('off'));
 disp(cfg);
 
+% --- Optional: parallel worker for external audio recording (same pattern as preop) ---
+if isempty(gcp())
+    parpool('local',1);
+end
+workerQueueConstant = parallel.pool.Constant(@parallel.pool.PollableDataQueue);
+workerQueueClient   = fetchOutputs(parfeval(@(x) x.Value, 1, workerQueueConstant));
+
 %% Change folder 
 % change to main scripts folder, like we do in Speech Motor Sequence Learning (SMSL) scripts
 cd('./scripts'); 
 
-%% Start audio recording
-if cfg.RECORD_AUDIO
-    cfg.AUDIO_FILENAME = [cfg.PATH_AUDIO filesep cfg.BASE_NAME(1:end-1) '.wav'];
-    
-    % Get the worker to start waiting for messages
-    filename = cfg.AUDIO_FILENAME;
-    % TODO check that @record_audio is on the path
-    if ~(exist('record_audio')==2)
-        error('record_audio() function not found. Add it to the MATLAB path.'); 
-    end
-    future = parfeval(@record_audio, 1, filename, workerQueueConstant);
-    future.Diary
-    
-    onCleanupTasks{6} = onCleanup(@() send(workerQueueClient, 'stop'));
-end
-
-
-
 %%
 
-% % % % Use same worker name as preop for parity (or swap to your preferred worker)
-% % % if ~(exist('record_audio_preop','file')==2)
-% % %     clear onCleanupTasks
-% % %     error('record_audio_preop() not found on path.');
-% % % end
-% % % future = parfeval(@record_audio_preop, 1, cfg.AUDIO_FILENAME, workerQueueConstant);
-% % % future.Diary;
-% % % onCleanupTasks{6} = onCleanup(@() send(workerQueueClient, 'stop'));
+% Use same worker name as preop for parity (or swap to your preferred worker)
+if ~(exist('record_audio_preop','file')==2)
+    clear onCleanupTasks
+    error('record_audio_preop() not found on path.');
+end
+future = parfeval(@record_audio_preop, 1, cfg.AUDIO_FILENAME, workerQueueConstant);
+future.Diary;
+onCleanupTasks{6} = onCleanup(@() send(workerQueueClient, 'stop'));
 
 
 
@@ -226,54 +224,36 @@ end
 digout = 0;
 if exist('xippmex','file')==3
     try
-        switch cfg.protocol
-            case 'tcp'
-                try
-                    digout = xippmex('tcp');
-                    xippmex('addoper',129);
-                    disp('Using TCP mode')
-                catch
-                    digout = xippmex();
-                    disp('Using UDP mode')
-                    warning('Inconsistent network protocol!')
-                end
-            case 'udp'
-                try
-                    digout = xippmex();
-                    disp('Using UDP mode')
-
-                catch
-                    digout = xippmex('tcp');
-                    xippmex('addoper',129);
-                    disp('Using TCP mode')
-                    warning('Inconsistent network protocol!')
-                end
-        end
+        digout = xippmex();
+        disp('Using UDP mode') 
         onCleanupTasks{9} = onCleanup(@() xippmex('close'));
     catch err
         warning('xippmex failed %s: %s\n', err.identifier, err.message);
     end
 end
+
 if digout
     fprintf('Ripple system found.\n')
     
-    %ceck status of recording
+    %check status of recording
     rippleRec = xippmex('trial');
     
     if isempty(strfind(rippleRec.filebase,cfg.SUBJECT))
         warning('Ripple''s file basename (%s) does NOT contain the subject''s id (%s)',rippleRec.filebase,cfg.SUBJECT);
+        str = input('Press enter to continue or ctrl-c to exit\n','s');
     end
     if ~strcmp(rippleRec.status, 'recording') 
         warning('Ripple system connected but NOT recording. DRY RUN.');
+        str = input('Press enter to continue or ctrl-c to exit\n','s');
     else
         fprintf('Ripple system recording to file %s%04d\n', rippleRec.filebase, rippleRec.incr_num);
     end
     
-    onCleanupTasks{9} = onCleanup(@() xippmex('close'));  
 else
     fprintf(2,['\n***************************************',...
              '\n** Ripple system NOT found! DRY RUN! **',...
              '\n***************************************\n']);
+    str = input('Press enter to continue or ctrl-c to exit\n','s');
 end
 cfg.DIGOUT = digout;
 
@@ -289,7 +269,7 @@ if ~isfile(task_function)
 end
 copyfile(task_function, [cfg.PATH_LOG filesep cfg.BASE_NAME 'script.m']);
 
-task_daf(cfg);
+task_daf_nomidi(cfg);
 
 % --- Cleanup ---
 clear onCleanupTasks;
