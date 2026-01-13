@@ -10,7 +10,7 @@ cfg.SESSION_LABEL = 'preop';
 
 % Subject metadata
 % cfg.SUBJECT       = 'DM1053';
-cfg.SUBJECT = 'test1023'
+cfg.SUBJECT = 'daftestsub'
 cfg.DATA_TYPE     = 'task';
 cfg.RECORD_AUDIO = 1;
 

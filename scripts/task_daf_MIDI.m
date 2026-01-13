@@ -80,14 +80,16 @@ fprintf(eventFH,'onset\tduration\tsample\ttrial_type\tstim_file\tvalue\tevent_co
 
 
 %% Setup graphics (visuals, stimulus text, photodiode square, keyboard callbacks)
+cfg.text_color = [1 1 1];
+cfg.background_color = [0 0 0];
 screenSize = get(0,'ScreenSize');
-hfig = figure('Name','DAF','Color','white','MenuBar','none','ToolBar','none', 'Position',[0 0 screenSize(3) screenSize(4)], 'NumberTitle','off');
+hfig = figure('Name','DAF','Color',cfg.background_color,'MenuBar','none','ToolBar','none', 'Position',[0 0 screenSize(3) screenSize(4)], 'NumberTitle','off');
 
 % Create full-figure invisible axes for holding text
 ax = axes('Parent',hfig,'Position',[0 0 1 1],'Visible','off');
 
 % Create text object centered on figure for stimuli
-hText = text(0.5,0.5,'','Parent',ax,...
+hText = text(0.5,0.5,'','Parent',ax,'Color',cfg.text_color,... % white text
     'FontSize',cfg.stim_font_size,'FontWeight','bold',...
     'HorizontalAlignment','center','VerticalAlignment','middle',...
     'Units','normalized','Interpreter','none');
@@ -134,7 +136,7 @@ zero_delay_cc = delay_to_midi_ccval(0);
 instructions = sprintf(['INSTRUCTIONS\n\n' ...
     'When text appears, \n read it out loud as accurately as possible.\n\n' ...
     'Press SPACE to begin.']);
-set(hText,'String',instructions,'FontSize',45,'Color','black'); drawnow;
+set(hText,'String',instructions,'FontSize',45,'Color',cfg.text_color); drawnow;
 
 % Wait for SPACE (ESC abort)
 while true
@@ -196,7 +198,7 @@ for itrial = 1:cfg.ntrials
 
     % Visual on, fixation cross off
     set(hSquare,'FaceColor',[0 0 0]);
-    set(hText,'String', text_wrapped_all{trials.stim_idx(itrial)}, 'Color','black');
+    set(hText,'String', text_wrapped_all{trials.stim_idx(itrial)}, 'Color',cfg.text_color);
     drawnow;
     tVisOn = T.now();
     flipState = ~flipState;
