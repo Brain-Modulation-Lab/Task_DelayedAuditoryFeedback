@@ -50,20 +50,12 @@ ListenChar(0);
 ShowCursor;
 
 %% Audio setup
-if ispc % If running on a Windows
-    [~,host] = system('hostname');
-    cfg.host     = deblank(host);
-    audio_reader = audioDeviceReader('Device', cfg.AUDIO_DEVICE_IN, ... % Live mic input  
-        'SampleRate', cfg.audio_sample_rate, ...
-        'SamplesPerFrame', cfg.audio_frame_size, ...
-        'Driver',cfg.audio_reader_driver); % WASAPI and ASIO are lower latency than DirectSound 
-elseif ismac % If running on a Mac
-    [~,host] = system('scutil --get LocalHostName');
-    cfg.host     = deblank(host);
-    audio_reader = audioDeviceReader('Device', cfg.AUDIO_DEVICE_IN, ... % Live mic input  
-        'SampleRate', cfg.audio_sample_rate, ...
-        'SamplesPerFrame', cfg.audio_frame_size); 
-end
+[~,host] = system('hostname');
+cfg.host     = deblank(host);
+audio_reader = audioDeviceReader('Device', cfg.AUDIO_DEVICE_IN, ... % Live mic input  
+    'SampleRate', cfg.audio_sample_rate, ...
+    'SamplesPerFrame', cfg.audio_frame_size, ...
+    'Driver',cfg.audio_reader_driver); % WASAPI and ASIO are lower latency than DirectSound 
 
 audio_writer = audioDeviceWriter('Device', cfg.AUDIO_DEVICE_OUT,...
     'SampleRate', cfg.audio_sample_rate,...
@@ -87,8 +79,8 @@ hText = text(0.5, 0.5, '', ...
     'Units','normalized', ...
     'Parent', ax); % Centered text object for all instructions/cues
 pdiode_square_length = 0.05; % relative to figure size
-hSquare = annotation('rectangle','FaceColor', [1 1 1],'EdgeColor', 'none', ... % square to be recorded by photodiode
-    'Position', [0, 1-pdiode_square_length, pdiode_square_length, pdiode_square_length]); % [x y width height]... upper left
+% % hSquare = annotation('rectangle','FaceColor', [1 1 1],'EdgeColor', 'none', ... % square to be recorded by photodiode
+%     'Position', [0, 1-pdiode_square_length, pdiode_square_length, pdiode_square_length]); % [x y width height]... upper left
 
 %% Instructions and sync beeps
 instructions = [
@@ -155,7 +147,7 @@ for itrial = 1:cfg.ntrials
          flipSyncState = ~flipSyncState;   
          break_message = 'Take a break! Press Spacebar to continue.';
          set(hText, 'String', break_message, 'FontSize', cfg.stim_font_size, 'Color', 'black'); 
-         set(hSquare, 'FaceColor', [0.6 0.6 0.6]); % switch photodiode square to light gray
+%          set(hSquare, 'FaceColor', [0.6 0.6 0.6]); % switch photodiode square to light gray
          drawnow
          breakMesageTime = GetSecs(); 
         log_event(eventFile, cfg.DIGOUT, breakMesageTime, [], [], [], [], 0, 'Break message', flipSyncState);  
@@ -214,7 +206,7 @@ for itrial = 1:cfg.ntrials
 
     % ITI with fixation cross display and log
     set(hText, 'String', '*', 'FontSize', cfg.stim_font_size, 'Color', ifelse(~trials.catch_trial(itrial), [0.7 0.7 0.7], 'red')); % Show asterisk cue
-     set(hSquare, 'FaceColor', [0.3 0.3 0.3]); % switch photodiode square to dark gray
+%     set(hSquare, 'FaceColor', [0.3 0.3 0.3]); % switch photodiode square to dark gray
     drawnow;
     itiFixOnTime = GetSecs; 
     flipSyncState = ~flipSyncState;
@@ -236,7 +228,7 @@ for itrial = 1:cfg.ntrials
 
     WaitSecs('UntilTime', itiFixOnTime + ItiDuration); % wait until ITI is finished before presenting ortho stimulus
     set(hText, 'String', wrapped_text, 'FontSize', cfg.stim_font_size, 'Color', 'white'); 
-    set(hSquare, 'FaceColor', [0 0 0]); % switch photodiode square to black
+%     set(hSquare, 'FaceColor', [0 0 0]); % switch photodiode square to black
     drawnow; % Show sentence
     stimOnsetTime = GetSecs(); 
 
@@ -300,9 +292,9 @@ for itrial = 1:cfg.ntrials
     % Visual off
     flipSyncState = ~flipSyncState;
 
-    set(hText, 'String', '');
-     set(hSquare, 'FaceColor', [1 1 1]); % switch photodiode square to white
-    drawnow; % Clear
+%     set(hText, 'String', '');
+%      set(hSquare, 'FaceColor', [1 1 1]); % switch photodiode square to white
+%     drawnow; % Clear
 
     visOffTime = GetSecs(); 
 

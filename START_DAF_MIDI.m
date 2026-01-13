@@ -15,10 +15,12 @@ function start_daf_intraop_MIDI
 
 %% Setup experiment configuration
 cfg = struct();
+
+cfg.SUBJECT       = 'daftestsub';   % Subject identifier
+
 % cfg.SESSION_LABEL = 'preop';      % Label for session type (e.g., intraop, preop)
 cfg.SESSION_LABEL = 'intraop'; 
 
-cfg.SUBJECT       = 'daftestsub';   % Subject identifier
 cfg.DATA_TYPE     = 'task';         % Data type for folder structure
 cfg.RECORD_AUDIO  = 1;          % Whether to record microphone audio during the task
 cfg.PTB           = false;          % Use Psychtoolbox for timing and display (false disables it)
@@ -134,13 +136,6 @@ for p = {cfg.PATH_SOURCEDATA, pathSub, pathSubSes, pathSubSesDataType, pathSubSe
     if ~isfolder(p{1}), mkdir(p{1}); end
 end
 cfg.PATH_AUDIO = pathSubSesAudio;
-
-
-
-
-
-
-
 
 
 
