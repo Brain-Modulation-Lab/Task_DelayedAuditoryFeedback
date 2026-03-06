@@ -16,7 +16,7 @@ function start_daf_intraop_MIDI
 %% Setup experiment configuration
 cfg = struct();
 
-cfg.SUBJECT       = 'daftestsub';   % Subject identifier
+cfg.SUBJECT       = 'DM1055';   % Subject identifier
 
 % cfg.SESSION_LABEL = 'preop';      % Label for session type (e.g., intraop, preop)
 cfg.SESSION_LABEL = 'intraop'; 
@@ -24,7 +24,7 @@ cfg.SESSION_LABEL = 'intraop';
 cfg.DATA_TYPE     = 'task';         % Data type for folder structure
 cfg.RECORD_AUDIO  = 1;          % Whether to record microphone audio during the task
 cfg.PTB           = false;          % Use Psychtoolbox for timing and display (false disables it)
-cfg.STOP_BETWEEN_TRIALS = 0;     % Require space to proceed between all trials (after ITI plays)
+cfg.STOP_BETWEEN_TRIALS = 1;     % Require space to proceed between all trials (after ITI plays)
 % ----------------------------------
 cfg.midi_dev_name = 'H90 Pedal';      % name of Stepp Lab usb-to-midi adapter from mididevinfo.m
 cfg.midi_chan  = 1;              % Set to MIDI channel as per hardware... should have been pre-set on the midi device
@@ -38,7 +38,7 @@ cfg.TASK_FUNCTION = 'task_daf_MIDI.m';  % Task main function filename
 % Core DAF parameters
 cfg.max_trials             = inf;     % Maximum number of trials (inf = unlimited)
 cfg.text_stim_dur          = 10;      % Duration to show text stimulus on screen (seconds)
-cfg.stim_font_size         = 50;      % Font size of stimulus text
+cfg.stim_font_size         = 60;      % Font size of stimulus text
 cfg.stim_max_char_per_line = 30;      % Maximum characters per line in stimulus text
 cfg.catchRatio             = 0;       % Probability of catch trials (no auditory feedback)
 cfg.max_stim_repeats       = 2;       % Max number of repeats per stimulus

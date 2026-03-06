@@ -198,7 +198,7 @@ for itrial = 1:cfg.ntrials
 
     % Visual on, fixation cross off
     set(hSquare,'FaceColor',[0 0 0]);
-    set(hText,'String', text_wrapped_all{trials.stim_idx(itrial)}, 'Color',cfg.text_color);
+    set(hText,'String', text_wrapped_all{trials.stim_idx(itrial)}, 'Color',cfg.text_color,'FontSize',cfg.stim_font_size);
     drawnow;
     tVisOn = T.now();
     flipState = ~flipState;

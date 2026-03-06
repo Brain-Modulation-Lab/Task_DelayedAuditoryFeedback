@@ -9,7 +9,7 @@ cfg = [];
 cfg.SESSION_LABEL = 'preop'; 
 
 % Subject metadata
-cfg.SUBJECT = 'test20260113'
+cfg.SUBJECT = 'DM1055'
 cfg.DATA_TYPE     = 'task';
 cfg.RECORD_AUDIO = 1;
 
@@ -24,7 +24,7 @@ cfg.audio_sample_rate     = 44100;      % Audio sample rate in Hz
 cfg.audio_frame_size      = 128;        % block size Task_* uses for streaming; Sam's default = 128; can go down to ~60 without problem with intraop
 cfg.fix_cross_dur         = 0.0;        % pre-sentence fix (Task_* uses its own ITI_S but we keep parity)
 cfg.text_stim_dur         = 10;       % sentence display/speaking time in sec; ok to make this shorter than expected response, because it's also keypress-controlled
-cfg.stim_font_size        = 50;         % use 50 on intraop rig
+cfg.stim_font_size        = 75;         % use 50 on intraop rig
 cfg.stim_max_char_per_line= 30;         % maximum number of chars per line in ortho stim figure, for text wrapping
 cfg.catchRatio            = 0;          % proportion of trials which are no-speech catch trials
 cfg.max_stim_repeats      = 2;          % max consecutive repeats of same stimulus within a block
