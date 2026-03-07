@@ -1,3 +1,6 @@
+%% this version stores the keyboard checks in the stim figure, meaning that they faile 
+%%%% .... if focus is not on the figure; future version is meant to do key checks regardless of focus
+
 function task_daf_MIDI(cfg)
 % Runs the Delayed Auditory Feedback (DAF) task, controlling visuals, timing, logging,
 % and MIDI control of Eventide H90
@@ -19,9 +22,6 @@ end
 if ~isfield(cfg,'EVENT_FILENAME') || ~isfield(cfg,'TRIAL_FILENAME')
     error('cfg EVENT/TRIAL filenames missing.');
 end
-
-% make sure .NET assembly is available for KeyPoll subfunction 
-NET.addAssembly('PresentationCore');
 
 %% Setup timing function backend: Psychtoolbox (PTB) or MATLAB native timer
 
@@ -97,6 +97,20 @@ hText = text(0.5,0.5,'','Parent',ax,'Color',cfg.text_color,... % white text
 pdiode_square_length = 0.05;
 hSquare = annotation('rectangle','FaceColor',[1 1 1],'EdgeColor','none', 'Position',[0, 1-pdiode_square_length, pdiode_square_length, pdiode_square_length]);
 
+% Configure keypress event handling for space and escape keys
+setappdata(hfig,'SPACE_FLAG',[]);
+setappdata(hfig,'ESC_FLAG',[]);
+set(hfig,'WindowKeyPressFcn', @onKey);
+
+function onKey(~, e)
+    k = lower(e.Key);
+    if strcmp(k,'space')
+        setappdata(hfig,'SPACE_FLAG', true);
+    elseif strcmp(k,'escape')
+        setappdata(hfig,'ESC_FLAG', true);
+    end
+end
+
 %% devices setup
 % Define trigger code constants for event types
 TRIG_ITI = 1; % Fixation cross display
@@ -118,16 +132,14 @@ zero_delay_cc = delay_to_midi_ccval(0);
 
 
 %% Show instructions screen and wait for space keypress or escape abort
-instructions = [
-    'When text appears on the screen,\n'...
-    'read it out loud at your normal speaking speed.' ...
-    '\n\nUse a quiet, natural speaking voice.'
-];
+instructions = sprintf(['INSTRUCTIONS\n\n' ...
+    'When text appears, \n read it out loud as quickly as possible.\n\n' ...
+    'Press SPACE to begin.']);
 set(hText,'String',instructions,'FontSize',45,'Color',cfg.text_color); drawnow;
 
 % Wait for SPACE (ESC abort)
 while true
-    [space, esc] = KeyPoll();
+    [space, esc] = KeyPoll(hfig);
     if esc
         flipState = ~flipState;
         log_event(eventFH, doDigOut, T.now(), [], [], 'control', [], TRIG_ESC, 'Key_Esc_At_Instructions', flipState);
@@ -151,6 +163,8 @@ flipState = ~flipState;
 log_event(eventFH, 0, t0, [], [], 'control', [], 0, 'Instructions_End', flipState);
 
 %% Main trial loop
+ITI_S = [1.75, 2.25]; % Inter-trial interval range in seconds
+
 for itrial = 1:cfg.ntrials
     isCatch = trials.catch_trial(itrial);
     trials.delay(itrial) = trials.delay(itrial);
@@ -164,7 +178,7 @@ for itrial = 1:cfg.ntrials
     log_event(eventFH, 0, tFixOn, [], [], tern(isCatch,'catch','speech'), [], TRIG_ITI, 'Fixation_Cross_Onset', flipState);
 
     % Keep fixation cross on for the randomly sampled ITI duration
-    itiDur = cfg.iti(1) + rand*(cfg.iti(2)-cfg.iti(1));
+    itiDur = ITI_S(1) + rand*(ITI_S(2)-ITI_S(1));
     T.wait(itiDur);
 
     % Send DAF ON command relative to fixation onset (if not catch trial)
@@ -192,7 +206,7 @@ for itrial = 1:cfg.ntrials
     % Speaking window
     tSpeakStart = T.now();
     while T.now() - tSpeakStart < cfg.text_stim_dur
-        [~, esc] = KeyPoll();
+        [~, esc] = KeyPoll(hfig);
         if esc
              % send midi command to device to set DAF delay value to zero
              midisend(cfg.midi_dev_idx, 'ControlChange', cfg.midi_chan, cfg.midi_cc_num, zero_delay_cc)
@@ -225,7 +239,7 @@ for itrial = 1:cfg.ntrials
     if cfg.STOP_BETWEEN_TRIALS
         fprintf('Trial %d/%d complete. Press SPACE to continue...\n', itrial, cfg.ntrials);
         while true
-            [space, esc] = KeyPoll();
+            [space, esc] = KeyPoll(hfig);
             if esc
                  % send midi command to device to set DAF delay value to zero
                  midisend(cfg.midi_dev_idx, 'ControlChange', cfg.midi_chan, cfg.midi_cc_num, zero_delay_cc)
@@ -257,16 +271,20 @@ for itrial = 1:cfg.ntrials
             log_event(eventFH, doDigOut, T.now(), [], [], 'control', [], TRIG_BREAK, sprintf('Block_%d_Break_Start', currentBlock), flipState);
 
             % Display break message on screen and console
+            set(hfig,'WindowKeyPressFcn', @onKey);
             drawnow;
             fprintf('Block %d/%d finished; press spacebar to continue...\n', currentBlock, cfg.n_blocks);
             commandwindow %%% AM note: probably could replace this and next line using the KeyPoll function
             pause()
 
             if ~ishandle(hfig), break; end                 % window closed during break
+            set(hfig,'WindowKeyPressFcn', @onKey);         % restore callback safely
             figure(hfig) % re-focus on stim window
 
             flipState = ~flipState;
             log_event(eventFH, doDigOut, T.now(), [], [], 'control', [], TRIG_BREAK, sprintf('Block_%d_Break_End', currentBlock), flipState);
+            % Restore original callbacks
+            set(hfig,'WindowKeyPressFcn', @onKey);
             set(hText,'String',''); drawnow;
         end
     end
@@ -293,10 +311,13 @@ function out = tern(cond, a, b)
     if cond, out=a; else, out=b; end
 end
 
-%%% Gemini slopcode function for getting Esc and Space keypress state
-function [space, esc] = KeyPoll()
-    space = System.Windows.Input.Keyboard.IsKeyDown(System.Windows.Input.Key.Space);
-    esc   = System.Windows.Input.Keyboard.IsKeyDown(System.Windows.Input.Key.Escape);
+% Poll keyboard appdata to detect edge-triggered space and escape key events
+function [space, esc] = KeyPoll(h)
+    if ~ishandle(h), space=false; esc=true; return; end
+    space = ~isempty(getappdata(h,'SPACE_FLAG'));
+    esc   = ~isempty(getappdata(h,'ESC_FLAG'));
+    if space, setappdata(h,'SPACE_FLAG',[]); end
+    if esc,   setappdata(h,'ESC_FLAG',[]);   end
 end
 
 function safeQuit()

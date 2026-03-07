@@ -4,9 +4,6 @@ function task_daf(cfg)
 % by Sam Hansen (SH), Andrew Meier (AM); adapted from other Brain Modulation Lab (BML) scripts
 
 %% Task specific parameters
-% Fixation Cross ITI parameters
-ITI_S = [1.75, 2.25]; % duration range in seconds of ITI
-
 % Trigger codes for event marking
 TRIG_ITI = 1; % Trigger for start of ITI
 TRIG_VISUAL = 2; % Visual stimulus onset/offset
@@ -84,9 +81,9 @@ pdiode_square_length = 0.05; % relative to figure size
 
 %% Instructions and sync beeps
 instructions = [
-    'INSTRUCTIONS\n\n' ...
     'When text appears on the screen,\n'...
-    'read it out loud as accurately as possible.' ...
+    'read it out loud at your normal speaking speed.' ...
+    '\n\nUse a quiet, natural speaking voice.'
 ];
 set(hText, 'String', sprintf(instructions), ...
     'FontSize', 45, ...
@@ -142,7 +139,7 @@ doSoftLag = isfield(cfg,'LAG_DIAGNOSTICS') && cfg.LAG_DIAGNOSTICS && ~cfg.LOCAL_
 lagBuffer = zeros(1, 5000); lagIndex = 1; lagCount = 0; completedTrials = 0; % Buffers for audio latency diagnostics
 
 for itrial = 1:cfg.ntrials
-     if (mod(itrial, cfg.ntrials_between_breaks) == 0) && (itrial ~= cfg.ntrials)  % Break after every X trials  , but not on the las
+     if (mod(itrial, cfg.ntrials_between_breaks) == 0) && (itrial ~= cfg.ntrials)  % Break after every X trials  , but not on the last
          % Display break message
          flipSyncState = ~flipSyncState;   
          break_message = 'Take a break! Press Spacebar to continue.';
@@ -212,7 +209,7 @@ for itrial = 1:cfg.ntrials
     flipSyncState = ~flipSyncState;
 
     % record the time when fixation cross comes on
-    ItiDuration = ITI_S(1) + (ITI_S(2) - ITI_S(1)) .* rand(1);
+    ItiDuration = cfg.iti(1) + (cfg.iti(2) - cfg.iti(1)) .* rand(1);
     code = TRIG_ITI;
     log_event(eventFile, cfg.DIGOUT, itiFixOnTime, ItiDuration, [], speechVsCatch, [], code, 'Fixation_Cross_Onset', flipSyncState);
     trials.fix_time(itrial) = itiFixOnTime;
