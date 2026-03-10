@@ -59,7 +59,7 @@ switch cfg.SESSION_LABEL
     case 'intraop'
 %         cfg.delay_values_ms = [150];
         cfg.delay_values_ms = [0 150];
-%         cfg.delay_values_ms = [0 100 150 200];
+        %cfg.delay_values_ms = [0 100 150 200];
         cfg.n_blocks = 4;
 %         cfg.daf_stim_file = 'daf_sentences_intraop.tsv';
          cfg.daf_stim_file = 'daf_sentences_short.tsv'; % use for quick testing of full runs

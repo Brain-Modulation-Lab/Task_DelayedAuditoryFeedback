@@ -3,6 +3,9 @@ function task_daf(cfg)
 %%%% run delayed auditory feedback task; in or out of operating room
 % by Sam Hansen (SH), Andrew Meier (AM); adapted from other Brain Modulation Lab (BML) scripts
 
+% make sure .NET assembly is available for KeyPoll subfunction 
+NET.addAssembly('PresentationCore');
+
 %% Task specific parameters
 % Trigger codes for event marking
 TRIG_ITI = 1; % Trigger for start of ITI
@@ -80,15 +83,20 @@ pdiode_square_length = 0.05; % relative to figure size
 %     'Position', [0, 1-pdiode_square_length, pdiode_square_length, pdiode_square_length]); % [x y width height]... upper left
 
 %% Instructions and sync beeps
-instructions = [
-    'When text appears on the screen,\n'...
-    'read it out loud at your normal speaking speed.' ...
-    '\n\nUse a quiet, natural speaking voice.'
-];
-set(hText, 'String', sprintf(instructions), ...
-    'FontSize', 45, ...
+instructions = {
+    'When text appears on the screen,',...
+    'read it out loud',...
+    'at your normal speaking speed.' ...
+    '',...
+    'Use a quiet, natural speaking voice.'
+};
+set(hText, 'String', instructions, ...
+    'FontSize', cfg.stim_font_size, ...
     'Color', 'white'); % Show instructions
 figure(hfig_stim); % Bring main window to front
+
+% use dummy callback function to keep focus on stim figure window even during keypress... important when using only 1 screen
+hfig_stim.WindowKeyPressFcn = @(~,~)0; 
 instrOn = GetSecs(); % get instructions presentation time
 
   disp('Press Spacebar to proceed to experiment')  %Experimenter instructions
@@ -309,6 +317,17 @@ for itrial = 1:cfg.ntrials
     else
         writetable(trials(itrial,:), cfg.TRIAL_FILENAME, 'Delimiter', '\t', 'FileType', 'text', 'WriteMode', 'append', 'WriteVariableNames', false);
     end
+
+    if cfg.STOP_BETWEEN_TRIALS
+        space_pressed = 0; 
+        while ~space_pressed
+            [space_pressed, esc] = KeyPoll();
+% % % %             if esc
+% % % %                 safeQuit(); fclose(eventFH); fclose(cmdFH); close(hfig); return
+% % % %             end
+            pause(0.01);
+        end
+    end
 end
 
 %% Cleanup section: log final event and safely close resources
@@ -334,6 +353,14 @@ try Priority(0);            catch, end
 % Close the event file safely
 try fclose(eventFile);      catch, end
 
+end
+
+%% SUBFUNCTIONS
+
+%% function for determining whether space or escape are being pressed
+function [space, esc] = KeyPoll()
+    space = System.Windows.Input.Keyboard.IsKeyDown(System.Windows.Input.Key.Space);
+    esc   = System.Windows.Input.Keyboard.IsKeyDown(System.Windows.Input.Key.Escape);
 end
 
 %% Helper function (Ternary operator: returns a if cond is true, else b)

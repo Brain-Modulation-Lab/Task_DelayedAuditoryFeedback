@@ -14,6 +14,7 @@ cfg.SUBJECT = 'daftest'
 
 cfg.DATA_TYPE     = 'task';
 cfg.RECORD_AUDIO = 1;
+cfg.STOP_BETWEEN_TRIALS = 1;     % Require space to proceed between all trials (after ITI plays)
 
 % Task metadata (match preop naming so Task_*.m runs unchanged)
 cfg.TASK          = 'daf';
@@ -26,7 +27,7 @@ cfg.audio_sample_rate     = 44100;      % Audio sample rate in Hz
 cfg.audio_frame_size      = 128;        % block size Task_* uses for streaming; Sam's default = 128; can go down to ~60 without problem with intraop
 cfg.fix_cross_dur         = 0.0;        % pre-sentence fix (Task_* uses its own ITI_S but we keep parity)
 cfg.text_stim_dur         = 10;       % sentence display/speaking time in sec; ok to make this shorter than expected response, because it's also keypress-controlled
-cfg.iti = [1.75, 2.25]; % Inter-trial interval range in seconds
+cfg.iti                   = [1.75, 2.25]; % Inter-trial interval range in seconds
 cfg.stim_font_size        = 75;         % use 50 on intraop rig
 cfg.stim_max_char_per_line= 30;         % maximum number of chars per line in ortho stim figure, for text wrapping
 cfg.catchRatio            = 0;          % proportion of trials which are no-speech catch trials
@@ -43,7 +44,7 @@ cfg.daf_stim_file = ['daf_sentences_', cfg.SESSION_LABEL, '.tsv']; % Stim text f
 
 cfg.delay_values_ms = [0 50 100 150 200]
 cfg.n_blocks        = 2;          % number of blocks
-cfg.audio_playback_gain   = 0.5;          % DAF output gain
+cfg.audio_playback_gain   = 1.3;          % DAF output gain
 
 if any(cfg.delay_values_ms > cfg.maxAllowedDelay_ms)
     error('One or more delayOptions exceed the maximum allowed delay of %d ms.', cfg.maxAllowedDelay_ms);
