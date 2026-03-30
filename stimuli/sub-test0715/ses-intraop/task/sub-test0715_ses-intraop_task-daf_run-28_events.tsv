@@ -1,4 +1,0 @@
-onset	duration	sample	trial_type	stim_file	value	event_code
-72195.480952	0.000000	0	"n/a"	"n/a"	32768	"Instructions"
-72199.031718	2.047448	0	"speech"	"n/a"	1	"Fixation_Cross_Onset"
-72201.386166	0.000000	0	"speech"	"Slippery salamanders crawled quickly through twisted forest pathways. Brilliant butterflies danced gracefully around blooming magnolia trees."	32770	"Visual Onset"

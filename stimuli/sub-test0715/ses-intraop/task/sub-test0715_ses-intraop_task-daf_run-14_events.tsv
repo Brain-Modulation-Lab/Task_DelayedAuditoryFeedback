@@ -1,8 +1,0 @@
-onset	duration	sample	trial_type	stim_file	value	event_code
-45137.137438	0.000000	0	"n/a"	"n/a"	32768	"Instructions"
-45139.763018	2.141703	0	"speech"	"n/a"	1	"Fixation_Cross_Onset"
-45141.908819	0.000000	0	"speech"	"Whistling winds whipped through weathered shutters during stormy nights. Curious cats carefully climbed over slippery ceramic roof tiles."	32770	"Visual Onset"
-45149.520276	0.000000	0	"speech"	"n/a"	4	"DAF Off"
-45149.524760	0.000000	0	"speech"	"n/a"	32770	"Visual Off"
-45149.550397	0.000000	0	"speech"	"n/a"	8	"Stop Button"
-45149.551206	0.000000	0	"n/a"	"n/a"	32768	"End_Message"
