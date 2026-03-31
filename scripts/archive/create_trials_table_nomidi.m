@@ -11,8 +11,8 @@ unique_stim_list = stimtable.stim;
 
 % Counts and delay vector
 cfg.n_unique_stim = numel(unique_stim_list);
-delayVals = cfg.delay_values_ms(:); % ensure column vector
-nDelays   = numel(delayVals);
+delay_vals = cfg.delay_values_ms(:); % ensure column vector
+nDelays   = numel(delay_vals);
 
 %% Build ONE block's full (stim, delay) cross
 % pairs_per_block = nStim * nDelays
@@ -21,7 +21,7 @@ pairs_per_block = cfg.n_unique_stim * nDelays;
 % Cross with ndgrid for exact 1:1 coverage
 [sIdx, dIdx]   = ndgrid(1:cfg.n_unique_stim, 1:nDelays);
 pairStim_block = sIdx(:);
-pairDelay_block = delayVals(dIdx(:));
+pairDelay_block = delay_vals(dIdx(:));
 
 % Helper: constrained permutation (inline, no external functions)
 % Returns a permutation of indices 1:pairs_per_block such that consecutive

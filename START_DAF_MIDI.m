@@ -1,4 +1,4 @@
-function start_daf_intraop_MIDI
+function START_DAF_MIDI
 % start_daf_intraop_MIDI - Intraoperative launcher for the Delayed Auditory Feedback (DAF) task
 %
 % This function configures and launches task_daf_MIDI, which controls
@@ -33,7 +33,7 @@ cfg.midi_cc_num = 1;        % MIDI control change number .... should have been p
 % Task metadata
 cfg.TASK          = 'daf';              % Task name
 cfg.TASK_VERSION  = 2;                  % Version number
-cfg.TASK_FUNCTION = 'task_daf_MIDI.m';  % Task main function filename
+cfg.TASK_FUNCTION = 'task_daf_midi.m';  % Task main function filename
 
 % Core DAF parameters
 cfg.max_trials             = inf;     % Maximum number of trials (inf = unlimited)
@@ -41,10 +41,20 @@ cfg.text_stim_dur          = 10;      % Duration to show text stimulus on screen
 cfg.stim_font_size         = 50;      % Font size of stimulus text
 cfg.stim_max_char_per_line = 30;      % Maximum characters per line in stimulus text
 cfg.catchRatio             = 0;       % Probability of catch trials (no auditory feedback)
-cfg.max_stim_repeats       = 2;       % Max number of repeats per stimulus
-cfg.max_delay_repeats      = 4;       % Max repeats per delay condition
 cfg.same_trials_across_blocks = true; % Use same trials repeated across blocks
 cfg.DAF_START_OFFSET_S = 0.000;       % Optional time offset between fixation and DAF start
+
+
+    
+cfg.delay_block_design = 1; 
+    cfg.max_delay_repeats      = inf;       % Max repeats per delay condition... not used if we are using delay block design
+    cfg.max_stim_repeats       = inf;       % Max number of repeats per stimulus... not used if we are using delay block design
+    cfg.trials_per_mini_block = 4;  % number of trials within a 'mini block' of repeated delay values
+    
+% cfg.delay_block_design = 0; 
+%     cfg.max_delay_repeats      = 4;       % Max repeats per delay condition
+% cfg.max_stim_repeats       = 2;       % Max number of repeats per stimulus
+    
 
 %%%%%% Stimulus sentences file per session
 % cfg.daf_stim_file = 'daf_sentences_extra_alliteration.tsv';
@@ -60,7 +70,7 @@ switch cfg.SESSION_LABEL
         cfg.delay_values_ms = [0 150];
 %         cfg.delay_values_ms = [0 100 150 200];
         cfg.n_blocks = 4;
-        cfg.daf_stim_file = 'daf_sentences_intraop.tsv';
+        cfg.daf_stim_file = 'daf_sentences_intraop_single.tsv';
     otherwise
         error('Unknown session label: %s', cfg.SESSION_LABEL);
 end
