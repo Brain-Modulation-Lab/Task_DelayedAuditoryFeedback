@@ -1,8 +1,0 @@
-onset	duration	sample	trial_type	stim_file	value	event_code
-52548.624495	0.000000	0	"n/a"	"n/a"	32768	"Instructions"
-52551.343375	2.109833	0	"speech"	"n/a"	1	"Fixation_Cross_Onset"
-52553.766389	0.000000	0	"speech"	"Marching bands made magnificent music throughout the crowded stadium. Dancing dolphins dove through crystal clear tropical ocean waters."	32770	"Visual Onset"
-52562.460242	0.000000	0	"speech"	"n/a"	4	"DAF Off"
-52562.463849	0.000000	0	"speech"	"n/a"	32770	"Visual Off"
-52562.478502	0.000000	0	"speech"	"n/a"	8	"Stop Button"
-52562.478695	0.000000	0	"n/a"	"n/a"	32768	"End_Message"

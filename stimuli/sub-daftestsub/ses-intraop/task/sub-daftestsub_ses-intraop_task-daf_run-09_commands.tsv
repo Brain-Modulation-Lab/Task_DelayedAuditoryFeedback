@@ -1,4 +1,0 @@
-t_send_getsecs	command	arg_ms	ack	retries	message
-6.485523	SYNCBEEP		ACK	0	
-6.566071	START 0	0	NA	0	
-18.695102	STOP		NA	0	

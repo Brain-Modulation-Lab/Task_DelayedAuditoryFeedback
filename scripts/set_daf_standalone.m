@@ -17,7 +17,10 @@
 
 % clear
 
-delay_ms = 150; % may want to test out multiple values to check mapping
+% delay_ms = 150; % may want to test out multiple values to check mapping
+delay_ms = 0; % may want to test out multiple values to check mapping
+
+
 eventide_dev_name = 'H90 Pedal';
 chan = 1; % this should already be set on the Eventide
 cc_num = 1; % this should already be set on the Eventide

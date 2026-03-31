@@ -1,7 +1,7 @@
 function START_DAF_MIDI
 % start_daf_intraop_MIDI - Intraoperative launcher for the Delayed Auditory Feedback (DAF) task
 %
-% This function configures and launches task_daf_MIDI, which controls
+% This function configures and launches task_daf_midi, which controls
 % the experiment presentation, timing, and communication with the H90 Eventide.
 % It sets default parameters, prepares paths and logging filenames, initializes
 % optional audio recording and hardware interfaces, and launches the task script.
@@ -16,7 +16,8 @@ function START_DAF_MIDI
 %% Setup experiment configuration
 cfg = struct();
 
-cfg.SUBJECT       = 'daftestsub';   % Subject identifier
+% cfg.SUBJECT       = 'DM1055';   % Subject identifier
+cfg.SUBJECT       = 'daftest';   % Subject identifier
 
 % cfg.SESSION_LABEL = 'preop';      % Label for session type (e.g., intraop, preop)
 cfg.SESSION_LABEL = 'intraop'; 
@@ -24,7 +25,7 @@ cfg.SESSION_LABEL = 'intraop';
 cfg.DATA_TYPE     = 'task';         % Data type for folder structure
 cfg.RECORD_AUDIO  = 1;          % Whether to record microphone audio during the task
 cfg.PTB           = false;          % Use Psychtoolbox for timing and display (false disables it)
-cfg.STOP_BETWEEN_TRIALS = 0;     % Require space to proceed between all trials (after ITI plays)
+cfg.STOP_BETWEEN_TRIALS = 1;     % Require space to proceed between all trials (after ITI plays)
 % ----------------------------------
 cfg.midi_dev_name = 'H90 Pedal';      % name of Stepp Lab usb-to-midi adapter from mididevinfo.m
 cfg.midi_chan  = 1;              % Set to MIDI channel as per hardware... should have been pre-set on the midi device
@@ -38,13 +39,15 @@ cfg.TASK_FUNCTION = 'task_daf_midi.m';  % Task main function filename
 % Core DAF parameters
 cfg.max_trials             = inf;     % Maximum number of trials (inf = unlimited)
 cfg.text_stim_dur          = 10;      % Duration to show text stimulus on screen (seconds)
-cfg.stim_font_size         = 50;      % Font size of stimulus text
+cfg.iti = [1.75, 2.25]; % Inter-trial interval range in seconds
+cfg.stim_font_size         = 60;      % Font size of stimulus text
 cfg.stim_max_char_per_line = 30;      % Maximum characters per line in stimulus text
 cfg.catchRatio             = 0;       % Probability of catch trials (no auditory feedback)
 cfg.same_trials_across_blocks = true; % Use same trials repeated across blocks
 cfg.DAF_START_OFFSET_S = 0.000;       % Optional time offset between fixation and DAF start
 
 
+<<<<<<< HEAD:START_DAF_MIDI.m
     
 cfg.delay_block_design = 1; 
     cfg.max_delay_repeats      = inf;       % Max repeats per delay condition... not used if we are using delay block design
@@ -56,10 +59,9 @@ cfg.delay_block_design = 1;
 % cfg.max_stim_repeats       = 2;       % Max number of repeats per stimulus
     
 
+=======
+>>>>>>> 33046278cc5fbd877530c57bc8ae7bd7a33931cc:START_DAF_INTRAOP.m
 %%%%%% Stimulus sentences file per session
-% cfg.daf_stim_file = 'daf_sentences_extra_alliteration.tsv';
-
-
 % Set delay values and number of blocks according to session type
 switch cfg.SESSION_LABEL
     case 'preop'
@@ -67,24 +69,25 @@ switch cfg.SESSION_LABEL
         cfg.n_blocks = 2;
         cfg.daf_stim_file = 'daf_sentences_preop.tsv';
     case 'intraop'
+%         cfg.delay_values_ms = [150];
         cfg.delay_values_ms = [0 150];
-%         cfg.delay_values_ms = [0 100 150 200];
+        %cfg.delay_values_ms = [0 100 150 200];
         cfg.n_blocks = 4;
+<<<<<<< HEAD:START_DAF_MIDI.m
         cfg.daf_stim_file = 'daf_sentences_intraop_single.tsv';
+=======
+%         cfg.daf_stim_file = 'daf_sentences_intraop.tsv';
+         cfg.daf_stim_file = 'daf_sentences_short.tsv'; % use for quick testing of full runs
+>>>>>>> 33046278cc5fbd877530c57bc8ae7bd7a33931cc:START_DAF_INTRAOP.m
     otherwise
         error('Unknown session label: %s', cfg.SESSION_LABEL);
-end
+end 
 
 clc
 close all force
 
 %% MIDI setup
-try
-    devs = mididevinfo;
-catch
-    error(['mididevinfo not found. Ensure MATLAB supports MIDI on this installation ','(Instrument Control Toolbox or Audio Toolbox w/ MIDI).']);
-end
-
+devs = mididevinfo; %%% must have audio toolbox; this function not available before Matlab R2018a
 outNames = string({devs.output.Name});
 ix = find(contains(lower(outNames), lower(cfg.midi_dev_name), 'IgnoreCase', true), 1);
 
@@ -108,14 +111,6 @@ if isempty(cfg.midi_dev_idx)
     warning('Running WITHOUT DAF (no MIDI device). Visuals/logging only.');
 end
 
-% % % %% Parallel pool for optional audio recording (master)
-% % % if cfg.RECORD_AUDIO && isempty(gcp('nocreate'))
-% % %     parpool('local',1);
-% % % end
-% % % if cfg.RECORD_AUDIO
-% % %     workerQueue = parallel.pool.PollableDataQueue;
-% % %     workerQueueConstant = parallel.pool.Constant(workerQueue);
-% % % end
 
 %% Paths & output folders
 if strcmpi(getenv('COMPUTERNAME'), 'BML-ALIENWARE2') % intraop rig laptop
@@ -177,7 +172,7 @@ oc = onCleanup(@() diary('off')); % Ensure diary is turned off when function exi
 disp(cfg);  % Display config for verification
 
 %% Start audio recording (optional)
-% parallel worker for external audio recording (same pattern as preop) ---
+% parallel worker for external audio recording 
 if isempty(gcp())
     parpool('local',1);
 end
@@ -191,7 +186,7 @@ if ~isfolder(scriptPath)
 end
 cd(scriptPath);
 
-% Use same worker name as preop for parity (or swap to your preferred worker)
+%%% record audio via parallel pool function
 if strcmp (cfg.SESSION_LABEL,'preop')
     if ~(exist('record_audio_preop','file')==2)
         clear onCleanupTasks
