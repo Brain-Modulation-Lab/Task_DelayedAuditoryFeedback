@@ -45,9 +45,6 @@ cfg.stim_max_char_per_line = 30;      % Maximum characters per line in stimulus 
 cfg.catchRatio             = 0;       % Probability of catch trials (no auditory feedback)
 cfg.same_trials_across_blocks = true; % Use same trials repeated across blocks
 cfg.DAF_START_OFFSET_S = 0.000;       % Optional time offset between fixation and DAF start
-
-
-<<<<<<< HEAD:START_DAF_MIDI.m
     
 cfg.delay_block_design = 1; 
     cfg.max_delay_repeats      = inf;       % Max repeats per delay condition... not used if we are using delay block design
@@ -59,8 +56,6 @@ cfg.delay_block_design = 1;
 % cfg.max_stim_repeats       = 2;       % Max number of repeats per stimulus
     
 
-=======
->>>>>>> 33046278cc5fbd877530c57bc8ae7bd7a33931cc:START_DAF_INTRAOP.m
 %%%%%% Stimulus sentences file per session
 % Set delay values and number of blocks according to session type
 switch cfg.SESSION_LABEL
@@ -73,12 +68,9 @@ switch cfg.SESSION_LABEL
         cfg.delay_values_ms = [0 150];
         %cfg.delay_values_ms = [0 100 150 200];
         cfg.n_blocks = 4;
-<<<<<<< HEAD:START_DAF_MIDI.m
         cfg.daf_stim_file = 'daf_sentences_intraop_single.tsv';
-=======
-%         cfg.daf_stim_file = 'daf_sentences_intraop.tsv';
+%         cfg.daf_stim_file = 'daf_sentences_intraop_double.tsv';
          cfg.daf_stim_file = 'daf_sentences_short.tsv'; % use for quick testing of full runs
->>>>>>> 33046278cc5fbd877530c57bc8ae7bd7a33931cc:START_DAF_INTRAOP.m
     otherwise
         error('Unknown session label: %s', cfg.SESSION_LABEL);
 end 
