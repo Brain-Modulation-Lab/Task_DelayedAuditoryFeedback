@@ -16,7 +16,7 @@ function start_daf_intraop_MIDI
 %% Setup experiment configuration
 cfg = struct();
 
-% cfg.SUBJECT       = 'DM1055';   % Subject identifier
+% cfg.SUBJECT       = 'DM1056';   % Subject identifier
 cfg.SUBJECT       = 'daftest';   % Subject identifier
 
 % cfg.SESSION_LABEL = 'preop';      % Label for session type (e.g., intraop, preop)
@@ -57,12 +57,11 @@ switch cfg.SESSION_LABEL
         cfg.n_blocks = 2;
         cfg.daf_stim_file = 'daf_sentences_preop.tsv';
     case 'intraop'
-%         cfg.delay_values_ms = [150];
         cfg.delay_values_ms = [0 150];
         %cfg.delay_values_ms = [0 100 150 200];
         cfg.n_blocks = 4;
-%         cfg.daf_stim_file = 'daf_sentences_intraop.tsv';
-         cfg.daf_stim_file = 'daf_sentences_short.tsv'; % use for quick testing of full runs
+        cfg.daf_stim_file = 'daf_sentences_intraop.tsv';
+%          cfg.daf_stim_file = 'daf_sentences_short.tsv'; % use for quick testing of full runs
     otherwise
         error('Unknown session label: %s', cfg.SESSION_LABEL);
 end 

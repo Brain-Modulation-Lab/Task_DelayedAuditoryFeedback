@@ -9,12 +9,12 @@ cfg = [];
 cfg.SESSION_LABEL = 'preop'; 
 
 % % % Subject metadata
-% cfg.SUBJECT = 'DM1055'
+% cfg.SUBJECT = 'DM1056'
 cfg.SUBJECT = 'daftest'
 
 cfg.DATA_TYPE     = 'task';
 cfg.RECORD_AUDIO = 1;
-cfg.STOP_BETWEEN_TRIALS = 1;     % Require space to proceed between all trials (after ITI plays)
+cfg.STOP_BETWEEN_TRIALS = 2;     % Require space to proceed between all trials (after ITI plays)
 
 % Task metadata (match preop naming so Task_*.m runs unchanged)
 cfg.TASK          = 'daf';
@@ -42,9 +42,10 @@ cfg.maxAllowedDelay_ms    = 1000;       % delay_values_ms must be below this val
 cfg.daf_stim_file = 'daf_sentences_short.tsv'; % version with only 2 sentences 
 cfg.daf_stim_file = ['daf_sentences_', cfg.SESSION_LABEL, '.tsv']; % Stim text file depending on which session
 
-cfg.delay_values_ms = [0 50 100 150 200]
+cfg.delay_values_ms = [0 40 80 120]
 cfg.n_blocks        = 2;          % number of blocks
-cfg.audio_playback_gain   = 1.3;          % DAF output gain
+% cfg.audio_playback_gain   = 1.3;          % DAF output gain
+cfg.audio_playback_gain   = 0.3;          % DAF output gain
 
 if any(cfg.delay_values_ms > cfg.maxAllowedDelay_ms)
     error('One or more delayOptions exceed the maximum allowed delay of %d ms.', cfg.maxAllowedDelay_ms);
