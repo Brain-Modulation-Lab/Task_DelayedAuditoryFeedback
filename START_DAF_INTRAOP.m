@@ -67,14 +67,10 @@ switch cfg.SESSION_LABEL
         cfg.delay_values_ms = [0 150];
         %cfg.delay_values_ms = [0 100 150 200];
         cfg.n_blocks = 4;
-<<<<<<< HEAD
-        cfg.daf_stim_file = 'daf_sentences_intraop.tsv';
-%          cfg.daf_stim_file = 'daf_sentences_short.tsv'; % use for quick testing of full runs
-=======
+
         cfg.daf_stim_file = 'daf_sentences_intraop_single.tsv';
 %         cfg.daf_stim_file = 'daf_sentences_intraop_double.tsv';
-         cfg.daf_stim_file = 'daf_sentences_short.tsv'; % use for quick testing of full runs
->>>>>>> a29d8e6b8d10e264e25d88213882e6bf48fe3cfe
+%          cfg.daf_stim_file = 'daf_sentences_short.tsv'; % use for quick testing of full runs
     otherwise
         error('Unknown session label: %s', cfg.SESSION_LABEL);
 end 
