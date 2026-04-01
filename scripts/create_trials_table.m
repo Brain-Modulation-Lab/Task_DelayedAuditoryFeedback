@@ -4,6 +4,9 @@ function [cfg, trials, text_wrapped_all] = create_trials_table(cfg)
 %   [cfg, trials, text_wrapped_all] = create_trials_table(cfg);
 %   % cfg.TRIAL_TABLE is also populated.
 
+
+
+
 %% Load stimuli
 stimtable = readtable(fullfile(cfg.PATH_STIMDIR,cfg.daf_stim_file), ...
     'FileType','text', 'Delimiter','tab');
@@ -11,34 +14,65 @@ unique_stim_list = stimtable.stim;
 
 % Counts and delay vector
 cfg.n_unique_stim = numel(unique_stim_list);
-delays_vals = cfg.delay_values_ms(:); % ensure column vector
-nDelays   = numel(delays_vals);
+delay_vals = cfg.delay_values_ms(:); % ensure column vector
+nDelays   = numel(delay_vals);
 
 %% Build ONE block's full (stim, delay) cross
-% pairs_per_block = nStim * nDelays
-pairs_per_block = cfg.n_unique_stim * nDelays;
+cfg.trials_per_block = cfg.n_unique_stim * nDelays;
+
+
+if cfg.delay_block_design
+
+    % check that if condition blocks are called for, cfg.max_stim_repeats is not use
+    if ~(cfg.max_delay_repeats==inf)
+        error('if cfg.delay_block_design==1, then cfg.max_delay_repeats and cfg.max_stim_repeats must be set to inf')
+    end 
+
+    % % % % % 
+    % % % % % if mod(cfg.trials_per_block,cfg.trials_per_mini_block) ~= 0
+    % % % % %     error(['cfg.trials_per_block (', num2str(cfg.trials_per_block),...
+    % % % % %         ') must be divisible by cfg.trials_per_mini_block (', num2str(cfg.trials_per_mini_block), ')'])
+    % % % % % end
+
+    if cfg.trials_per_mini_block < 2 || round(cfg.trials_per_mini_block) ~= cfg.trials_per_mini_block
+        error(['cfg.trials_per_block (', num2str(cfg.trials_per_block),') must be an integer greater than 1'])
+    end
+
+    % check that mini blocks (blocks of delay trials) are a factor of the number of unique stim
+    if mod(cfg.n_unique_stim,cfg.trials_per_mini_block) ~= 0
+        error( ['cfg.trials_per_mini_block (', num2str(cfg.trials_per_mini_block), ') ',...
+            'must be a factor of the number of uniqe stim (', num2str(cfg.n_unique_stim), ')'] ) 
+    end
+
+    % % % % % % trials_per_block = nDelays * cfg.n_unique_stim;
+    % % % % % % delays_times_miniblock_size = nDelays * cfg.trials_per_mini_block
+
+    cfg.mini_blocks_per_block =  cfg.trials_per_block / cfg.trials_per_mini_block; 
+
+end
+
 
 % Cross with ndgrid for exact 1:1 coverage
 [sIdx, dIdx]   = ndgrid(1:cfg.n_unique_stim, 1:nDelays);
 pairStim_block = sIdx(:);
-pairDelay_block = delays_vals(dIdx(:));
+pairDelay_block = delay_vals(dIdx(:));
 
 % Helper: constrained permutation (inline, no external functions)
-% Returns a permutation of indices 1:pairs_per_block such that consecutive
+% Returns a permutation of indices 1:cfg.trials_per_block such that consecutive
 % repeats for stim/delay do not exceed cfg.max_*_repeats.
-    function [fs, fd] = constrained_block_shuffle()
+    function [stim_order, delay_order] = constrained_block_shuffle(cfg)
         max_attempts = 2000;
         for attempt = 1:max_attempts
             % Available indices without replacement
-            avail = 1:pairs_per_block;
-            fs = zeros(pairs_per_block,1);
-            fd = zeros(pairs_per_block,1);
+            avail = 1:cfg.trials_per_block;
+            stim_order = zeros(cfg.trials_per_block,1);
+            delay_order = zeros(cfg.trials_per_block,1);
 
             curStim = NaN; stimRun = 0;
             curDelay = NaN; delayRun = 0;
 
             ok = true;
-            for k = 1:pairs_per_block
+            for k = 1:cfg.trials_per_block
                 % Try a random order of the currently available pool
                 try_order = avail(randperm(numel(avail)));
 
@@ -61,17 +95,49 @@ pairDelay_block = delays_vals(dIdx(:));
                 end
 
                 % Assign and update runs
-                fs(k) = pairStim_block(picked_idx);
-                fd(k) = pairDelay_block(picked_idx);
+                stim_order(k) = pairStim_block(picked_idx);
+                delay_order(k) = pairDelay_block(picked_idx);
 
-                if fs(k) == curStim, stimRun = stimRun + 1; else, curStim = fs(k); stimRun = 1; end
-                if fd(k) == curDelay, delayRun = delayRun + 1; else, curDelay = fd(k); delayRun = 1; end
+                if stim_order(k) == curStim, stimRun = stimRun + 1; else, curStim = stim_order(k); stimRun = 1; end
+                if delay_order(k) == curDelay, delayRun = delayRun + 1; else, curDelay = delay_order(k); delayRun = 1; end
 
                 % Remove the used element from availability (no replacement)
                 avail(avail == picked_idx) = [];
             end
 
             if ok
+
+                % if delay block design, group trials by delay after the initial randomization
+                if cfg.delay_block_design
+                    ds_trials = [delay_order, stim_order];
+                    movetotop = @(x,row)[x(row,:);x(1:row-1,:);x(row+1:end,:)]; 
+    
+                    % if there's a zero-delay trial, make sure that there's a zero-delay block first
+                    first_zero_row = find(ds_trials(:,1)==0, 1);
+                    if ~isempty(first_zero_row)
+                        ds_trials = movetotop(ds_trials,first_zero_row);
+                    end
+    
+                    % get an order for the mini-blocks within this block then repeat that order
+                    cfg.delay_order = unique(ds_trials(:,1),'stable'); 
+                    delays_to_conform_to = repelem(cfg.delay_order,cfg.trials_per_mini_block); 
+                    n_instances_of_each_mini_block = size(ds_trials,1) / size(delays_to_conform_to,1); % repeat the mini-block order sequence to fill out the block
+                    delays_to_conform_to = repmat(delays_to_conform_to, n_instances_of_each_mini_block, 1);  
+                    
+                    for itrial = 1:size(ds_trials,1)
+                        thisdelay = delays_to_conform_to(itrial);
+    
+                        % find the next trial that matches the required delay
+                        trial_to_move_up = itrial - 1 + find(ds_trials(itrial:size(ds_trials,1), 1) == thisdelay, 1); 
+    
+                        % switch the matching trial with the current trial in this slot
+                        ds_trials([itrial, trial_to_move_up], :) = ds_trials([trial_to_move_up, itrial], :);
+                    end
+    
+                    delay_order = ds_trials(:,1);
+                    stim_order = ds_trials(:,2);
+                end
+
                 return; % success
             end
             % otherwise loop and try a fresh attempt
@@ -82,22 +148,22 @@ pairDelay_block = delays_vals(dIdx(:));
 
 %% Build across blocks
 % Create full schedule for all blocks, then truncate to max_trials if needed
-allStim = zeros(pairs_per_block * cfg.n_blocks, 1);
-allDelay = zeros(pairs_per_block * cfg.n_blocks, 1);
+allStim = zeros(cfg.trials_per_block * cfg.n_blocks, 1);
+allDelay = zeros(cfg.trials_per_block * cfg.n_blocks, 1);
 
 writeIdx = 1;
-for b = 1:cfg.n_blocks
-    if isfield(cfg,'same_trials_across_blocks') && cfg.same_trials_across_blocks && b > 1
-        % Reuse same (stim, delay) set but reshuffle
-        [~, order] = sort(rand(size(allStim(1:pairs_per_block))));
-        fs = allStim(order(1:pairs_per_block));  % reuse Block 1 pool but new order
-        fd = allDelay(order(1:pairs_per_block));
-    else
-        [fs, fd] = constrained_block_shuffle();
+for iblock = 1:cfg.n_blocks
+
+    % if it's the first block, or if we're not repeating trials across blocks, generate a new within-block trial order
+    %%%% otherwise the following conditional is skipped, and we reuse the previously constructed block
+    if iblock == 1 || ~cfg.same_trials_across_blocks
+        clear stim_order delay_order
+        [stim_order, delay_order] = constrained_block_shuffle(cfg);
     end
-    allStim(writeIdx:writeIdx + pairs_per_block - 1)  = fs;
-    allDelay(writeIdx:writeIdx + pairs_per_block - 1) = fd;
-    writeIdx = writeIdx + pairs_per_block;
+
+    allStim(writeIdx:writeIdx + cfg.trials_per_block - 1)  = stim_order;
+    allDelay(writeIdx:writeIdx + cfg.trials_per_block - 1) = delay_order;
+    writeIdx = writeIdx + cfg.trials_per_block;
 end
 
 %% Apply optional cap
@@ -112,7 +178,7 @@ cfg.ntrials = ntrials;
 % Truncate if needed (note: truncating mid-block will unbalance counts by tail)
 trialSentIdx = allStim(1:ntrials);
 trialDelays  = allDelay(1:ntrials);
-trialBlock   = ceil((1:ntrials)' / pairs_per_block);
+trialBlock   = ceil((1:ntrials)' / cfg.trials_per_block);
 
 %% Catch trials
 if ~isfield(cfg,'catchRatio') || isempty(cfg.catchRatio), cfg.catchRatio = 0; end
@@ -165,10 +231,12 @@ trials.lag_mean           = nan(ntrials,1);
 trials.midi_cc_val        = nan(ntrials,1);
 
 % get midi cc vals for each delay and the corresponding actual delays
-trials.midi_cc_val        = nan(ntrials,1);
-for itrial = 1:height(trials)
-    [trials.midi_cc_val(itrial), actual_delay_ms] = delay_to_midi_ccval(trials.delay(itrial));
-    trials.delay(itrial) = actual_delay_ms; % overwrite with the actual delay that will be used
+if cfg.TASK_FUNCTION == "task_daf_midi.m"
+    trials.midi_cc_val        = nan(ntrials,1);
+    for itrial = 1:height(trials)
+        [trials.midi_cc_val(itrial), actual_delay_ms] = delay_to_midi_ccval(trials.delay(itrial));
+        trials.delay(itrial) = actual_delay_ms; % overwrite with the actual delay that will be used
+    end
 end
 
 % Return in cfg (and as output)

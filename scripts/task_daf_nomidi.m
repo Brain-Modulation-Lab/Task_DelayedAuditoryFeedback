@@ -15,7 +15,7 @@ TRIG_KEYPRESS = 8;    % Key spacebar keypress (to proceed to next trial)
 TRIG_ESC = 16; % Keyboard escape key press
 
 %% Trial table
-[cfg, trials, text_wrapped_all] = create_trials_table_nomidi(cfg);
+[cfg, trials, text_wrapped_all] = create_trials_table(cfg);
 
 %% Initializing log files
 eventFile = fopen(cfg.EVENT_FILENAME, 'w');
