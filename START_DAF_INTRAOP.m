@@ -36,16 +36,27 @@ cfg.TASK          = 'daf';              % Task name
 cfg.TASK_VERSION  = 2;                  % Version number
 cfg.TASK_FUNCTION = 'task_daf_midi.m';  % Task main function filename
 
-% Core DAF parameters
+% trial number, condition, and timing params
 cfg.max_trials             = inf;     % Maximum number of trials (inf = unlimited)
-cfg.text_stim_dur          = 10;      % Duration to show text stimulus on screen (seconds)
 cfg.iti = [1.75, 2.25]; % Inter-trial interval range in seconds
 cfg.stim_font_size         = 60;      % Font size of stimulus text
 cfg.stim_max_char_per_line = 30;      % Maximum characters per line in stimulus text
 cfg.catchRatio             = 0;       % Probability of catch trials (no auditory feedback)
 cfg.same_trials_across_blocks = true; % Use same trials repeated across blocks
 cfg.DAF_START_OFFSET_S = 0.000;       % Optional time offset between fixation and DAF start
-    
+
+% beep params - played at beginning of run, and optionally as go cue
+cfg.go_beep_dur = 0.05;         % go beep duration in sec
+cfg.go_beep_amp = 0.5; % go beep amplitude (zero to one)
+cfg.go_beep_fs = 44100; 
+
+%% go cue options
+cfg.play_go_cue = true;                     % make subject wait for go beep following stim onset before speaking; if false, don't play go beep  
+    cfg.go_latency = [1.5 2.5];         % if play_go_cue==true, this is the jittered time in sec between visual stim onset and go cue onset
+
+% cfg.play_go_cue = false;                     % make subject wait for go beep following stim onset before speaking; if false, don't play go beep  
+
+%% block-design and stimulus repetition options
 cfg.delay_block_design = 1; 
     cfg.max_delay_repeats      = inf;       % Max repeats per delay condition... not used if we are using delay block design
     cfg.max_stim_repeats       = inf;       % Max number of repeats per stimulus... not used if we are using delay block design
@@ -55,21 +66,35 @@ cfg.delay_block_design = 1;
 %     cfg.max_delay_repeats      = 4;       % Max repeats per delay condition
 % cfg.max_stim_repeats       = 2;       % Max number of repeats per stimulus
     
+%%
 
 %%%%%% Stimulus sentences file per session
 % Set delay values and number of blocks according to session type
 switch cfg.SESSION_LABEL
     case 'preop'
-        cfg.delay_values_ms = [0 50 100 150]; % 
-        cfg.n_blocks = 2;
+
+        cfg.delay_values_ms = [0 50 100 150 200 250]; % 
+        cfg.n_blocks = 1;
+
         cfg.daf_stim_file = 'daf_sentences_preop.tsv';
+        cfg.daf_stim_file = 'daf_sentences_preop.tsv';
+
+
     case 'intraop'
-        cfg.delay_values_ms = [0 150];
+        cfg.delay_values_ms = [0 50 150];
         %cfg.delay_values_ms = [0 100 150 200];
-        cfg.n_blocks = 4;
+        cfg.n_blocks = 3;
 
         cfg.daf_stim_file = 'daf_sentences_intraop_single.tsv';
+        cfg.response_window          = 6;      % time subject has to speak; either text duration (if no go beep), or text duration after go beep
+
+
 %         cfg.daf_stim_file = 'daf_sentences_intraop_double.tsv';
+%          cfg.response_window          = 10;      % time subject has to speak; either text duration (if no go beep), or text duration after go beep    
+
+
+
+
 %          cfg.daf_stim_file = 'daf_sentences_short.tsv'; % use for quick testing of full runs
     otherwise
         error('Unknown session label: %s', cfg.SESSION_LABEL);

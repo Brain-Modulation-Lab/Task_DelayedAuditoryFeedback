@@ -28,12 +28,6 @@ if cfg.delay_block_design
         error('if cfg.delay_block_design==1, then cfg.max_delay_repeats and cfg.max_stim_repeats must be set to inf')
     end 
 
-    % % % % % 
-    % % % % % if mod(cfg.trials_per_block,cfg.trials_per_mini_block) ~= 0
-    % % % % %     error(['cfg.trials_per_block (', num2str(cfg.trials_per_block),...
-    % % % % %         ') must be divisible by cfg.trials_per_mini_block (', num2str(cfg.trials_per_mini_block), ')'])
-    % % % % % end
-
     if cfg.trials_per_mini_block < 2 || round(cfg.trials_per_mini_block) ~= cfg.trials_per_mini_block
         error(['cfg.trials_per_block (', num2str(cfg.trials_per_block),') must be an integer greater than 1'])
     end
@@ -43,9 +37,6 @@ if cfg.delay_block_design
         error( ['cfg.trials_per_mini_block (', num2str(cfg.trials_per_mini_block), ') ',...
             'must be a factor of the number of uniqe stim (', num2str(cfg.n_unique_stim), ')'] ) 
     end
-
-    % % % % % % trials_per_block = nDelays * cfg.n_unique_stim;
-    % % % % % % delays_times_miniblock_size = nDelays * cfg.trials_per_mini_block
 
     cfg.mini_blocks_per_block =  cfg.trials_per_block / cfg.trials_per_mini_block; 
 
@@ -212,6 +203,13 @@ for si = 1:cfg.n_unique_stim
     end
 end
 
+%% add go latencies if applicable
+if cfg.play_go_cue 
+    go_latecy_vec = cfg.go_latency(1) + [diff(cfg.go_latency) * rand(ntrials,1)];
+elseif ~cfg.play_go_cue 
+    go_latecy_vec = nan(ntrials,1); 
+end
+
 %% Build table
 trials = table( ...
     (1:ntrials).', ...
@@ -220,7 +218,8 @@ trials = table( ...
     trialSentIdx(:), ...
     trialDelays(:), ...
     catchVec(:), ...
-    'VariableNames', {'trialnum','block_id','stim','stim_idx','delay','catch_trial'} ...
+    go_latecy_vec, ...
+    'VariableNames', {'trialnum','block_id','stim','stim_idx','delay','catch_trial','go_latency'} ...
 );
 
 % Initialize columns that will be filled during runtime

@@ -106,6 +106,7 @@ TRIG_KEY = 8; % Key press event (space)
 TRIG_ESC = 16; % Escape pressed
 TRIG_SET = 32; % Begin playback
 TRIG_BREAK = 64; % add break
+TRIG_GO = 128; % GO beep
 
 % Check if digital out is present
 doDigOut = isfield(cfg,'DIGOUT') && logical(cfg.DIGOUT);
@@ -115,6 +116,11 @@ flipState = 0;
 
 % find cc_val for 0ms delay
 zero_delay_cc = delay_to_midi_ccval(0);
+
+% create go beep
+N  = round(cfg.go_beep_dur * cfg.go_beep_fs);
+t  = (0:N-1)'/cfg.go_beep_fs;
+go_beep_wave  = cfg.go_beep_amp*sin(2*pi*1000*t);
 
 
 %% Show instructions screen and wait for space keypress or escape abort
@@ -148,7 +154,7 @@ drawnow;
 t0 = T.now(); % Task start time anchor
 
 % Send sync beep command to play sync tone on audio output
-playSyncBeepLocal();
+sound(go_beep_wave, cfg.go_beep_fs);
 flipState = ~flipState;
 log_event(eventFH, 0, t0, [], [], 'control', [], 0, 'Instructions_End', flipState);
 
@@ -165,7 +171,7 @@ for itrial = 1:cfg.ntrials
     flipState = ~flipState;
     log_event(eventFH, 0, tFixOn, [], [], tern(isCatch,'catch','speech'), [], TRIG_ITI, 'Fixation_Cross_Onset', flipState);
 
-    % Keep fixation cross on for the randomly sampled ITI duration
+    % Keep fixation cross on for the jittered ITI duration
     itiDur = cfg.iti(1) + rand*(cfg.iti(2)-cfg.iti(1));
     T.wait(itiDur);
 
@@ -191,9 +197,41 @@ for itrial = 1:cfg.ntrials
     flipState = ~flipState;
     log_event(eventFH, doDigOut, tVisOn, [], [], tern(isCatch,'catch','speech'), trials.stim{itrial}, TRIG_VIS, 'Visual Onset', flipState);
 
-    % Speaking window
-    tSpeakStart = T.now();
-    while T.now() - tSpeakStart < cfg.text_stim_dur
+    
+    % GO cue and reponse window
+    if cfg.play_go_cue
+        % preparatory window
+        tPrepStart = T.now();
+        while T.now() - tPrepStart < trials.go_latency(itrial) 
+            [~, esc] = KeyPoll();
+            if esc
+                 % send midi command to device to set DAF delay value to zero
+                 midisend(cfg.midi_dev_idx, 'ControlChange', cfg.midi_chan, cfg.midi_cc_num, zero_delay_cc)
+    
+                flipState = ~flipState;
+                log_event(eventFH, doDigOut, T.now(), [], [], tern(isCatch,'catch','speech'), [], TRIG_ESC, 'Key_Esc', flipState);
+                safeQuit(); fclose(eventFH); fclose(cmdFH); close(hfig); return
+            end
+            T.wait(0.005); % wait 5ms before running the loop again
+        end
+
+        % play go cue
+        %%%% running sound.m usually takes about 25ms (regardless of the duration of the sounds)
+        %%%% .... so getting tGoOn before starting playback will be this much earlier than getting it afterward
+        sound(go_beep_wave, cfg.go_beep_fs);
+        tGoOn = T.now()
+        flipState = ~flipState;
+        log_event(eventFH, doDigOut, tGoOn, [], [], tern(isCatch,'catch','speech'), [], TRIG_GO, 'Visual Onset', flipState);
+        tSpeakStart = tGoOn; % speech winow starts when go cue was played
+    elseif ~cfg.play_go_cue % no go cue
+        tSpeakStart = tVisOn; % speech window starts immeidately after visual cue
+    end
+    % % % % 
+    % % % % elseif ~cfg.play_go_cue % no go cue - subject start speaking immediately after text appears
+
+        % Speaking window
+        %%%% this window starts either after the go beep (if cfg.play_go_cue==true, see above) or immediately after stim text appears
+    while T.now() - tSpeakStart < cfg.response_window
         [~, esc] = KeyPoll();
         if esc
              % send midi command to device to set DAF delay value to zero
@@ -203,8 +241,10 @@ for itrial = 1:cfg.ntrials
             log_event(eventFH, doDigOut, T.now(), [], [], tern(isCatch,'catch','speech'), [], TRIG_ESC, 'Key_Esc', flipState);
             safeQuit(); fclose(eventFH); fclose(cmdFH); close(hfig); return
         end
-        T.wait(0.005);
+        T.wait(0.005); % wait 5ms before running the loop again
     end
+
+    % % % % end
 
     % DAF ZERO
     if ~isCatch
@@ -295,7 +335,7 @@ function out = tern(cond, a, b)
     if cond, out=a; else, out=b; end
 end
 
-%%% Gemini slopcode function for getting Esc and Space keypress state
+%%% function for getting Esc and Space keypress state
 function [space, esc] = KeyPoll()
     space = System.Windows.Input.Keyboard.IsKeyDown(System.Windows.Input.Key.Space);
     esc   = System.Windows.Input.Keyboard.IsKeyDown(System.Windows.Input.Key.Escape);
@@ -308,12 +348,4 @@ function safeQuit()
     end
 end
 
-function playSyncBeepLocal()
-    % 50 ms, 1 kHz beep from MATLAB (master-side)
-    fs = 44100;
-    N  = round(0.05*fs);
-    t  = (0:N-1)'/fs;
-    y  = 0.5*sin(2*pi*1000*t);
-    try sound(y, fs); catch, end
-end
 end
