@@ -117,20 +117,37 @@ flipState = 0;
 % find cc_val for 0ms delay
 zero_delay_cc = delay_to_midi_ccval(0);
 
+%% audio setup
+cfg = setup_audio_devices(cfg); 
+audWriter = audioDeviceWriter('SampleRate', cfg.aud_player_fs);
+aud_dev_list = getAudioDevices(audWriter); 
+aud_dev_out_ind = find(contains(aud_dev_list,cfg.aud_dev_out)); 
+audWriter.Device = aud_dev_list{aud_dev_out_ind}; 
+
 % create go beep
-N  = round(cfg.go_beep_dur * cfg.go_beep_fs);
-t  = (0:N-1)'/cfg.go_beep_fs;
+N  = round(cfg.go_beep_dur * cfg.aud_player_fs);
+t  = (0:N-1)'/cfg.aud_player_fs;
 go_beep_wave  = cfg.go_beep_amp*sin(2*pi*1000*t);
 
 
 %% Show instructions screen and wait for space keypress or escape abort
-instructions = {
-    'When text appears on the screen,',...
-    'read it out loud',...
-    'at your normal speaking speed.' ...
-    '',...
-    'Use a natural speaking voice.'
-};
+if cfg.play_go_cue
+    instructions = {
+        'When text appears on the screen,',...
+        'wait until you hear the beep,',...
+        'then read it at your normal speaking speed.' ...
+        '',...
+        'Use a natural speaking voice.'
+    };
+elseif ~cfg.play_go_cue
+    instructions = {
+        'When text appears on the screen,',...
+        'read it out loud',...
+        'at your normal speaking speed.' ...
+        '',...
+        'Use a natural speaking voice.'
+    };
+end
 set(hText,'String',instructions,'FontSize',45,'Color',cfg.text_color); drawnow;
 
 % Wait for SPACE (ESC abort)
@@ -154,7 +171,7 @@ drawnow;
 t0 = T.now(); % Task start time anchor
 
 % Send sync beep command to play sync tone on audio output
-sound(go_beep_wave, cfg.go_beep_fs);
+audWriter(go_beep_wave);
 flipState = ~flipState;
 log_event(eventFH, 0, t0, [], [], 'control', [], 0, 'Instructions_End', flipState);
 
@@ -218,7 +235,7 @@ for itrial = 1:cfg.ntrials
         % play go cue
         %%%% running sound.m usually takes about 25ms (regardless of the duration of the sounds)
         %%%% .... so getting tGoOn before starting playback will be this much earlier than getting it afterward
-        sound(go_beep_wave, cfg.go_beep_fs);
+        audWriter(go_beep_wave);
         tGoOn = T.now()
         flipState = ~flipState;
         log_event(eventFH, doDigOut, tGoOn, [], [], tern(isCatch,'catch','speech'), [], TRIG_GO, 'Visual Onset', flipState);
