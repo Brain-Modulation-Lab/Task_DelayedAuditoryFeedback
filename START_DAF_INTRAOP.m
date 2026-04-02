@@ -60,7 +60,6 @@ cfg.play_go_cue = true;                     % make subject wait for go beep foll
 cfg.delay_block_design = 1; 
     cfg.max_delay_repeats      = inf;       % Max repeats per delay condition... not used if we are using delay block design
     cfg.max_stim_repeats       = inf;       % Max number of repeats per stimulus... not used if we are using delay block design
-    cfg.trials_per_mini_block = 4;  % number of trials within a 'mini block' of repeated delay values
     
 % cfg.delay_block_design = 0; 
 %     cfg.max_delay_repeats      = 4;       % Max repeats per delay condition
@@ -76,8 +75,20 @@ switch cfg.SESSION_LABEL
         cfg.delay_values_ms = [0 50 100 150 200 250]; % 
         cfg.n_blocks = 1;
 
-        cfg.daf_stim_file = 'daf_sentences_preop.tsv';
-        cfg.daf_stim_file = 'daf_sentences_preop.tsv';
+        cfg.daf_stim_file = 'daf_3word_preop.tsv';
+        cfg.response_window          = 5;      % time subject has to speak; either text duration (if no go beep), or text duration after go beep
+         cfg.trials_per_mini_block = 5;  % number of trials within a 'mini block' of repeated delay values
+
+
+
+
+        % cfg.daf_stim_file = 'daf_sentences_preop_single.tsv';        
+        cfg.response_window          = 6;      % time subject has to speak; either text duration (if no go beep), or text duration after go beep
+    cfg.trials_per_mini_block = 5;  % number of trials within a 'mini block' of repeated delay values
+
+
+        % cfg.daf_stim_file = 'daf_sentences_preop_double.tsv';
+        % cfg.response_window          = 10;      % time subject has to speak; either text duration (if no go beep), or text duration after go beep
 
 
     case 'intraop'
@@ -87,12 +98,17 @@ switch cfg.SESSION_LABEL
 
         cfg.daf_stim_file = 'daf_sentences_intraop_single.tsv';
         cfg.response_window          = 6;      % time subject has to speak; either text duration (if no go beep), or text duration after go beep
+        cfg.trials_per_mini_block = 6;  % number of trials within a 'mini block' of repeated delay values
 
 
 %         cfg.daf_stim_file = 'daf_sentences_intraop_double.tsv';
 %          cfg.response_window          = 10;      % time subject has to speak; either text duration (if no go beep), or text duration after go beep    
+        cfg.trials_per_mini_block = 6;  % number of trials within a 'mini block' of repeated delay values
 
 
+        cfg.daf_stim_file = 'daf_3word_intraop.tsv';
+        cfg.response_window          = 5;      % time subject has to speak; either text duration (if no go beep), or text duration after go beep
+    cfg.trials_per_mini_block = 5;  % number of trials within a 'mini block' of repeated delay values
 
 
 %          cfg.daf_stim_file = 'daf_sentences_short.tsv'; % use for quick testing of full runs
