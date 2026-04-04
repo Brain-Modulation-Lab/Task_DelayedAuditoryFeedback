@@ -16,7 +16,7 @@ function START_DAF_MIDI
 %% Setup experiment configuration
 cfg = struct();
 
-% cfg.SUBJECT       = 'DM1056';   % Subject identifier
+% cfg.SUBJECT       = 'DM1057';   % Subject identifier
 cfg.SUBJECT       = 'daftest';   % Subject identifier
 
 % cfg.SESSION_LABEL = 'preop';      % Label for session type (e.g., intraop, preop)
@@ -26,19 +26,20 @@ cfg.DATA_TYPE     = 'task';         % Data type for folder structure
 cfg.RECORD_AUDIO  = 1;          % Whether to record microphone audio during the task
 cfg.PTB           = false;          % Use Psychtoolbox for timing and display (false disables it)
 cfg.STOP_BETWEEN_TRIALS = 1;     % Require space to proceed between all trials (after ITI plays)
+    cfg.iti = [0.75, 1.25]; % Inter-trial interval range in seconds - 1sec seems appropriate for when there is pause for spacebar press between trials
+%     cfg.iti = [1.75, 2.25]; % Inter-trial interval range in seconds - 2sec seems appropriate for when there's no pause for spacebar press between trials
 % ----------------------------------
-cfg.midi_dev_name = 'H90 Pedal';      % name of Stepp Lab usb-to-midi adapter from mididevinfo.m
+cfg.midi_dev_name = 'H90 Pedal';      % name of Stepp Lab usb-  to-midi adapter from mididevinfo.m
 cfg.midi_chan  = 1;              % Set to MIDI channel as per hardware... should have been pre-set on the midi device
 cfg.midi_cc_num = 1;        % MIDI control change number .... should have been pre-set on the midi device
 
 % Task metadata
 cfg.TASK          = 'daf';              % Task name
-cfg.TASK_VERSION  = 2;                  % Version number
+cfg.TASK_VERSION  = 3;                  % Version number
 cfg.TASK_FUNCTION = 'task_daf_midi.m';  % Task main function filename
 
 % trial number, condition, and timing params
 cfg.max_trials             = inf;     % Maximum number of trials (inf = unlimited)
-cfg.iti = [1.75, 2.25]; % Inter-trial interval range in seconds
 cfg.stim_font_size         = 60;      % Font size of stimulus text
 cfg.stim_max_char_per_line = 30;      % Maximum characters per line in stimulus text
 cfg.catchRatio             = 0;       % Probability of catch trials (no auditory feedback)
@@ -48,11 +49,12 @@ cfg.DAF_START_OFFSET_S = 0.000;       % Optional time offset between fixation an
 % beep params - played at beginning of run, and optionally as go cue
 cfg.go_beep_dur = 0.05;         % go beep duration in sec
 cfg.go_beep_amp = 0.5; % go beep amplitude (zero to one)
-cfg.go_beep_fs = 44100; 
 
 %% go cue options
 cfg.play_go_cue = true;                     % make subject wait for go beep following stim onset before speaking; if false, don't play go beep  
     cfg.go_latency = [1.5 2.5];         % if play_go_cue==true, this is the jittered time in sec between visual stim onset and go cue onset
+%     cfg.go_latency = [2 2];         % if play_go_cue==true, this is the jittered time in sec between visual stim onset and go cue onset
+
 
 % cfg.play_go_cue = false;                     % make subject wait for go beep following stim onset before speaking; if false, don't play go beep  
 
@@ -60,7 +62,6 @@ cfg.play_go_cue = true;                     % make subject wait for go beep foll
 cfg.delay_block_design = 1; 
     cfg.max_delay_repeats      = inf;       % Max repeats per delay condition... not used if we are using delay block design
     cfg.max_stim_repeats       = inf;       % Max number of repeats per stimulus... not used if we are using delay block design
-    cfg.trials_per_mini_block = 4;  % number of trials within a 'mini block' of repeated delay values
     
 % cfg.delay_block_design = 0; 
 %     cfg.max_delay_repeats      = 4;       % Max repeats per delay condition
@@ -76,21 +77,43 @@ switch cfg.SESSION_LABEL
         cfg.delay_values_ms = [0 50 100 150 200 250]; % 
         cfg.n_blocks = 1;
 
-        cfg.daf_stim_file = 'daf_sentences_preop.tsv';
-        cfg.daf_stim_file = 'daf_sentences_preop.tsv';
 
+        %% comment in desired preop stim set and related params
+        cfg.daf_stim_file = 'daf_3word_preop.tsv';
+        cfg.response_window          = 5;      % time subject has to speak; either text duration (if no go beep), or text duration after go beep
+         cfg.trials_per_mini_block = 5;  % number of trials within a 'mini block' of repeated delay values
+
+
+        % cfg.daf_stim_file = 'daf_sentences_preop_single.tsv';        
+%         cfg.response_window          = 6;      % time subject has to speak; either text duration (if no go beep), or text duration after go beep
+%         cfg.trials_per_mini_block = 5;  % number of trials within a 'mini block' of repeated delay values
+
+
+        % cfg.daf_stim_file = 'daf_sentences_preop_double.tsv';
+        % cfg.response_window          = 10;      % time subject has to speak; either text duration (if no go beep), or text duration after go beep
+%         cfg.trials_per_mini_block = 5;  % number of trials within a 'mini block' of repeated delay values
+    
 
     case 'intraop'
-        cfg.delay_values_ms = [0 50 150];
-        %cfg.delay_values_ms = [0 100 150 200];
+%         cfg.delay_values_ms = [0 50 150]; % zero condition, low delay (fluency-enhancing) condition, high delay (disfluency-inducing) condition
+        cfg.delay_values_ms = [150];
         cfg.n_blocks = 3;
 
-        cfg.daf_stim_file = 'daf_sentences_intraop_single.tsv';
-        cfg.response_window          = 6;      % time subject has to speak; either text duration (if no go beep), or text duration after go beep
+
+        %% comment in desired intraop stim set and related params
+         cfg.daf_stim_file = 'daf_3word_intraop.tsv';
+        cfg.response_window          = 5;      % time subject has to speak; either text duration (if no go beep), or text duration after go beep
+        cfg.trials_per_mini_block = 5;  % number of trials within a 'mini block' of repeated delay values
+
+        
+%         cfg.daf_stim_file = 'daf_sentences_intraop_single.tsv';
+%         cfg.response_window          = 6;      % time subject has to speak; either text duration (if no go beep), or text duration after go beep
+%         cfg.trials_per_mini_block = 6;  % number of trials within a 'mini block' of repeated delay values
 
 
 %         cfg.daf_stim_file = 'daf_sentences_intraop_double.tsv';
 %          cfg.response_window          = 10;      % time subject has to speak; either text duration (if no go beep), or text duration after go beep    
+        % cfg.trials_per_mini_block = 6;  % number of trials within a 'mini block' of repeated delay values
 
 
 

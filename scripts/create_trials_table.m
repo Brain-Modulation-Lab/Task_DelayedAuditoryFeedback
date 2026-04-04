@@ -35,7 +35,7 @@ if cfg.delay_block_design
     % check that mini blocks (blocks of delay trials) are a factor of the number of unique stim
     if mod(cfg.n_unique_stim,cfg.trials_per_mini_block) ~= 0
         error( ['cfg.trials_per_mini_block (', num2str(cfg.trials_per_mini_block), ') ',...
-            'must be a factor of the number of uniqe stim (', num2str(cfg.n_unique_stim), ')'] ) 
+            'must be a factor of the number of unique stim (', num2str(cfg.n_unique_stim), ')'] ) 
     end
 
     cfg.mini_blocks_per_block =  cfg.trials_per_block / cfg.trials_per_mini_block; 
