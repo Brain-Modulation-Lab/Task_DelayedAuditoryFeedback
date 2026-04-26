@@ -212,7 +212,7 @@ for itrial = 1:cfg.ntrials
     drawnow;
     tVisOn = T.now();
     flipState = ~flipState;
-    log_event(eventFH, doDigOut, tVisOn, [], [], tern(isCatch,'catch','speech'), trials.stim{itrial}, TRIG_VIS, 'Visual Onset', flipState);
+    log_event(eventFH, doDigOut, tVisOn, [], [], tern(isCatch,'catch','speech'), trials.stim{itrial}, TRIG_VIS, 'Visual_Onset', flipState);
 
     
     % GO cue and reponse window
@@ -238,8 +238,8 @@ for itrial = 1:cfg.ntrials
         audWriter(go_beep_wave);
         tGoOn = T.now()
         flipState = ~flipState;
-        log_event(eventFH, doDigOut, tGoOn, [], [], tern(isCatch,'catch','speech'), [], TRIG_GO, 'Visual Onset', flipState);
-        tSpeakStart = tGoOn; % speech winow starts when go cue was played
+        log_event(eventFH, doDigOut, tGoOn, [], [], tern(isCatch,'catch','speech'), [], TRIG_GO, 'Go_Beep_Onset', flipState);
+        tSpeakStart = tGoOn; % speech window starts when go cue was played
     elseif ~cfg.play_go_cue % no go cue
         tSpeakStart = tVisOn; % speech window starts immeidately after visual cue
     end
@@ -278,7 +278,7 @@ for itrial = 1:cfg.ntrials
     drawnow;
     tVisOff = T.now();
     flipState = ~flipState;
-    log_event(eventFH, doDigOut, tVisOff, [], [], tern(isCatch,'catch','speech'), [], TRIG_VIS, 'Visual Off', flipState);
+    log_event(eventFH, doDigOut, tVisOff, [], [], tern(isCatch,'catch','speech'), [], TRIG_VIS, 'Visual_Off', flipState);
 
     % Optional pause between trials (message in command window)
     if cfg.STOP_BETWEEN_TRIALS
