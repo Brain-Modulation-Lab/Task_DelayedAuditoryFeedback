@@ -104,7 +104,6 @@ TRIG_VIS = 2; % Visual stimulus onset
 TRIG_DAF = 4; % DAF audio playback event
 TRIG_KEY = 8; % Key press event (space)
 TRIG_ESC = 16; % Escape pressed
-TRIG_SET = 32; % Begin playback
 TRIG_BREAK = 64; % add break
 TRIG_GO = 128; % GO beep
 
