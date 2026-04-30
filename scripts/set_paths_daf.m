@@ -68,23 +68,29 @@ if exist('op','var')
         paths.runs_table = [paths.annot, filesep, 'sub-',op.sub, '_runs.tsv'];
         % paths.landmarks_file = [paths.annot filesep, ]; 
         paths.trial_audio = [paths.der_sub, filesep, 'trial-audio']; 
+        paths.preproc = [paths.der_sub, filesep, 'preproc']; 
 
         if isfield(op,'ses') % if session specified
             paths.src_ses = [paths.src_sub, filesep,'ses-',op.ses]; 
             paths.src_task = [paths.src_ses, filesep, 'task'];
             paths.src_audio = [paths.src_ses, filesep, 'audio'];
+            paths.der_annot_trials = [paths.annot, filesep, 'sub-',op.sub, '_ses-',op.ses, '_task-',op.task, '_annot-trials.tsv']; 
+            paths.trial_audio_ses = [paths.trial_audio, filesep, 'ses-',op.ses]; 
+            paths.landmarks_file = [paths.annot filesep 'sub-' op.sub, '_ses-', op.ses,  '_annot-audio-landmarks.tsv']; 
+            paths.sync_ses = [paths.annot, filesep, 'sub-',op.sub, '_ses-',op.ses, '_sync.tsv']; 
              
                 if isfield(op,'run') % if run specified
                     if ischar(op.run)
-                        op.runstring = op.run;
+                        op.runstr = op.run;
+                        op.run = str2double(op.runstr); 
                     elseif isnumeric(op.run)
-                        op.runstring = sprintf('%02.0f', op.run); % expect run string as 2 digits; zero pad
+                        op.runstr = sprintf('%02.0f', op.run); % expect run string as 2 digits; zero pad
                     else
                         error('unrecognized run label format - should be string or number')
                     end
 
                     %%%% the following string gets used in a variety of files associated with this run
-                    paths.filestr = ['sub-',op.sub, '_ses-',op.ses, '_task-daf_run-',num2str(op.runstring), '_']; 
+                    paths.filestr = ['sub-',op.sub, '_ses-',op.ses, '_task-daf_run-',num2str(op.runstr), '_']; 
                     
                     % trial boundary adjustments - gets created during create_sync_landmark_tables.m
                     % .... gets used during audio/video trial cutting
