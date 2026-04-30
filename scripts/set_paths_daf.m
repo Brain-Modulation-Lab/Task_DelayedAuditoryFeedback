@@ -17,7 +17,7 @@ compname = getenv('COMPUTERNAME'); % might not work on non-windows machines
             paths.task       = 'D:\Task\Task_DelayedAuditoryFeedback';
             paths.data = 'D:\DBS'; 
             paths.sourcedata = 'D:\DBS\sourcedata';
-        case {'677-GUE-WL-0010','677-GUE-WL-0012'}  % AM Thinkpad X1 laptops
+        case {'677-GUE-WL-0010','677-GUE-WL-0012','AMSMEIER'}  % AM Thinkpad X1 laptops, strix laptop
             paths.code = 'C:\docs\code'; 
             paths.data = 'Y:\DBS'; % mapped drive
             paths.task       = [paths.code, filesep, 'Task_DelayedAuditoryFeedback']; 
@@ -35,8 +35,6 @@ compname = getenv('COMPUTERNAME'); % might not work on non-windows machines
                 paths.bml
             };
 
-        case 'AMSMEIER' % AM strix laptop
-   
         otherwise 
             error('unknown computer')
     end

@@ -42,7 +42,7 @@ cfg.TASK_FUNCTION = 'task_daf_midi.m';  % Task main function filename
 cfg.max_trials             = inf;     % Maximum number of trials (inf = unlimited)
 cfg.stim_font_size         = 60;      % Font size of stimulus text
 cfg.stim_max_char_per_line = 30;      % Maximum characters per line in stimulus text
-cfg.catchRatio             = 0;       % Probability of catch trials (no auditory feedback)
+cfg.catchRatio             = 0;       % Probability of catch trials (no auditory feedback)... not tested recently
 cfg.same_trials_across_blocks = true; % Use same trials repeated across blocks
 cfg.DAF_START_OFFSET_S = 0.000;       % Optional time offset between fixation and DAF start
 
