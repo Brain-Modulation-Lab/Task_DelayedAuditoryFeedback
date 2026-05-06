@@ -16,8 +16,8 @@ function START_DAF_MIDI
 %% Setup experiment configuration
 cfg = struct();
 
-cfg.SUBJECT       = 'DM1057';   % Subject identifier
-% cfg.SUBJECT       = 'daftest';   % Subject identifier
+% cfg.SUBJECT       = 'DM1057';   % Subject identifier
+cfg.SUBJECT       = 'daftest';   % Subject identifier
 
 % cfg.SESSION_LABEL = 'preop';      % Label for session type (e.g., intraop, preop)
 cfg.SESSION_LABEL = 'intraop'; 

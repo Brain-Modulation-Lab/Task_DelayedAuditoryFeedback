@@ -26,12 +26,20 @@ NET.addAssembly('PresentationCore');
 %% Setup timing function backend: Psychtoolbox (PTB) or MATLAB native timer
 
 % Configure timing functions for experiment
-t0 = tic;
-t0_abs = datetime('now');
-t0_abs = seconds(timeofday(t0_abs)); % convert to seconds since midnight
-T.now   = @() t0_abs + toc(t0);
+t0 = tic;                                  % Start baseline time
+T.now   = @() toc(t0);                     % Relative current time in sec
 T.wait  = @(s) pause(max(0,s));            % Wait via pause
 T.until = @(t) pause(max(0, t - T.now())); % Wait until absolute time
+T.backend = 'MATLAB';
+
+fprintf('[Timing] Backend: %s\n', T.backend);
+
+%% Open command log file to record serial command sends/ack
+[cmdPath, cmdBase] = fileparts(cfg.EVENT_FILENAME);
+cmdBase = strrep(cmdBase,'_events','_commands');
+cmdFile = fullfile(cmdPath,[cmdBase '.tsv']);
+cmdFH = fopen(cmdFile,'w');
+fprintf(cmdFH, 't_send_getsecs\tcommand\targ1\targ2\tretries\tmessage\n'); % Write tab-separated header line to the commands log
 
 %% Load and prepare trial table (double check files)
 addpath(cfg.PATH_TASK);
@@ -147,7 +155,7 @@ while true
     if esc
         flipState = ~flipState;
         log_event(eventFH, doDigOut, T.now(), [], [], 'control', [], TRIG_ESC, 'Key_Esc_At_Instructions', flipState);
-        safeQuit(); fclose(eventFH);  close(hfig); return;
+        safeQuit(); fclose(eventFH); fclose(cmdFH); close(hfig); return;
     end
     if space
         flipState = ~flipState;
@@ -177,7 +185,7 @@ for itrial = 1:cfg.ntrials
     drawnow;
     tFixOn = T.now();
     flipState = ~flipState;
-    log_event(eventFH, 0, tFixOn, [], [], tern(isCatch,'catch','speech'), [], TRIG_FIX_CROSS, 'Fixation_Cross_Onset', flipState);
+    log_event(eventFH, 0, GetSecs(), [], [], tern(isCatch,'catch','speech'), [], TRIG_FIX_CROSS, 'Fixation_Cross_Onset', flipState);
 
     % Keep fixation cross on for the jittered ITI duration
     itiDur = cfg.iti(1) + rand*(cfg.iti(2)-cfg.iti(1));
@@ -218,7 +226,7 @@ for itrial = 1:cfg.ntrials
     
                 flipState = ~flipState;
                 log_event(eventFH, doDigOut, T.now(), [], [], tern(isCatch,'catch','speech'), [], TRIG_ESC, 'Key_Esc', flipState);
-                safeQuit(); fclose(eventFH); close(hfig); return
+                safeQuit(); fclose(eventFH); fclose(cmdFH); close(hfig); return
             end
             T.wait(0.005); % wait 5ms before running the loop again
         end
@@ -247,7 +255,7 @@ for itrial = 1:cfg.ntrials
 
             flipState = ~flipState;
             log_event(eventFH, doDigOut, T.now(), [], [], tern(isCatch,'catch','speech'), [], TRIG_ESC, 'Key_Esc', flipState);
-            safeQuit(); fclose(eventFH); close(hfig); return
+            safeQuit(); fclose(eventFH); fclose(cmdFH); close(hfig); return
         end
         T.wait(0.005); % wait 5ms before running the loop again
     end
@@ -281,7 +289,7 @@ for itrial = 1:cfg.ntrials
                  midisend(cfg.midi_dev_idx, 'ControlChange', cfg.midi_chan, cfg.midi_cc_num, zero_delay_cc)
                 flipState = ~flipState;
                 log_event(eventFH, doDigOut, T.now(), [], [], tern(isCatch,'catch','speech'), [], TRIG_ESC, 'Key_Esc', flipState);
-                safeQuit(); fclose(eventFH); close(hfig); return
+                safeQuit(); fclose(eventFH); fclose(cmdFH); close(hfig); return
             end
             if space
                 break;
@@ -331,6 +339,7 @@ end
 
 
 fclose(eventFH);
+fclose(cmdFH);
 close(hfig);
 fprintf('Task complete.\n');
 
