@@ -16,8 +16,8 @@ function START_DAF_MIDI
 %% Setup experiment configuration
 cfg = struct();
 
-% cfg.SUBJECT       = 'DM1057';   % Subject identifier
-cfg.SUBJECT       = 'daftest';   % Subject identifier
+cfg.SUBJECT       = 'DM1057';   % Subject identifier
+% cfg.SUBJECT       = 'daftest';   % Subject identifier
 
 % cfg.SESSION_LABEL = 'preop';      % Label for session type (e.g., intraop, preop)
 cfg.SESSION_LABEL = 'intraop'; 
@@ -79,14 +79,14 @@ switch cfg.SESSION_LABEL
 
 
         %% comment in desired preop stim set and related params
-        cfg.daf_stim_file = 'daf_3word_preop.tsv';
-        cfg.response_window          = 5;      % time subject has to speak; either text duration (if no go beep), or text duration after go beep
-         cfg.trials_per_mini_block = 5;  % number of trials within a 'mini block' of repeated delay values
+%         cfg.daf_stim_file = 'daf_3word_preop.tsv';
+%         cfg.response_window          = 5;      % time subject has to speak; either text duration (if no go beep), or text duration after go beep
+%          cfg.trials_per_mini_block = 5;  % number of trials within a 'mini block' of repeated delay values
 
 
-        % cfg.daf_stim_file = 'daf_sentences_preop_single.tsv';        
-%         cfg.response_window          = 6;      % time subject has to speak; either text duration (if no go beep), or text duration after go beep
-%         cfg.trials_per_mini_block = 5;  % number of trials within a 'mini block' of repeated delay values
+        cfg.daf_stim_file = 'daf_sentences_preop_single.tsv';        
+        cfg.response_window          = 6;      % time subject has to speak; either text duration (if no go beep), or text duration after go beep
+        cfg.trials_per_mini_block = 5;  % number of trials within a 'mini block' of repeated delay values
 
 
         % cfg.daf_stim_file = 'daf_sentences_preop_double.tsv';
@@ -95,25 +95,25 @@ switch cfg.SESSION_LABEL
     
 
     case 'intraop'
-%         cfg.delay_values_ms = [0 50 150]; % zero condition, low delay (fluency-enhancing) condition, high delay (disfluency-inducing) condition
-        cfg.delay_values_ms = [150];
+        cfg.delay_values_ms = [0 50 225]; % zero condition, low delay (fluency-enhancing) condition, high delay (disfluency-inducing) condition
+%         cfg.delay_values_ms = [150];
         cfg.n_blocks = 3;
 
 
         %% comment in desired intraop stim set and related params
-         cfg.daf_stim_file = 'daf_3word_intraop.tsv';
-        cfg.response_window          = 5;      % time subject has to speak; either text duration (if no go beep), or text duration after go beep
-        cfg.trials_per_mini_block = 5;  % number of trials within a 'mini block' of repeated delay values
+%          cfg.daf_stim_file = 'daf_3word_intraop.tsv';
+%         cfg.response_window          = 5;      % time subject has to speak; either text duration (if no go beep), or text duration after go beep
+%         cfg.trials_per_mini_block = 5;  % number of trials within a 'mini block' of repeated delay values
 
         
-%         cfg.daf_stim_file = 'daf_sentences_intraop_single.tsv';
-%         cfg.response_window          = 6;      % time subject has to speak; either text duration (if no go beep), or text duration after go beep
-%         cfg.trials_per_mini_block = 6;  % number of trials within a 'mini block' of repeated delay values
+        cfg.daf_stim_file = 'daf_sentences_intraop_single.tsv';
+        cfg.response_window          = 6;      % time subject has to speak; either text duration (if no go beep), or text duration after go beep
+        cfg.trials_per_mini_block = 5;  % number of trials within a 'mini block' of repeated delay values
 
 
 %         cfg.daf_stim_file = 'daf_sentences_intraop_double.tsv';
 %          cfg.response_window          = 10;      % time subject has to speak; either text duration (if no go beep), or text duration after go beep    
-        % cfg.trials_per_mini_block = 6;  % number of trials within a 'mini block' of repeated delay values
+        % cfg.trials_per_mini_block = 5;  % number of trials within a 'mini block' of repeated delay values
 
 
 
