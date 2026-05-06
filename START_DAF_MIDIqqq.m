@@ -42,7 +42,7 @@ cfg.TASK_FUNCTION = 'task_daf_midi.m';  % Task main function filename
 cfg.max_trials             = inf;     % Maximum number of trials (inf = unlimited)
 cfg.stim_font_size         = 60;      % Font size of stimulus text
 cfg.stim_max_char_per_line = 30;      % Maximum characters per line in stimulus text
-cfg.catchRatio             = 0;       % Probability of catch trials (no auditory feedback)
+cfg.catchRatio             = 0;       % Probability of catch trials (no auditory feedback)... not tested recently
 cfg.same_trials_across_blocks = true; % Use same trials repeated across blocks
 cfg.DAF_START_OFFSET_S = 0.000;       % Optional time offset between fixation and DAF start
 
@@ -227,19 +227,11 @@ end
 cd(scriptPath);
 
 %%% record audio via parallel pool function
-if strcmp (cfg.SESSION_LABEL,'preop')
-    if ~(exist('record_audio_preop','file')==2)
-        clear onCleanupTasks
-        error('record_audio_preop() not found on path.');
-    end
-    future = parfeval(@record_audio_preop, 1, cfg.AUDIO_FILENAME, workerQueueConstant);
-    future.Diary;
-    onCleanupTasks{6} = onCleanup(@() send(workerQueueClient, 'stop'));
-elseif strcmp (cfg.SESSION_LABEL,'intraop')
-    future = parfeval(@record_audio, 1, cfg.AUDIO_FILENAME, workerQueueConstant);
-    future.Diary;
-    onCleanupTasks{6} = onCleanup(@() send(workerQueueClient, 'stop'));
-end
+% we could add an option to call 'record_audio_laptop_only' instead of 'record_audio' if focusrite is not detected
+future = parfeval(@record_audio, 1, cfg.AUDIO_FILENAME, workerQueueConstant);
+future.Diary;
+onCleanupTasks{6} = onCleanup(@() send(workerQueueClient, 'stop'));
+
 
 %% Ripple neurophysiology hardware communication setup (optional)
 cfg.DIGOUT = 0;

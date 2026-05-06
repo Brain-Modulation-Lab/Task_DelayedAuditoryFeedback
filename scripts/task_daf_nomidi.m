@@ -3,6 +3,9 @@ function task_daf(cfg)
 %%%% run delayed auditory feedback task; in or out of operating room
 % by Sam Hansen (SH), Andrew Meier (AM); adapted from other Brain Modulation Lab (BML) scripts
 
+fprintf('\n \n WARNING - this script does not save visual/daf/beep times - modify it if you want to save these times\n    Press any key to proceed anyway')
+pause()
+
 % make sure .NET assembly is available for KeyPoll subfunction 
 NET.addAssembly('PresentationCore');
 

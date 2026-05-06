@@ -75,7 +75,7 @@ end
 
 %% Open event log file and write header line
 eventFH = fopen(cfg.EVENT_FILENAME, 'w');
-fprintf(eventFH,'onset\tduration\tsample\ttrial_type\tstim_file\tvalue\tevent_code\n');
+fprintf(eventFH,'onset\tduration\tsample\ttrial_type\tstim\tvalue\tevent_code\n');
 
 
 %% Setup graphics (visuals, stimulus text, photodiode square, keyboard callbacks)
@@ -99,12 +99,11 @@ hSquare = annotation('rectangle','FaceColor',[1 1 1],'EdgeColor','none', 'Positi
 
 %% devices setup
 % Define trigger code constants for event types
-TRIG_ITI = 1; % Fixation cross display
+TRIG_FIX_CROSS = 1; % Fixation cross display
 TRIG_VIS = 2; % Visual stimulus onset
-TRIG_DAF = 4; % DAF audio playback event
+TRIG_DAF = 4; % DAF delay change
 TRIG_KEY = 8; % Key press event (space)
 TRIG_ESC = 16; % Escape pressed
-TRIG_SET = 32; % Begin playback
 TRIG_BREAK = 64; % add break
 TRIG_GO = 128; % GO beep
 
@@ -186,7 +185,7 @@ for itrial = 1:cfg.ntrials
     drawnow;
     tFixOn = T.now();
     flipState = ~flipState;
-    log_event(eventFH, 0, tFixOn, [], [], tern(isCatch,'catch','speech'), [], TRIG_ITI, 'Fixation_Cross_Onset', flipState);
+    log_event(eventFH, 0, tFixOn, [], [], tern(isCatch,'catch','speech'), [], TRIG_FIX_CROSS, 'Fixation_Cross_Onset', flipState);
 
     % Keep fixation cross on for the jittered ITI duration
     itiDur = cfg.iti(1) + rand*(cfg.iti(2)-cfg.iti(1));
@@ -212,7 +211,7 @@ for itrial = 1:cfg.ntrials
     drawnow;
     tVisOn = T.now();
     flipState = ~flipState;
-    log_event(eventFH, doDigOut, tVisOn, [], [], tern(isCatch,'catch','speech'), trials.stim{itrial}, TRIG_VIS, 'Visual Onset', flipState);
+    log_event(eventFH, doDigOut, tVisOn, [], [], tern(isCatch,'catch','speech'), trials.stim{itrial}, TRIG_VIS, 'Visual_Onset', flipState);
 
     
     % GO cue and reponse window
@@ -238,8 +237,8 @@ for itrial = 1:cfg.ntrials
         audWriter(go_beep_wave);
         tGoOn = T.now()
         flipState = ~flipState;
-        log_event(eventFH, doDigOut, tGoOn, [], [], tern(isCatch,'catch','speech'), [], TRIG_GO, 'Visual Onset', flipState);
-        tSpeakStart = tGoOn; % speech winow starts when go cue was played
+        log_event(eventFH, doDigOut, tGoOn, [], [], tern(isCatch,'catch','speech'), [], TRIG_GO, 'Go_Beep_Onset', flipState);
+        tSpeakStart = tGoOn; % speech window starts when go cue was played
     elseif ~cfg.play_go_cue % no go cue
         tSpeakStart = tVisOn; % speech window starts immeidately after visual cue
     end
@@ -278,7 +277,7 @@ for itrial = 1:cfg.ntrials
     drawnow;
     tVisOff = T.now();
     flipState = ~flipState;
-    log_event(eventFH, doDigOut, tVisOff, [], [], tern(isCatch,'catch','speech'), [], TRIG_VIS, 'Visual Off', flipState);
+    log_event(eventFH, doDigOut, tVisOff, [], [], tern(isCatch,'catch','speech'), [], TRIG_VIS, 'Visual_Off', flipState);
 
     % Optional pause between trials (message in command window)
     if cfg.STOP_BETWEEN_TRIALS

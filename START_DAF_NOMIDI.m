@@ -1,4 +1,6 @@
 % Intraop Launcher for DAF
+%%%% audio will NOT be recorded by the computer, to avoid interfering with DAF's usage of audio inputs
+%%%% this could be changed by using parallel pool (see START_DAF_MIDI)
 
 figure;
 
