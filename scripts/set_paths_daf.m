@@ -7,37 +7,36 @@ if ~exist('paths','var')
 end
 
 compname = getenv('COMPUTERNAME'); % might not work on non-windows machines
-    compname = deblank(compname); 
-% % % % % % % % % % % % % % % % % % % % % % % % % % % % % auddevs = audiodevinfo; 
-% % % % % % % % % % % % % % % % % % % % % % % % % % % % %     devs_in = {auddevs.input.Name};
-% % % % % % % % % % % % % % % % % % % % % % % % % % % % %     devs_out = {auddevs.output.Name};
+extra_paths = {};
+switch compname
+    case 'BML-ALIENWARE2' % intraop/preop rig laptop
+        paths.task       = 'D:\Task\Task_DelayedAuditoryFeedback';
+        paths.data = 'D:\DBS'; 
+        paths.sourcedata = 'D:\DBS\sourcedata';
+    case {'677-GUE-WL-0010','677-GUE-WL-0012','AMSMEIER'}  % AM Thinkpad X1 laptops, strix laptop
+        paths.code = 'C:\docs\code'; 
+        paths.data = 'Y:\DBS'; % mapped drive
+        paths.task       = [paths.code, filesep, 'Task_DelayedAuditoryFeedback']; 
 
-    switch compname
-        case 'BML-ALIENWARE2' % intraop/preop rig laptop
-            paths.task       = 'D:\Task\Task_DelayedAuditoryFeedback';
-            paths.data = 'D:\DBS'; 
-            paths.sourcedata = 'D:\DBS\sourcedata';
-        case {'677-GUE-WL-0010','677-GUE-WL-0012','AMSMEIER'}  % AM Thinkpad X1 laptops, strix laptop
-            paths.code = 'C:\docs\code'; 
-            paths.data = 'Y:\DBS'; % mapped drive
-            paths.task       = [paths.code, filesep, 'Task_DelayedAuditoryFeedback']; 
+        % external toolboxes
+        paths.spm = [paths.code, filesep, 'spm12']; %%%% 
+        paths.fieldtrip_toolbox = [paths.code, filesep, 'fieldtrip']; % only used in analysis, not running experiment
+        paths.bml = [paths.code, filesep, 'bml']; % RM Richardson lab toolbox
 
-            % external toolboxes
-            paths.spm = [paths.code, filesep, 'spm12']; %%%% 
-            paths.fieldtrip_toolbox = [paths.code, filesep, 'fieldtrip']; % only used in analysis, not running experiment
-            paths.bml = [paths.code, filesep, 'bml']; % RM Richardson lab toolbox
+        % add these paths only if we are not on the intraop rig computer
+         extra_paths =  {paths.task;...
+             [paths.task, filesep, 'util'];...
+            % paths.spm;... %%%% 
+            paths.fieldtrip_toolbox;... % needed for preproc step A04
+            paths.bml
+        };
+    case    'NSSBML01' % Turbo - used via remote desktop protocol
+        paths.task = 'Y:\Documents\Code\Task_DelayedAuditoryFeedback'; 
+        paths.data = 'Y:\DBS'; % mapped drive
 
-            % add these paths only if we are not on the intraop rig computer
-             paths_to_add =  {paths.task;...
-                 [paths.task, filesep, 'util'];...
-                % paths.spm;... %%%% 
-                paths.fieldtrip_toolbox;... % needed for preproc step A04
-                paths.bml
-            };
-
-        otherwise 
-            error('unknown computer')
-    end
+    otherwise 
+    error('unknown computer')
+end
 
 paths.sourcedata = [paths.data, filesep, 'sourcedata']; 
 paths.stim = [paths.task, filesep, 'stimuli'];
@@ -45,7 +44,7 @@ paths.code_exp_scripts = [paths.task, filesep, 'scripts'];
 paths.code_analysis = [paths.task, filesep, 'analysis'];
 
 % paths to add regardless of computer
-paths_to_add = [paths_to_add;...
+paths_to_add = [extra_paths;...
     paths.task;...
     paths.stim;...
     paths.code_exp_scripts;...
