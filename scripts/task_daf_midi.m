@@ -164,7 +164,7 @@ t0 = T.now(); % Task start time anchor
 % Send sync beep command to play sync tone on audio output
 audWriter(go_beep_wave);
 flipState = ~flipState;
-log_event(eventFH, 0, t0, [], [], 'control', [], 0, 'Instructions_End', flipState);
+log_event(eventFH, doDigOut, t0, [], [], 'control', [], 0, 'Instructions_End', flipState);
 
 %% Main trial loop
 for itrial = 1:cfg.ntrials
@@ -177,7 +177,7 @@ for itrial = 1:cfg.ntrials
     drawnow;
     tFixOn = T.now();
     flipState = ~flipState;
-    log_event(eventFH, 0, tFixOn, [], [], tern(isCatch,'catch','speech'), [], TRIG_FIX_CROSS, 'Fixation_Cross_Onset', flipState);
+    log_event(eventFH, doDigOut, tFixOn, [], [], tern(isCatch,'catch','speech'), [], TRIG_FIX_CROSS, 'Fixation_Cross_Onset', flipState);
 
     % Keep fixation cross on for the jittered ITI duration
     itiDur = cfg.iti(1) + rand*(cfg.iti(2)-cfg.iti(1));

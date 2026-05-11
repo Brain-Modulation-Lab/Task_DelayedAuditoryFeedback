@@ -2,14 +2,14 @@
 
 function log_event(file, is_digout, onset, dur, samp, trial_type, stim_file, val, event_name, flip_sync)
 
-% log_events in BIDS compatible events.tsv format
+%%%%% log_events in BIDS-compatible events.tsv format
 % file:         open connection to events file
 % is_digout:    bool, is the ripple system connected through xippmex ready to send digital events out?
 % onset:        float, onset time of event in seconds in absolute time (seconds since midnight)
 % dur:          float, duration of the event in seconds. 
 % samp:         uint, sample index on ripple system
 % trial_type:   Primary categorisation of each trial to identify them as instances of the experimental conditions.
-% stim_file:    Represents the location of the stimulus file presented at the given onset time.
+% stim:         Represents the the stimulus presented at the given onset time.
 % value:        Marker value associated with the event (e.g., the value of a TTL trigger that was recorded at the onset of the event).
 % event_name:   Short name for the event
 % flip_sync:     bool, screen flip sync signal level. 
