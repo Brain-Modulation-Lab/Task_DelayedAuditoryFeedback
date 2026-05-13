@@ -111,44 +111,9 @@ pairDelay_block = delay_vals(dIdx(:));
     
                     % get an order for the mini-blocks within this block then repeat that order
                     cfg.delay_order = unique(ds_trials(:,1),'stable'); 
-                    base_mini_order = repelem(cfg.delay_order,cfg.trials_per_mini_block); 
-                    n_instances_of_each_mini_block = size(ds_trials,1) / numel(base_mini_order); % repeat the mini-block order sequence to fill out the block
-                    base_mini_order = repmat(base_mini_order, n_instances_of_each_mini_block, 1);  
-
-               
-
-
-
-                    if isfield(cfg,'randomize_miniblock_order') && cfg.randomize_miniblock_order
-                        n_mini_blocks = cfg.mini_blocks_per_block;
-
-                        % Build the full list of mini-block delays from known structure:
-                        % each entry in cfg.delay_order owns n_instances_of_each_mini_block mini-blocks.
-                        all_mb_delays = repelem(cfg.delay_order(:), n_instances_of_each_mini_block);
-                        % all_mb_delays is a column vector of length n_mini_blocks
-
-                        zero_mb_indices = find(all_mb_delays == 0);
-                        if isempty(zero_mb_indices)
-                            % No zero-delay condition — fully randomise mini-block order
-                            new_mb_order = randperm(n_mini_blocks);
-                        else
-                            % Ensure a zero-delay mini-block is placed first
-                            first_zero   = zero_mb_indices(randi(numel(zero_mb_indices)));
-                            remaining    = setdiff(1:n_mini_blocks, first_zero);
-                            new_mb_order = [first_zero, remaining(randperm(numel(remaining)))];
-                        end
-
-                        % Expand: each mini-block position → trials_per_mini_block rows with that delay
-                        delays_to_conform_to = repelem(all_mb_delays(new_mb_order(:)), cfg.trials_per_mini_block);
-                        delays_to_conform_to = delays_to_conform_to(:);   % column vector, length = trials_per_block
-                    else
-                        delays_to_conform_to = base_mini_order;
-                    end
-
-
-
-
-
+                    delays_to_conform_to = repelem(cfg.delay_order,cfg.trials_per_mini_block); 
+                    n_instances_of_each_mini_block = size(ds_trials,1) / size(delays_to_conform_to,1); % repeat the mini-block order sequence to fill out the block
+                    delays_to_conform_to = repmat(delays_to_conform_to, n_instances_of_each_mini_block, 1);  
                     
                     for itrial = 1:size(ds_trials,1)
                         thisdelay = delays_to_conform_to(itrial);

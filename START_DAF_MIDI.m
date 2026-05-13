@@ -16,7 +16,7 @@ function START_DAF_MIDI
 %% Setup experiment configuration
 cfg = struct();
 
-% cfg.SUBJECT       = 'DM1057';   % Subject identifier
+% cfg.SUBJECT       = 'DM1058';   % Subject identifier
 cfg.SUBJECT       = 'daftest';   % Subject identifier
 
 % cfg.SESSION_LABEL = 'preop';      % Label for session type (e.g., intraop, preop)
@@ -43,7 +43,7 @@ cfg.max_trials             = inf;     % Maximum number of trials (inf = unlimite
 cfg.stim_font_size         = 60;      % Font size of stimulus text
 cfg.stim_max_char_per_line = 30;      % Maximum characters per line in stimulus text
 cfg.catchRatio             = 0;       % Probability of catch trials (no auditory feedback)... not tested recently
-cfg.same_trials_across_blocks = true; % Use same trials repeated across blocks
+cfg.same_trials_across_blocks = 0; % Use same trials repeated across blocks
 cfg.DAF_START_OFFSET_S = 0.000;       % Optional time offset between fixation and DAF start
 
 % beep params - played at beginning of run, and optionally as go cue
@@ -59,7 +59,8 @@ cfg.play_go_cue = true;                     % make subject wait for go beep foll
 % cfg.play_go_cue = false;                     % make subject wait for go beep following stim onset before speaking; if false, don't play go beep  
 
 %% block-design and stimulus repetition options
-cfg.delay_block_design = 1; 
+cfg.delay_block_design = 1;             % if true, then organize trials into consecutive trials of 'miniblocks' which all have the same delay
+    cfg.randomize_miniblock_order = 1;     % if false, then order of delay miniblocks within a block will be repeated
     cfg.max_delay_repeats      = inf;       % Max repeats per delay condition... not used if we are using delay block design
     cfg.max_stim_repeats       = inf;       % Max number of repeats per stimulus... not used if we are using delay block design
     
@@ -75,7 +76,7 @@ switch cfg.SESSION_LABEL
     case 'preop'
 
         cfg.delay_values_ms = [0 50 100 150 200 250]; % 
-        cfg.n_blocks = 1;
+        cfg.n_blocks = 2;
 
 
         %% comment in desired preop stim set and related params
@@ -157,7 +158,7 @@ if strcmpi(getenv('COMPUTERNAME'), 'BML-ALIENWARE2') % intraop rig laptop
     cfg.PATH_TASK       = 'D:\Task\Task_DelayedAuditoryFeedback';
     cfg.PATH_SOURCEDATA = 'D:\DBS\sourcedata';
 
-elseif strcmpi(getenv('COMPUTERNAME'), '677-GUE-WL-0010') % A Meier work laptop
+elseif any(strcmpi(getenv('COMPUTERNAME'), {'677-GUE-WL-0010','677-GUE-WL-0012','AMSMEIER'} )) % AM Thinkpad X1 laptops, strix laptop
     cfg.PATH_TASK       = 'C:\docs\code\Task_DelayedAuditoryFeedback';
     cfg.PATH_SOURCEDATA = 'C:\sourcedata'; 
 
@@ -213,11 +214,20 @@ disp(cfg);  % Display config for verification
 
 %% Start audio recording (optional)
 % parallel worker for external audio recording 
-if isempty(gcp())
-    parpool('local',1);
+if cfg.RECORD_AUDIO
+    if isempty(gcp())
+        parpool('local',1);
+    end
+    workerQueueConstant = parallel.pool.Constant(@parallel.pool.PollableDataQueue);
+    workerQueueClient   = fetchOutputs(parfeval(@(x) x.Value, 1, workerQueueConstant));
+
+    %%% record audio via parallel pool function
+    % we could add an option to call 'record_audio_laptop_only' instead of 'record_audio' if focusrite is not detected
+    future = parfeval(@record_audio, 1, cfg.AUDIO_FILENAME, workerQueueConstant);
+    future.Diary;
+    onCleanupTasks{6} = onCleanup(@() send(workerQueueClient, 'stop'));
+
 end
-workerQueueConstant = parallel.pool.Constant(@parallel.pool.PollableDataQueue);
-workerQueueClient   = fetchOutputs(parfeval(@(x) x.Value, 1, workerQueueConstant));
 
 %% Change to scripts folder
 scriptPath = fullfile(cfg.PATH_TASK, 'scripts');
@@ -226,11 +236,7 @@ if ~isfolder(scriptPath)
 end
 cd(scriptPath);
 
-%%% record audio via parallel pool function
-% we could add an option to call 'record_audio_laptop_only' instead of 'record_audio' if focusrite is not detected
-future = parfeval(@record_audio, 1, cfg.AUDIO_FILENAME, workerQueueConstant);
-future.Diary;
-onCleanupTasks{6} = onCleanup(@() send(workerQueueClient, 'stop'));
+
 
 
 %% Ripple neurophysiology hardware communication setup (optional)
