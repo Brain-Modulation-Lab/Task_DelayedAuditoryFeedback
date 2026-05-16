@@ -74,7 +74,6 @@ if exist('op','var')
             paths.src_task = [paths.src_ses, filesep, 'task'];
             paths.src_audio = [paths.src_ses, filesep, 'audio'];
             paths.der_annot_trials = [paths.annot, filesep, 'sub-',op.sub, '_ses-',op.ses, '_task-',op.task, '_annot-trials.tsv']; 
-            paths.trial_audio_ses = [paths.trial_audio, filesep, 'ses-',op.ses]; 
             paths.landmarks_file = [paths.annot filesep 'sub-' op.sub, '_ses-', op.ses,  '_annot-audio-landmarks.tsv']; 
             paths.sync_ses = [paths.annot, filesep, 'sub-',op.sub, '_ses-',op.ses, '_sync.tsv']; 
              
