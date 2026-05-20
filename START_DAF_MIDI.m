@@ -35,7 +35,7 @@ cfg.midi_cc_num = 1;        % MIDI control change number .... should have been p
 
 % Task metadata
 cfg.TASK          = 'daf';              % Task name
-cfg.TASK_VERSION  = 3;                  % Version number
+cfg.TASK_VERSION  = 4;                  % Version number
 cfg.TASK_FUNCTION = 'task_daf_midi.m';  % Task main function filename
 
 % trial number, condition, and timing params
