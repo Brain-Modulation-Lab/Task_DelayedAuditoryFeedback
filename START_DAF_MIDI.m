@@ -19,8 +19,8 @@ cfg = struct();
 % cfg.SUBJECT       = 'DM1058';   % Subject identifier
 cfg.SUBJECT       = 'daftest';   % Subject identifier
 
-% cfg.SESSION_LABEL = 'preop';      % Label for session type (e.g., intraop, preop)
-cfg.SESSION_LABEL = 'intraop'; 
+cfg.SESSION_LABEL = 'preop';      % Label for session type (e.g., intraop, preop)
+% cfg.SESSION_LABEL = 'intraop'; 
 
 cfg.DATA_TYPE     = 'task';         % Data type for folder structure
 cfg.RECORD_AUDIO  = 1;          % Whether to record microphone audio during the task
@@ -76,6 +76,7 @@ switch cfg.SESSION_LABEL
     case 'preop'
 
         cfg.delay_values_ms = [0 50 100 150 200 250]; % 
+%         cfg.delay_values_ms = [150]; % 
         cfg.n_blocks = 2;
 
 
