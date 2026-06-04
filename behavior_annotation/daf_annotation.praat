@@ -28,7 +28,7 @@ if file_extension$ = ""
 endif
 
 ## Enforced tier names and log file path
-expectedTiers$ = "sld_repetition sld_prolongation sld_block disfluency_resolution slowing distortion typical_disfluency speech_epoch comments unusable_trial difficult_to_score"
+expectedTiers$ = "sld_repetition sld_prolongation typical_disfluency disfluency_resolution slowing distortion error speech_epoch comments unusable_trial difficult_to_score"
 logFile$ = wd$ + "daf_log.txt"
 
 ## Build file list
@@ -103,11 +103,11 @@ while ifile >= 1 and ifile <= numFiles
             ## Define expected tier names
             name1$  = "sld_repetition"
             name2$  = "sld_prolongation"
-            name3$  = "sld_block"
+            name3$  = "typical_disfluency"
             name4$  = "disfluency_resolution"
             name5$  = "slowing"
             name6$  = "distortion"
-            name7$  = "typical_disfluency"
+            name7$  = "error"
             name8$  = "speech_epoch"
             name9$  = "comments"
             name10$ = "unusable_trial"
@@ -170,18 +170,18 @@ while ifile >= 1 and ifile <= numFiles
     ## Extract labels from the first interval of each tier
     sld_repetition$        = Get label of interval... 1 1
     sld_prolongation$      = Get label of interval... 2 1
-    sld_block$             = Get label of interval... 3 1
+    typical_disfluency$    = Get label of interval... 3 1
     disfluency_resolution$ = Get label of interval... 4 1
     slowing$               = Get label of interval... 5 1
     distortion$            = Get label of interval... 6 1
-    typical_disfluency$    = Get label of interval... 7 1
+    error$                 = Get label of interval... 7 1
     speech_epoch$          = Get label of interval... 8 1
     comments$              = Get label of interval... 9 1
     unusable_trial$        = Get label of interval... 10 1
     difficult_to_score$    = Get label of interval... 11 1
 
     ## Append scored values to log file (tab-delimited, one row per trial)
-    fileappend 'logFile$' 'filename$' \t 'sld_repetition$' \t 'sld_prolongation$' \t 'sld_block$' \t 'disfluency_resolution$' \t 'slowing$' \t 'distortion$' \t 'typical_disfluency$' \t 'speech_epoch$' \t 'comments$' \t 'unusable_trial$' \t 'difficult_to_score$' \n
+    fileappend 'logFile$' 'filename$' \t 'sld_repetition$' \t 'sld_prolongation$' \t 'typical_disfluency$' \t 'disfluency_resolution$' \t 'slowing$' \t 'distortion$' \t 'error$' \t 'speech_epoch$' \t 'comments$' \t 'unusable_trial$' \t 'difficult_to_score$' \n
 
     ## Cleanup objects
     select TextGrid 'soundname$'
