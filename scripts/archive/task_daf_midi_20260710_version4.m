@@ -254,6 +254,14 @@ for itrial = 1:cfg.ntrials
 
     % % % % end
 
+    % DAF ZERO
+    if ~isCatch
+         % send midi command to device to set DAF delay value to zero
+         midisend(cfg.midi_dev_idx, 'ControlChange', cfg.midi_chan, cfg.midi_cc_num, zero_delay_cc)
+    
+        flipState = ~flipState;
+        log_event(eventFH, doDigOut, T.now(), [], [], 'speech', [], TRIG_DAF, 'DAF_zero_cmd', flipState);
+    end
 
     % Visual OFF, reset photodiode square
     set(hText,'String','');
