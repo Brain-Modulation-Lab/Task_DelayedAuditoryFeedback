@@ -213,6 +213,14 @@ diary(cfg.LOG_FILENAME);
 oc = onCleanup(@() diary('off')); % Ensure diary is turned off when function exits
 disp(cfg);  % Display config for verification
 
+
+%% Change to scripts folder
+scriptPath = fullfile(cfg.PATH_TASK, 'scripts');
+if ~isfolder(scriptPath)
+    error('Scripts folder not found: %s', scriptPath);
+end
+cd(scriptPath);
+
 %% Start audio recording (optional)
 % parallel worker for external audio recording 
 if cfg.RECORD_AUDIO
@@ -229,14 +237,6 @@ if cfg.RECORD_AUDIO
     onCleanupTasks{6} = onCleanup(@() send(workerQueueClient, 'stop'));
 
 end
-
-%% Change to scripts folder
-scriptPath = fullfile(cfg.PATH_TASK, 'scripts');
-if ~isfolder(scriptPath)
-    error('Scripts folder not found: %s', scriptPath);
-end
-cd(scriptPath);
-
 
 
 
