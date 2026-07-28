@@ -10,18 +10,24 @@ function START_DAF_MIDI
 %
 % The configuration is stored in the 'cfg' struct, passed to the task function.
 
-
-% -------------------------------------------------------------------------
-
-%% Setup experiment configuration
 cfg = struct();
 
-cfg.SUBJECT       = 'DM1059';   % Subject identifier
+
+%% Setup experiment configuration      % -------------------------------------------------------------------------
+
+cfg.SUBJECT       = 'DM1060';   % Subject identifier
 % cfg.SUBJECT       = 'daftest';   % Subject identifier
 
 % cfg.SESSION_LABEL = 'preop';      % Label for session type (e.g., intraop, preop)
 cfg.SESSION_LABEL = 'intraop'; 
 
+preop_delay_values_ms =  [0 50 110 170 230 280]; 
+intraop_delay_values_ms = [0 50 255]; % intended to be be [0, low-delay, high-delay]
+
+% --------------------------------------------------------------------------------------------------- 
+
+
+%%
 cfg.DATA_TYPE     = 'task';         % Data type for folder structure
 cfg.RECORD_AUDIO  = 1;          % Whether to record microphone audio during the task
 cfg.PTB           = false;          % Use Psychtoolbox for timing and display (false disables it)
@@ -53,20 +59,12 @@ cfg.go_beep_amp = 0.5; % go beep amplitude (zero to one)
 %% go cue options
 cfg.play_go_cue = true;                     % make subject wait for go beep following stim onset before speaking; if false, don't play go beep  
     cfg.go_latency = [1.5 2.5];         % if play_go_cue==true, this is the jittered time in sec between visual stim onset and go cue onset
-%     cfg.go_latency = [2 2];         % if play_go_cue==true, this is the jittered time in sec between visual stim onset and go cue onset
-
-
-% cfg.play_go_cue = false;                     % make subject wait for go beep following stim onset before speaking; if false, don't play go beep  
 
 %% block-design and stimulus repetition options
 cfg.delay_block_design = 1;             % if true, then organize trials into consecutive trials of 'miniblocks' which all have the same delay
     cfg.randomize_miniblock_order = 1;     % if false, then order of delay miniblocks within a block will be repeated
     cfg.max_delay_repeats      = inf;       % Max repeats per delay condition... not used if we are using delay block design
     cfg.max_stim_repeats       = inf;       % Max number of repeats per stimulus... not used if we are using delay block design
-    
-% cfg.delay_block_design = 0; 
-%     cfg.max_delay_repeats      = 4;       % Max repeats per delay condition
-% cfg.max_stim_repeats       = 2;       % Max number of repeats per stimulus
     
 %%
 
@@ -75,52 +73,24 @@ cfg.delay_block_design = 1;             % if true, then organize trials into con
 switch cfg.SESSION_LABEL
     case 'preop'
 
-        cfg.delay_values_ms = [0 50 110 170 230 280]; % 
+        cfg.delay_values_ms = preop_delay_values_ms; % 
 %         cfg.delay_values_ms = [150]; % 
         cfg.n_blocks = 2;
-
-
-        %% comment in desired preop stim set and related params
-%         cfg.daf_stim_file = 'daf_3word_preop.tsv';
-%         cfg.response_window          = 5;      % time subject has to speak; either text duration (if no go beep), or text duration after go beep
-%          cfg.trials_per_mini_block = 5;  % number of trials within a 'mini block' of repeated delay values
-
 
         cfg.daf_stim_file = 'daf_sentences_preop_single.tsv';        
         cfg.response_window          = 6;      % time subject has to speak; either text duration (if no go beep), or text duration after go beep
         cfg.trials_per_mini_block = 5;  % number of trials within a 'mini block' of repeated delay values
 
 
-        % cfg.daf_stim_file = 'daf_sentences_preop_double.tsv';
-        % cfg.response_window          = 10;      % time subject has to speak; either text duration (if no go beep), or text duration after go beep
-%         cfg.trials_per_mini_block = 5;  % number of trials within a 'mini block' of repeated delay values
-    
-
     case 'intraop'
-        cfg.delay_values_ms = [0 50 255]; % zero condition, low delay (fluency-enhancing) condition, high delay (disfluency-inducing) condition
-%         cfg.delay_values_ms = [150];
+        cfg.delay_values_ms = intraop_delay_values_ms; % zero condition, low delay (fluency-enhancing) condition, high delay (disfluency-inducing) condition
         cfg.n_blocks = 3;
 
 
-        %% comment in desired intraop stim set and related params
-%          cfg.daf_stim_file = 'daf_3word_intraop.tsv';
-%         cfg.response_window          = 5;      % time subject has to speak; either text duration (if no go beep), or text duration after go beep
-%         cfg.trials_per_mini_block = 5;  % number of trials within a 'mini block' of repeated delay values
-
-        
         cfg.daf_stim_file = 'daf_sentences_intraop_single.tsv';
         cfg.response_window          = 6;      % time subject has to speak; either text duration (if no go beep), or text duration after go beep
         cfg.trials_per_mini_block = 5;  % number of trials within a 'mini block' of repeated delay values
 
-
-%         cfg.daf_stim_file = 'daf_sentences_intraop_double.tsv';
-%          cfg.response_window          = 10;      % time subject has to speak; either text duration (if no go beep), or text duration after go beep    
-        % cfg.trials_per_mini_block = 5;  % number of trials within a 'mini block' of repeated delay values
-
-
-
-
-%          cfg.daf_stim_file = 'daf_sentences_short.tsv'; % use for quick testing of full runs
     otherwise
         error('Unknown session label: %s', cfg.SESSION_LABEL);
 end 
