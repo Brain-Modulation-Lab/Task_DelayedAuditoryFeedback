@@ -48,6 +48,8 @@ paths_to_add = [extra_paths;...
     paths.task;...
     paths.stim;...
     paths.code_exp_scripts;...
+    paths.code_analysis;...
+    [paths.code_analysis, filesep, 'preprocessing'];...
     ];
 
  addpath(paths_to_add{:});
@@ -57,7 +59,7 @@ paths_to_add = [extra_paths;...
  end
 
 
-% % % end%% if more details are provided, output relevant paths
+% % % if more details are provided, output relevant paths
 
 if exist('op','var')
     if isfield(op,'sub') % if sub specified
@@ -74,6 +76,9 @@ if exist('op','var')
             paths.src_task = [paths.src_ses, filesep, 'task'];
             paths.src_audio = [paths.src_ses, filesep, 'audio'];
             paths.der_annot_trials = [paths.annot, filesep, 'sub-',op.sub, '_ses-',op.ses, '_task-',op.task, '_annot-trials.tsv']; 
+            paths.trials_beh = [paths.annot, filesep, 'sub-',op.sub, '_ses-',op.ses, '_task-',op.task, '_trials-beh.tsv']; % behavioral annotations
+            paths.trials_audiofiles = [paths.trial_audio, filesep, 'sub-',op.sub, '_ses-',op.ses, '_task-',op.task, ...
+                '_recording-directionalmic_physio_audiofiles.tsv'];
             paths.landmarks_file = [paths.annot filesep 'sub-' op.sub, '_ses-', op.ses,  '_annot-audio-landmarks.tsv']; 
             paths.sync_ses = [paths.annot, filesep, 'sub-',op.sub, '_ses-',op.ses, '_sync.tsv']; 
              
