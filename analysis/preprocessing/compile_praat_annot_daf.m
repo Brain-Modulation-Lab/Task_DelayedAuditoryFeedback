@@ -1,4 +1,10 @@
+
+%% nb: we are curently using the 'timing' class wrong for everything except speech onset
+.... the compiling script needs to have an option added that looks for pairs of onsets/offset timepoints, which is how most timing classes in DAF are being scored
+    ..... maybe add 'timing-pair' class - save as X * 2 double array within each trial
+
 %%%% import manual annotations from praaat textgrids into the trial table
+clear
 
 op.sub = 'DM1057';
 op.ses = 'intraop'; 
@@ -35,12 +41,18 @@ praat_tiers.class{'difficult_to_score'} = 'logical';
 
 
 %% load trial table
-
-paths = set_paths_daf(op); 
-
 % load table listing file start times of praat textgrid for each trial
+paths = set_paths_daf(op); 
 trials_audiofiles = readtable(paths.trials_audiofiles, 'FileType','text', 'Delimiter','tab'); 
-
-% ???? does the trial file in annot have any important info not included in the above trials table? 
+trials_audiofiles.praat_file_start = trials_audiofiles.starts; 
 
 %% compile textgrids 
+direc_mic_audiofiles = [paths.trial_audio, filesep, 'ses-',op.ses,'_task-',op.task,'_recording-directionalmic_physio'];
+
+cfg = [];
+cfg.praat_tiers = praat_tiers; 
+trials_beh = compile_praat_trial_annotation(trials_audiofiles, direc_mic_audiofiles, cfg);
+
+%% save trial table with behavioral annotations
+save(paths.trials_beh,'trials_beh', '-v7.3');
+

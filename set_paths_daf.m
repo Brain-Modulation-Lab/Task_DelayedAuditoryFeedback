@@ -70,18 +70,22 @@ if exist('op','var')
         % paths.landmarks_file = [paths.annot filesep, ]; 
         paths.trial_audio = [paths.der_sub, filesep, 'trial-audio']; 
         paths.preproc = [paths.der_sub, filesep, 'preproc']; 
+        paths.fieldtrip_data = [paths.der_sub, filesep, 'fieldtrip']; 
+        paths.electrodes = [paths.annot, filesep, 'sub-',op.sub, '_electrodes.tsv']; 
 
         if isfield(op,'ses') % if session specified
             paths.src_ses = [paths.src_sub, filesep,'ses-',op.ses]; 
             paths.src_task = [paths.src_ses, filesep, 'task'];
             paths.src_audio = [paths.src_ses, filesep, 'audio'];
             paths.der_annot_trials = [paths.annot, filesep, 'sub-',op.sub, '_ses-',op.ses, '_task-',op.task, '_annot-trials.tsv']; 
-            paths.trials_beh = [paths.annot, filesep, 'sub-',op.sub, '_ses-',op.ses, '_task-',op.task, '_trials-beh.tsv']; % behavioral annotations
+            paths.trials_beh = [paths.annot, filesep, 'sub-',op.sub, '_ses-',op.ses, '_task-',op.task, '_trials-beh.mat']; % behavioral annotations; .mat and not tsv because of complex data types
             paths.trials_audiofiles = [paths.trial_audio, filesep, 'sub-',op.sub, '_ses-',op.ses, '_task-',op.task, ...
                 '_recording-directionalmic_physio_audiofiles.tsv'];
             paths.landmarks_file = [paths.annot filesep 'sub-' op.sub, '_ses-', op.ses,  '_annot-audio-landmarks.tsv']; 
             paths.sync_ses = [paths.annot, filesep, 'sub-',op.sub, '_ses-',op.ses, '_sync.tsv']; 
-             
+            paths.artifact_manual = [paths.annot, filesep, 'sub-',op.sub, '_ses-',op.ses, '_task-',op.task, '_artifact-manual.tsv'];  
+            paths.ft_file_prefix = [paths.fieldtrip_data, filesep, 'sub-', op.sub, '_ses-' op.ses '_task-' op.task, '_ft-']; % string (including filepath) at beginning of all fieldtrip filenames for this subject
+
                 if isfield(op,'run') % if run specified
                     if ischar(op.run)
                         op.runstr = op.run;
