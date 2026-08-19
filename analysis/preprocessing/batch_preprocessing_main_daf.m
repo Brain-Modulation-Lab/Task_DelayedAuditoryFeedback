@@ -18,7 +18,11 @@ op.skip_to_automatic_artifact_detection = 0; % if true, load pre-made wavpow fie
 
 % op.rereference_method = 'none';
 % op.rereference_method = 'CTAR';
-op.rereference_method = 'CMR'; % common median... bml_rereference supports this but doesn't list it at the top of the function
+% op.rereference_method = 'CMR'; % common median... bml_rereference supports this but doesn't list it at the top of the function
+
+op.rereference_method_by_eltype = ...
+    {'ecog',    'CMR';...
+    'dbs',     '8chan_dbs_bipolar'};
 
 op.reref_extreme_trim_percent = 50; % during referencing, percentage of 'extreme' channels in group to trim 
 
@@ -38,6 +42,10 @@ nsubs = length(sublist);
 nbands = length(freq_bands_to_extract);
 op.task = 'daf';
 op.ses = 'intraop';
+
+op.rereference_method_by_eltype = cell2table(op.rereference_method_by_eltype,... % format into table
+    'VariableNames',{'el_type','reref_method'},'RowNames',op.rereference_method_by_eltype(:,1)); 
+
 for isub = 1:nsubs
     clear cfg thissub electrodes D D_sel manual_artifact_table D_notch D_ref D_wavpow
     thissub = sublist{isub}
@@ -75,7 +83,8 @@ for isub = 1:nsubs
         [D_notch, cfg_notch] = notch_harmonics_filter(D_hpf_cleaned,cfg);
         save([paths.ft_file_prefix,'raw-filt_ar-',op.art_crit],'D_notch','cfg_notch')
     
-        %% rereferencing - save output
+
+      %% rereferencing - save output
         elc_to_reref = electrodes(ismember(electrodes.name,D_sel.label),:);
     
         % first mask zeroes with nans so they don't affect other channels during rereferencing
@@ -86,22 +95,35 @@ for isub = 1:nsubs
         cfg.label_colname = 'label';
         D_notch_nanmask = bml_mask(cfg, D_notch); 
     
-        % do rereferencing
-        cfg_ref = [];
-        cfg_ref.label = elc_to_reref.name;
-        cfg_ref.group = elc_to_reref.connector;
-        cfg_ref.method = op.rereference_method; 
-        cfg_ref.percent = op.reref_extreme_trim_percent; 
-        D_ref = bml_rereference_adapted(cfg_ref,D_notch_nanmask); 
-        save([paths.ft_file_prefix,'raw-filt_ar-',op.art_crit,'_ref-',op.rereference_method],'D_ref','cfg_ref')
-        
-    % % % % % % % % % % % % % % % % %         % Replace from nan to zero
-    % % % % % % % % % % % % % % % % %         cfg = [];
-    % % % % % % % % % % % % % % % % %         cfg.annot = manual_artifact_table; % set manual artifacts to nan
-    % % % % % % % % % % % % % % % % %         cfg.complete_trial = false; % full run data, so can't mask individual trials
-    % % % % % % % % % % % % % % % % %         cfg.value = NaN; 
-    % % % % % % % % % % % % % % % % %         cfg.label_colname = 'label';
-    % % % % % % % % % % % % % % % % %         D_notch_nanmask = bml_mask(cfg, D_ref);
+
+        % do rereferencing for each electrode type
+        reftypes = op.rereference_method_by_eltype; 
+
+        for i_eltype = 1:height(reftypes)
+             elc_to_reref_type = elc_to_reref(contains(elc_to_reref.name,reftypes.el_type),:);
+
+            cfg_ref = [];
+            cfg_ref.label = elc_to_reref.name;
+            cfg_ref.group = elc_to_reref.connector;
+            cfg_ref.method = reftypes.reref_method{i_eltype}; 
+            cfg_ref.percent = op.reref_extreme_trim_percent; 
+            cfg.channel={[reftypes.el_type{i_eltype},'*']};
+            D_ref_temp = bml_rereference_adapted(cfg_ref,D_notch_nanmask); 
+
+            if i_eltype == 1
+                D_ref = D_ref_temp; clear D_ref_temp
+            elseif i_eltype > 1
+                cfg = []; 
+                D_ref = ft_appenddata(cfg, D_ref_temp); % combine this eltype with all-types struct
+            end
+        end
+
+        % save
+        save([paths.ft_file_prefix,'raw-filt_ar-',op.art_crit,'_ref'],'D_ref','cfg_ref')
+    %%
+
+
+
     end 
 
 %% get spectral power timecourses

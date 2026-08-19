@@ -26,7 +26,7 @@ praat_tiers = table(praat_tiers_names', celcol,   celcol,               celcol, 
 
 praat_tiers.class{'speech_epoch'} = 'timing';
 praat_tiers.n_times_min_max{'speech_epoch'} = [2 2]; 
-praat_tiers.timepoint_names{'speech_epoch'} = {'sp_on','sp_off'}; 
+praat_tiers.timepoint_names{'speech_epoch'} = {'t_prod_on','t_prod_off'}; 
 
 praat_tiers.class{'sld_repetition'} = 'timing';
 praat_tiers.class{'sld_prolongation'} = 'timing';
@@ -52,6 +52,17 @@ direc_mic_audiofiles = [paths.trial_audio, filesep, 'ses-',op.ses,'_task-',op.ta
 cfg = [];
 cfg.praat_tiers = praat_tiers; 
 trials_beh = compile_praat_trial_annotation(trials_audiofiles, direc_mic_audiofiles, cfg);
+
+% format/finalize some table vars for ephys analysis
+%% for each subjs (eg 1057) where we turned DAF off at vis stim off, we should also add daf on/off times to this tale
+trials_beh.dur_prod = trials_beh.t_prod_off - trials_beh.t_prod_on;   % speech duration in this trial
+trials_beh = removevars(trials_beh,{'starts','ends','duration','dir'}); % these vars are redundant or don't correspond to any actual stim/behavioral event
+trials_beh = renamevars(trials_beh,{'visual_onset','visual_offset','go_beep_onset'},    ...
+                                  {'t_vis_stim_on','t_vis_stim_off','t_aud_go_on'});
+trials_beh = movevars(trials_beh,...
+    {'t_vis_stim_on','t_vis_stim_off','t_aud_go_on','t_prod_on','t_prod_off','dur_prod','praat_file_start',...
+    'catch_trial','filename','starts_file_relative'},...
+    'After',width(trials_beh));
 
 %% save trial table with behavioral annotations
 save(paths.trials_beh,'trials_beh', '-v7.3');
