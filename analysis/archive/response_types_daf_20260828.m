@@ -89,31 +89,72 @@ end
 
 
 %% get responses in predefined epochs
-
-%%% set up the config table for determining how to epoch ephys responses for this project
+% 'base' = average durng pre-visual-stim baseline
 % all response values except 'base' are baseline-normalized by dividing by that trial's baseline average... 'base' records the absolute value of the baseline
+ntrials = height(trials);
+nchans = length(D_wavpow.label);
+nans_ch = nan(nchans,1); 
+nans_tr = nan(ntrials,1); 
+cel_tr = cell(ntrials,1); 
 
-epochs = table({'trial';'base';'stim';'prep';'prod'},'VariableNames',{'epoch'});
-epochs.Properties.RowNames = epochs.epoch;
-epochs.onset = cell(height(epochs),1);
-epochs.offset = cell(height(epochs),1);
-epochs.onset{'trial'} = {'t_vis_stim_on',-1};           % cut beginning of trial at fixed time before visual stim on
-    epochs.offset{'trial'} = {'t_vis_stim_off',2.5};    % cut end of trial at fixed time after visual stim off
-epochs.onset{'base'} = {'t_vis_stim_on',-0.5};          % 'base' = average during pre-visual-stim baseline
-    epochs.offset{'base'} = {'t_vis_stim_on',-0.1};
-epochs.onset{'stim'} = 't_vis_stim_on'; 
-    epochs.offset{'stim'} = 't_vis_stim_off'; 
-epochs.onset{'prep'} = 't_vis_stim_off'; 
-    epochs.offset{'prep'} = 't_prod_on'; 
-epochs.onset{'prod'} = 't_prod_on'; 
-    epochs.offset{'prod'} = 't_prod_off'; 
-op.epochs = epochs; 
+% table containing responses during epochs for each chan
+cel = repmat({nans_tr},nchans,1); % 1 value per trial per chan
+resp = table(   D_wavpow.label, cel,   repmat({cel_tr},nchans,1),  cel,    cel,    cel,  ....
+  'VariableNames', {'chan', 'base', 'timecourse',             'stim', 'prep', 'prod'}); 
 
-[resp, trials] = get_epoched_responses(D_wavpow,trials,op);
+% extract epoch-related responses, get phonemes on each trial
+%%%% trials.times{itrial} use global time coordinates
+%%%% ....... start at a fixed baseline window before stim onset
+%%%% ....... end at a fixed time buffer after speech offset
+for itrial = 1:ntrials % itrial is absolute index across sessions; does not equal "trial_id" from loaded tables
 
+    % get indices within the trial-specific set of timepoints of D_wavpow.time{1} that match our specified trial window
+    match_time_inds = D_wavpow.time{1} > trials.starts(itrial) & D_wavpow.time{1} < trials.ends(itrial); 
+    trials.times{itrial} = D_wavpow.time{1}(match_time_inds); % times in this trial window... still using global time coordinates
+
+    % get trial-relative baseline time indices; window time-locked to first stim onset
+    base_inds = D_wavpow.time{1} > [trials.t_vis_stim_on(itrial) - op.base_win_sec(1)] & ... % times after base window starts
+                D_wavpow.time{1} < [trials.t_vis_stim_on(itrial) - op.base_win_sec(2)];      % times before base window ends
+    stim_inds = D_wavpow.time{1} > trials.t_vis_stim_on(itrial) & ...   % times after vis onset
+                D_wavpow.time{1} < trials.t_aud_go_on(itrial);          % before go beep onset
+    prep_inds = D_wavpow.time{1} > trials.t_aud_go_on(itrial) & ...                             % times after go beep onset
+                D_wavpow.time{1} < [trials.t_prod_on(itrial) - op.speech_window_extend_start];  % times before speech window
+    prod_inds = D_wavpow.time{1} > [trials.t_prod_on(itrial) - op.speech_window_extend_start]   & ...  % times before speech window start
+                D_wavpow.time{1} < trials.t_prod_off(itrial);                                          % times before speech offset
+
+    for ichan = 1:nchans
+        % baseline activity and timecourse
+        % use mean rather than nanmean, so that trials which had artifacts marked with NaNs will be excluded
+        resp.base{ichan}(itrial) = mean( D_wavpow.trial{1}(ichan, base_inds), 'includenan' ); % mean wavpow during baseline
+
+        % set up params for baselining
+        cfg = [];
+        cfg.baseval = resp.base{ichan}(itrial); 
+        cfg.method = op.baseline_method; 
+    
+        % get baseline-normalized trial timecourse
+       resp.timecourse{ichan}{itrial} = do_baselining(D_wavpow.trial{1}(ichan, match_time_inds), cfg); 
+
+
+       %%% if response looks artifactually high, set/leave all response values for this trials to nan
+       if max(resp.timecourse{ichan}{itrial}) > op.max_timecourse_base_ratio
+           resp.timecourse{ichan}{itrial} = nan(size(resp.timecourse{ichan}{itrial}));
+       else 
+            % response during stim presentation, before go beep
+            resp.stim{ichan}(itrial) = do_baselining(mean( D_wavpow.trial{1}(ichan, stim_inds) ), cfg);
+    
+            % preparatory response
+            %%%% prep period inds = after go beep, before speech window start
+            resp.prep{ichan}(itrial) = do_baselining(mean( D_wavpow.trial{1}(ichan, prep_inds) ), cfg);
+    
+            % response during speech production
+            resp.prod{ichan}(itrial) = do_baselining(mean( D_wavpow.trial{1}(ichan, prod_inds) ), cfg);
+       end
+    end    
+end
 
 %% test for response types 
-nchans = height(resp);
+resp.bad_elc = cellfun(@(x)all(isnan(x)),resp.base);
 for ichan = 1:nchans
     good_trials = ~isnan(resp.base{ichan}) & resp.base{ichan} ~= 0; % non-artifactual, non-zero-base trials for this channel
     good_trials = good_trials & ~trials.unusable_trial;
@@ -162,4 +203,14 @@ op_out = op;
 
 end
 
+%%%% takes a response (numerical array) and does baseline normalization used a specified method
+function normed_response = do_baselining(response,cfg)
+    switch cfg.method
+        case 'subtract'
+            normed_response = response - cfg.baseval; 
+
+        case 'subtract_then_divide'
+            normed_response = [response - cfg.baseval] / cfg.baseval; 
+    end
+end
 

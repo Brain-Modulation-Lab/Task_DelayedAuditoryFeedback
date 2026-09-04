@@ -2,18 +2,18 @@
  %%%% average timecourses of electrodes and plot
 
   %%% load resp_all_subjects first
-% paths = set_paths_daf()
-% load([paths.results, filesep, 'resp_all_subjects_beta.mat'])
-% load([paths.results, filesep, 'resp_all_subjects_hg.mat'])
+% 
+% paths = set_paths_daf(); load([paths.results, filesep, 'resp_all_subjects_beta.mat'])
+% paths = set_paths_daf(); load([paths.results, filesep, 'resp_all_subjects_hg.mat'])
 
 close all
 
 op.newfig = 1; 
 
 op.analyze_responsive_elcs_only = 1; 
-op.analyze_tuned_elcs_only = 0;
+op.analyze_tuned_elcs_only = 1;
 
-op.smooth_windowsize = 45; 
+op.smooth_windowsize = 60; 
 
 %% trial condition for grouping trials
 
@@ -21,7 +21,9 @@ op.smooth_windowsize = 45;
     op.sort_cond = 'delay';       op.sort_cond_vals = [0, 50, 228]; 
 
 %% parameter for filtering out which electrodes to plot
-op.tuning_param = 'p_stim_delay';
+op.tuning_param = 'p_min_stim_prep_prod';
+%
+% op.tuning_param = 'p_stim_delay';
 % op.tuning_param = 'p_prep_delay';
 % op.tuning_param = 'p_prod_delay';
 
@@ -35,8 +37,8 @@ op.tuning_param = 'p_stim_delay';
 %% trial table varname for times used for time-locking responses
 % op.time_align_var = 't_vis_stim_on'; % audio stim cue on
 % op.time_align_var = 't_aud_go_on'; % go beep
-% op.time_align_var = 't_prod_on'; % speech onset
-op.time_align_var = 't_prod_off'; % speech onset
+op.time_align_var = 't_prod_on'; % speech onset
+% op.time_align_var = 't_prod_off'; % speech onset
 
 
 op.xline_events = {'t_vis_stim_on','t_vis_stim_on','t_aud_go_on','t_prod_on','t_prod_off'};
