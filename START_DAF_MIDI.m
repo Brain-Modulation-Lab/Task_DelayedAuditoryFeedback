@@ -21,7 +21,7 @@ cfg.SUBJECT       = 'DM1062';   % Subject identifier
 cfg.SESSION_LABEL = 'preop';      % Label for session type (e.g., intraop, preop)
 % cfg.SESSION_LABEL = 'intraop'; 
 % 
-preop_delay_values_ms =  [0 50 110 170 230 280]; 
+preop_delay_values_ms =  [0 50 115 180 245 305]; 
 intraop_delay_values_ms = [0 50 280]; % intended to be be [0, low-delay, high-delay]
 
 % ---------------------------------------------- ----------------------------------------------------- 
