@@ -15,25 +15,25 @@ cfg = struct();
 
 %% Setup experiment configuration      % -------------------------------------------------------------------------
 
-cfg.SUBJECT       = 'DM1060';   % Subject identifier
-% cfg.SUBJECT       = 'daftest';   % Subject identifier
-
-% cfg.SESSION_LABEL = 'preop';      % Label for session type (e.g., intraop, preop)
-cfg.SESSION_LABEL = 'intraop'; 
-
+% cfg.SUBJECT       = 'test0729';   % Subject identifier
+cfg.SUBJECT       = 'DM1062';   % Subject identifier
+  
+cfg.SESSION_LABEL = 'preop';      % Label for session type (e.g., intraop, preop)
+% cfg.SESSION_LABEL = 'intraop'; 
+% 
 preop_delay_values_ms =  [0 50 110 170 230 280]; 
-intraop_delay_values_ms = [0 50 255]; % intended to be be [0, low-delay, high-delay]
+intraop_delay_values_ms = [0 50 280]; % intended to be be [0, low-delay, high-delay]
 
-% --------------------------------------------------------------------------------------------------- 
+% ---------------------------------------------- ----------------------------------------------------- 
 
 
 %%
-cfg.DATA_TYPE     = 'task';         % Data type for folder structure
+cfg.DATA_TYPE     = 'task';         % Data type for fo  lder structure
 cfg.RECORD_AUDIO  = 1;          % Whether to record microphone audio during the task
 cfg.PTB           = false;          % Use Psychtoolbox for timing and display (false disables it)
 cfg.STOP_BETWEEN_TRIALS = 1;     % Require space to proceed between all trials (after ITI plays)
     cfg.iti = [0.75, 1.25]; % Inter-trial interval range in seconds - 1sec seems appropriate for when there is pause for spacebar press between trials
-%     cfg.iti = [1.75, 2.25]; % Inter-trial interval range in seconds - 2sec seems appropriate for when there's no pause for spacebar press between trials
+%     cfg.iti = [1.75, 2.25]; % Inter-trial interval ran            ge in seconds - 2sec seems appropriate for when there's no pause for spacebar press between trials
 % ----------------------------------
 cfg.midi_dev_name = 'H90 Pedal';      % name of Stepp Lab usb-  to-midi adapter from mididevinfo.m
 cfg.midi_chan  = 1;              % Set to MIDI channel as per hardware... should have been pre-set on the midi device
@@ -54,7 +54,7 @@ cfg.DAF_START_OFFSET_S = 0.000;       % Optional time offset between fixation an
 
 % beep params - played at beginning of run, and optionally as go cue
 cfg.go_beep_dur = 0.05;         % go beep duration in sec
-cfg.go_beep_amp = 0.5; % go beep amplitude (zero to one)
+cfg.go_beep_amp = 0.3; % go beep amplitude (zero to one)
 
 %% go cue options
 cfg.play_go_cue = true;                     % make subject wait for go beep following stim onset before speaking; if false, don't play go beep  

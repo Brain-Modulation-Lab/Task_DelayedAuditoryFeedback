@@ -11,12 +11,12 @@ cfg = [];
 cfg.SESSION_LABEL = 'preop'; 
 
 % % % Subject metadata
-% cfg.SUBJECT = 'DM1056'
-cfg.SUBJECT = 'daftest'
+cfg.SUBJECT = 'DM1061'
+% cfg.SUBJECT = 'daftest'
 
 cfg.DATA_TYPE     = 'task';
 cfg.RECORD_AUDIO = 1;
-cfg.STOP_BETWEEN_TRIALS = 2;     % Require space to proceed between all trials (after ITI plays)
+cfg.STOP_BETWEEN_TRIALS = 1;     % Require space to proceed between all trials (after ITI plays)
 
 % Task metadata (match preop naming so Task_*.m runs unchanged)
 cfg.TASK          = 'daf';
