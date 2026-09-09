@@ -14,7 +14,7 @@ op.threshold_method = 'EF';
 
 op.art_crit = 'G'; %%% maybe change / get rid of this parameter - confusing to have both G (manual art) and E/F (automatic art)
 
-op.skip_to_automatic_artifact_detection = 0; % if true, load pre-made wavpow fieldtrip files, and skip all steps before threshold-based artifact detection
+op.skip_to_automatic_artifact_detection = 1; % if true, load pre-made wavpow fieldtrip files, and skip all steps before threshold-based artifact detection
 
 % op.rereference_method = 'none';
 % op.rereference_method = 'CTAR';

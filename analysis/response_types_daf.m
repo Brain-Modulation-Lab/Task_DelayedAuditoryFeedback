@@ -12,15 +12,7 @@ function [resp, trials, op_out] = response_types_daf(op)
 
 %% analysis parameters
 
-%%%% for baseline window, use the period from -op.base_win_sec(1) to -op.base_win_sec(2) before visual stim onset.... this comes before aud stim onset in dbsseq
-%%% baseline should end at least a few 100ms before visual stim onset in order to not include anticipatory activity in baseline
-field_default('op','base_win_sec', [0.5, 0.1]); % 
-field_default('op','stim_window_extend_end', 0.3); % for responses during stimulus, add this long in seconds to the analyzed 'stimulus period' after actual stim offset
-
-% for responses during speech, start the analyzed 'speech period' this early in seconds to capture pre-sound muscle activation; also end prep period this early
-field_default('op','speech_window_extend_start', 0.15);  
-
-% for defining trial durations, use this much time before/after visual onset/offset
+% for defining nonwarped trial timecourse durations, use this much time before/after visual onset/offset
 %%% this only affects how much data on each side gets saved for the purposes of plotting
 field_default('op','trial_time_buffer',[1, 2.5]); % use 2 sec because subjects in DAF often keeep speaking for a while after visual offset
 
@@ -28,7 +20,7 @@ field_default('op','trial_time_buffer',[1, 2.5]); % use 2 sec because subjects i
 field_default('op','responsivity_alpha',0.05); % uncorrected
 % field_default('op','responsivity_alpha',0.05 / 2^[3-1]); % bonf correction for 3 tests
 
-%% Defining paths, loading parameters
+%% Defining paths
 
 field_default('op','resp_signal','hg'); 
 field_default('op','baseline_method','subtract_then_divide'); % options: 'divide_then_subtract','subtract'
@@ -46,7 +38,7 @@ load([paths.ft_file_prefix, op.resp_signal, '.mat'],'D_wavpow')
 trials = load(paths.trials_beh);  trials = trials.trials_beh; 
 electrodes_table_filename = [paths.annot filesep 'sub-' op.sub '_electrodes.tsv'];
 
-% assign start and end times
+% assign start and end times for nonwarped trial timecourses
 trials.starts = trials.t_vis_stim_on - op.trial_time_buffer(1);
 trials.ends = trials.t_vis_stim_off + op.trial_time_buffer(2); 
 
@@ -91,22 +83,38 @@ end
 %% get responses in predefined epochs
 
 %%% set up the config table for determining how to epoch ephys responses for this project
+% NB: strongly recommended to not include any expected gaps between epochs, and have dur_fix('trial') equal to the sum of the durations of the other epochs
+...... or else subsequent time labels on trial plots will likely be wrong
 % all response values except 'base' are baseline-normalized by dividing by that trial's baseline average... 'base' records the absolute value of the baseline
 
-epochs = table({'trial';'base';'stim';'prep';'prod'},'VariableNames',{'epoch'});
+epochs = table({'prebase';'base';'postbase';'stim';'prep';'speech';'postprod'},'VariableNames',{'epoch'});
 epochs.Properties.RowNames = epochs.epoch;
 epochs.onset = cell(height(epochs),1);
 epochs.offset = cell(height(epochs),1);
-epochs.onset{'trial'} = {'t_vis_stim_on',-1};           % cut beginning of trial at fixed time before visual stim on
-    epochs.offset{'trial'} = {'t_vis_stim_off',2.5};    % cut end of trial at fixed time after visual stim off
-epochs.onset{'base'} = {'t_vis_stim_on',-0.5};          % 'base' = average during pre-visual-stim baseline
+epochs.dur_fix = nan(height(epochs),1); 
+epochs.dur_fix('prebase') = 0.6;
+    epochs.onset{'prebase'} = {'t_vis_stim_on',-1};          % pre-base buffer
+    epochs.offset{'prebase'} = {'t_vis_stim_on',-0.5};
+epochs.dur_fix('base') = 0.4;
+    epochs.onset{'base'} = {'t_vis_stim_on',-0.5};          % 'base' = average during pre-visual-stim baseline
     epochs.offset{'base'} = {'t_vis_stim_on',-0.1};
-epochs.onset{'stim'} = 't_vis_stim_on'; 
-    epochs.offset{'stim'} = 't_vis_stim_off'; 
-epochs.onset{'prep'} = 't_vis_stim_off'; 
+epochs.dur_fix('postbase') = 0.1;
+    epochs.onset{'postbase'} = {'t_vis_stim_on',-0.1};          % spacer between baseline and vis stim on
+    epochs.offset{'postbase'} = {'t_vis_stim_on',0};
+epochs.dur_fix('stim') = 2.6;
+    epochs.onset{'stim'} = 't_vis_stim_on'; 
+    epochs.offset{'stim'} = 't_aud_go_on'; % stim doesn't actually disappear until end of trial, but we end 'stim epoch' at gobeep
+epochs.dur_fix('prep') = 0.8; % avg estimated speech reaction time
+    epochs.onset{'prep'} = 't_aud_go_on'; 
     epochs.offset{'prep'} = 't_prod_on'; 
-epochs.onset{'prod'} = 't_prod_on'; 
-    epochs.offset{'prod'} = 't_prod_off'; 
+epochs.dur_fix('speech') = 5; % avg estimated speech duration
+    epochs.onset{'speech'} = 't_prod_on'; 
+    epochs.offset{'speech'} = 't_prod_off'; 
+    epochs.early_overlap_allowed('speech') = true; % we allow the speech epoch to consume preceding epochs; we don't have enough trials to throw out early response trials
+epochs.dur_fix('postprod') = 3.5;             % post speech epoch - look for beta rebound here
+    epochs.onset{'postprod'} = {'t_prod_off',0}; 
+    epochs.offset{'postprod'} = {'t_prod_off',2.5}; 
+    
 op.epochs = epochs; 
 
 [resp, trials] = get_epoched_responses(D_wavpow,trials,op);
@@ -127,7 +135,7 @@ for ichan = 1:nchans
         [~, resp.p_prep(ichan)] = ttest2(resp.prep{ichan}(good_trials), zeros_vec); 
     
         % above/below-baseline response during the production period
-        [~, resp.p_prod(ichan)] = ttest2(resp.prod{ichan}(good_trials), zeros_vec); 
+        [~, resp.p_prod(ichan)] = ttest2(resp.speech{ichan}(good_trials), zeros_vec); 
 
         % test for general task responsivity
         %%%% one way to make this metric more stringent would be: run anova on mean response in 4 periods: baseline, stim, prep, speech
@@ -137,7 +145,7 @@ for ichan = 1:nchans
          % preferential response for DAF delay... use anova to treat delay as categorical
         resp.p_stim_delay(ichan) = anova1(resp.stim{ichan}(good_trials),trials.delay(good_trials),'off');
         resp.p_prep_delay(ichan) = anova1(resp.prep{ichan}(good_trials),trials.delay(good_trials),'off');
-        resp.p_prod_delay(ichan) = anova1(resp.prod{ichan}(good_trials),trials.delay(good_trials),'off');
+        resp.p_prod_delay(ichan) = anova1(resp.speech{ichan}(good_trials),trials.delay(good_trials),'off');
    
     end
 end
@@ -152,7 +160,7 @@ info_vars_to_copy = {'chan','type','native_x','native_y','native_z',...
     'HCPMMP1_label_1','HCPMMP1_weight_1','HCPMMP1_label_2','HCPMMP1_weight_2'};
 resp = join(resp, elec_info_overlapping_resptable(:,info_vars_to_copy)); % add elc_info to resp
 resp.sub = cellstr(repmat(op.sub, nchans, 1));
-resp = movevars(resp,{'base','timecourse','stim','prep','prod'},'After','HCPMMP1_weight_2');
+resp = movevars(resp,{'base','timecourse','stim','prep','speech'},'After','HCPMMP1_weight_2');
 resp = movevars(resp,{'sub','chan','HCPMMP1_label_1'},'Before',1);
 
 % right DBS was not recorded during the SEQ task in these subjects but remained in the channels  table - remove these chans if they're present

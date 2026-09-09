@@ -11,7 +11,8 @@ freq_bands_to_analyze = {'beta','hg'};
 % freq_bands_to_analyze = {'hg'}; 
 
 op.art_crit = 'G'; 
-op.denoise_string = '_not_denoised'; %%% comment out??
+
+op.max_timecourse_base_ratio = 10; 
 
 op.baseline_method = 'subtract_then_divide'; % options: 'divide_then_subtract','subtract'
 

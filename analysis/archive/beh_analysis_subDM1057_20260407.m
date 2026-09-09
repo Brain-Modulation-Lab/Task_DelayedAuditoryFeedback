@@ -1,3 +1,6 @@
+
+clear
+
 op.sub = 'DM1057'; 
 op.task = 'daf'; 
 op.run = 8; 
@@ -24,7 +27,7 @@ paths.der_sub = [paths.data, filesep, 'derivatives',filesep, 'sub-',op.sub];
 paths.annot = [paths.der_sub, filesep, 'annot'];
 
 % trialspath = [paths.annot, filesep, filestr,'trials-scoring - updated.tsv'];
-trialspath = [paths.annot, filesep, filestr,'trials-scoring.tsv'];
+trialspath = [paths.annot, filesep, 'archive', filesep, 'sub-DM1057_ses-intraop_task-daf_annot-trials_20260508_AndrewM.tsv'];
 
 
 trials = readtable(trialspath,'FileType','text','Delimiter','tab'); 
@@ -54,7 +57,7 @@ for ivar = 1:length(op.datavars)
     hax(ivar).XColor = 'k';
     hax(ivar).YColor = 'k';
     ylabel('mean per trial')
-    subt = strrep(thisvar,{'slds','tds'}, {'stuttering','typical_disfluencies'});
+    subt = replace(thisvar,{'slds','tds'}, {'stuttering','typical_disfluencies'});
     title(subt,'Color','k')
     hax(ivar).XLabel.String = 'delay (ms)'; 
     hold on
