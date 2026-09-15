@@ -169,7 +169,6 @@ log_event(eventFH, doDigOut, t0, [], [], 'control', [], 0, 'Instructions_End', f
 %% Main trial loop
 for itrial = 1:cfg.ntrials
     isCatch = trials.catch_trial(itrial);
-    trials.delay(itrial) = trials.delay(itrial);
 
     % ITI + fixation
     set(hText,'String','*','Color', tern(~isCatch,[0.7 0.7 0.7],'red'));
