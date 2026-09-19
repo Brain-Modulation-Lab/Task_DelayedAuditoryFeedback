@@ -54,7 +54,6 @@ for isub = 1:nsubs
 
     close all force
     % load fieldtrip raw and select ephys channels
-% % % % % % % % % % % % % % % % % % % %     set_project_specific_variables(); % get sub-specific info
     electrodes = bml_annot_read_tsv(paths.electrodes); 
 
     if ~op.skip_to_automatic_artifact_detection % do all pipeline steps; don't skip to artifact detection
@@ -118,7 +117,8 @@ for isub = 1:nsubs
             end
         end
 
-        % save
+        % add mapping back to original electrode labels, then save
+        D_ref = reref_chan_to_electrode_label(D_ref); 
         save([paths.ft_file_prefix,'raw-filt_ar-',op.art_crit,'_ref'],'D_ref','cfg_ref')
     %%
 
@@ -156,6 +156,7 @@ for isub = 1:nsubs
             cfg_wavpow.param = artparam;  
             D_wavpow_no_thresh_mask = multifreq_avg_power(cfg_wavpow, D_ref); % get power in band of interest
             cfg_wavpow.thisband = thisband; 
+            D_wavpow_no_thresh_mask = reref_chan_to_electrode_label(D_wavpow_no_thresh_mask); % add mapping from chans back to electrode labels
             save(wavpow_no_thresh_savename,'D_wavpow_no_thresh_mask','cfg_wavpow')
     
         % option below assumes that prior steps have already been run and that we don't want to rerun them

@@ -33,52 +33,11 @@ paths = set_paths_daf(op); % get subject-specific filepaths
 
 %% load data 
 load([paths.ft_file_prefix, op.resp_signal, '.mat'],'D_wavpow')
-
-% % trial timing and electrode info
-trials = load(paths.trials_beh);  trials = trials.trials_beh; 
-electrodes_table_filename = [paths.annot filesep 'sub-' op.sub '_electrodes.tsv'];
+trials = load(paths.trials_beh);  trials = trials.trials_beh; % % trial timing
 
 % assign start and end times for nonwarped trial timecourses
 trials.starts = trials.t_vis_stim_on - op.trial_time_buffer(1);
 trials.ends = trials.t_vis_stim_off + op.trial_time_buffer(2); 
-
-if exist(electrodes_table_filename, 'file')
-    elc_info_raw = bml_annot_read_tsv([paths.annot filesep 'sub-' op.sub '_electrodes.tsv';]); 
-        elc_info_raw = renamevars(elc_info_raw,'name','chan');
-else
-    channels = bml_annot_read_tsv([paths.annot filesep 'sub-' op.sub '_ses-' op.ses '_channels.tsv']); %%%% for connector info
-        channels.name = strrep(channels.name,'_Ll','_Lm'); % change name to match naming convention in electrodes table
-    channels(channels.connector==0,:) = []; % channels with this connector label seem to be duplicates or unused
-    elc_info_raw = channels; 
-    elc_info_raw = renamevars(elc_info_raw,'name','chan');
-
-    % fill in blank info for localization variables if electrodes table is not available
-    nancol = nan(height(elc_info_raw),1); 
-    celcol = cell(height(elc_info_raw),1); 
-    elc_info_blank = table(...
-        nancol, nancol, nancol, ...
-        nancol, nancol, nancol, ...
-        celcol, nancol, celcol, nancol, celcol, nancol, ...
-        celcol, nancol,celcol, nancol, ...
-        'VariableNames',...
-        {'native_x','native_y','native_z',...
-        'mni_x','mni_y','mni_z',...
-	    'DISTAL_label_1','DISTAL_weight_1','DISTAL_label_2','DISTAL_weight_2','DISTAL_label_3','DISTAL_weight_3',...
-        'HCPMMP1_label_1','HCPMMP1_weight_1','HCPMMP1_label_2','HCPMMP1_weight_2'}); 
-    elc_info_raw = [elc_info_raw, elc_info_blank];
-end
-
-% rename dbs channels to match bipolar reref 'channels'
-dbs_elc_names = {'dbs_L1','dbs_L2A','dbs_L2B','dbs_L2C','dbs_L3A','dbs_L3B','dbs_L3C','dbs_L4'};
-dbs_bipolar_chan_names = {'dbs_L1-L2','dbs_L2A-B','dbs_L2B-C','dbs_L2C-A','dbs_L3A-B','dbs_L3B-C','dbs_L3C-A','dbs_L4-L3'};
-mapElcToChan = containers.Map(dbs_elc_names, dbs_bipolar_chan_names);
-elc_info = elc_info_raw; 
-for i = 1:numel(elc_info.chan)
-    if isKey(mapElcToChan, elc_info.chan{i})
-        elc_info.chan{i} = mapElcToChan(elc_info.chan{i});
-    end
-end
-
 
 %% get responses in predefined epochs
 
@@ -116,7 +75,7 @@ epochs.dur_fix('postprod') = 3.5;             % post speech epoch - look for bet
     epochs.offset{'postprod'} = {'t_prod_off',2.5}; 
     
 op.epochs = epochs; 
-
+op.electrodes_file = paths.electrodes; % provide electrodes file to append info to resp table
 [resp, trials] = get_epoched_responses(D_wavpow,trials,op);
 
 
@@ -151,14 +110,14 @@ for ichan = 1:nchans
 end
     
 %% cleanup
-elec_info_overlapping_resptable = elc_info(ismember(elc_info.chan,resp.chan),:); % include only electrodes analyzed for this task
-
-% add the following variables to the electrodes response table... use 'electrode' as key variable
-info_vars_to_copy = {'chan','type','native_x','native_y','native_z',...
-    'mni_x','mni_y','mni_z',...
-	'DISTAL_label_1','DISTAL_weight_1','DISTAL_label_2','DISTAL_weight_2','DISTAL_label_3','DISTAL_weight_3',...
-    'HCPMMP1_label_1','HCPMMP1_weight_1','HCPMMP1_label_2','HCPMMP1_weight_2'};
-resp = join(resp, elec_info_overlapping_resptable(:,info_vars_to_copy)); % add elc_info to resp
+% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % elec_info_overlapping_resptable = elc_info(ismember(elc_info.chan,resp.chan),:); % include only electrodes analyzed for this task
+% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % 
+% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % add the following variables to the electrodes response table... use 'electrode' as key variable
+% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % info_vars_to_copy = {'chan','type','native_x','native_y','native_z',...
+% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %     'mni_x','mni_y','mni_z',...
+% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % 	'DISTAL_label_1','DISTAL_weight_1','DISTAL_label_2','DISTAL_weight_2','DISTAL_label_3','DISTAL_weight_3',...
+% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %     'HCPMMP1_label_1','HCPMMP1_weight_1','HCPMMP1_label_2','HCPMMP1_weight_2'};
+% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % resp = join(resp, elec_info_overlapping_resptable(:,info_vars_to_copy)); % add elc_info to resp
 resp.sub = cellstr(repmat(op.sub, nchans, 1));
 resp = movevars(resp,{'base','timecourse','stim','prep','speech'},'After','HCPMMP1_weight_2');
 resp = movevars(resp,{'sub','chan','HCPMMP1_label_1'},'Before',1);
