@@ -4,6 +4,21 @@ function [cfg, trials, text_wrapped_all] = create_trials_table(cfg)
 %   [cfg, trials, text_wrapped_all] = create_trials_table(cfg);
 %   % cfg.TRIAL_TABLE is also populated.
 
+%% Validate and setup delay condition names
+if ~isfield(cfg, 'delay_names') || isempty(cfg.delay_names)
+    % Auto-generate from delay values if not provided
+    cfg.delay_names = cellfun(@num2str, num2cell(cfg.delay_values_ms), 'UniformOutput', false);
+else
+    % Validate that delay_names matches delay_values_ms length
+    if numel(cfg.delay_names) ~= numel(cfg.delay_values_ms)
+        error(['cfg.delay_names must have %d elements to match cfg.delay_values_ms, ' ...
+               'but has %d elements'], numel(cfg.delay_values_ms), numel(cfg.delay_names));
+    end
+    % Ensure it's a cell array of strings/chars
+    if ~iscell(cfg.delay_names)
+        cfg.delay_names = cellstr(cfg.delay_names);
+    end
+end
 
 
 
@@ -256,6 +271,20 @@ trials = table( ...
     go_latecy_vec, ...
     'VariableNames', {'trialnum','block_id','stim','stim_idx','delay','catch_trial','go_latency'} ...
 );
+
+%% Add delay condition names column
+delay_cond = cell(ntrials, 1);
+for i = 1:ntrials
+    delay_val = trialDelays(i);
+    % Find matching delay_names index
+    match_idx = find(cfg.delay_values_ms == delay_val, 1);
+    if ~isempty(match_idx)
+        delay_cond{i} = cfg.delay_names{match_idx};
+    else
+        delay_cond{i} = '';
+    end
+end
+trials.delay_cond = delay_cond;
 
 %%%%% Initialize columns that will be filled during runtime
 % trials.start_time         = nan(ntrials,1); % not currently being filled by midi or nonmidi versions

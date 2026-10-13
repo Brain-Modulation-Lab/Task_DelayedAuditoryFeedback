@@ -41,6 +41,22 @@ end
 [cfg, trials, text_wrapped_all] = create_trials_table(cfg); % Create and load trial parameters table and wrapped text for display
 cfg.ntrials = height(trials);
 
+%% Validate and setup delay condition names
+if ~isfield(cfg, 'delay_names') || isempty(cfg.delay_names)
+    % Auto-generate from delay values if not provided
+    cfg.delay_names = cellfun(@num2str, num2cell(cfg.delay_values_ms), 'UniformOutput', false);
+else
+    % Validate that delay_names matches delay_values_ms length
+    if numel(cfg.delay_names) ~= numel(cfg.delay_values_ms)
+        error(['cfg.delay_names must have %d elements to match cfg.delay_values_ms, ' ...
+               'but has %d elements'], numel(cfg.delay_values_ms), numel(cfg.delay_names));
+    end
+    % Ensure it's a cell array of strings/chars
+    if ~iscell(cfg.delay_names)
+        cfg.delay_names = cellstr(cfg.delay_names);
+    end
+end
+
 % Ensure a 'block' column exists for break handling
 if cfg.n_blocks < 1, cfg.n_blocks = 1; end
 if ~ismember('block', trials.Properties.VariableNames)

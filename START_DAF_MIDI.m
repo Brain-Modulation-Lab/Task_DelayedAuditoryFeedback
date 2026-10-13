@@ -17,12 +17,13 @@ cfg = struct();
 
 % cfg.SUBJECT       = 'test0729';   % Subject identifier
 cfg.SUBJECT       = 'DM1062';   % Subject identifier
-  
-cfg.SESSION_LABEL = 'preop';      % Label for session type (e.g., intraop, preop)
-% cfg.SESSION_LABEL = 'intraop'; 
+
+    % Label for session type (e.g., intraop, preop)
+% cfg.SESSION_LABEL = 'preop';  cfg.delay_names = {}; % use delay vals as condition names  
+cfg.SESSION_LABEL = 'intraop'; cfg.delay_names = {'zero','low','high'}; 
 % 
 preop_delay_values_ms =  [0 50 115 180 245 305]; 
-intraop_delay_values_ms = [0 50 280]; % intended to be be [0, low-delay, high-delay]
+intraop_delay_values_ms = [0 50 245]; 
 
 % ---------------------------------------------- ----------------------------------------------------- 
 
