@@ -15,8 +15,8 @@ cfg = struct();
 
 %% Setup experiment configuration      % -------------------------------------------------------------------------
 
-% cfg.SUBJECT       = 'test0729';   % Subject identifier
-cfg.SUBJECT       = 'DM1062';   % Subject identifier
+cfg.SUBJECT       = 'qqq';   % Subject identifier
+% cfg.SUBJECT       = 'DM1062';   % Subject identifier
 
     % Label for session type (e.g., intraop, preop)
 % cfg.SESSION_LABEL = 'preop';  cfg.delay_names = {}; % use delay vals as condition names  
