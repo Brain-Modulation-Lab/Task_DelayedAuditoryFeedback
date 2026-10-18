@@ -20,7 +20,7 @@ cfg.SUBJECT       = 'qqq';   % Subject identifier
 
     % Label for session type (e.g., intraop, preop)
 % cfg.SESSION_LABEL = 'preop';  cfg.delay_names = {}; % use delay vals as condition names  
-cfg.SESSION_LABEL = 'intraop'; cfg.delay_names = {'zero','low','high'}; 
+cfg.SESSION_LABEL = 'intraop'; cfg.delay_names = {'zero','low','high'};  
 % 
 preop_delay_values_ms =  [0 50 115 180 245 305]; 
 intraop_delay_values_ms = [0 50 245]; 
@@ -212,7 +212,7 @@ end
 
 
 %% Ripple neurophysiology hardware communication setup (optional)
-cfg.DIGOUT = 0;
+cfg.DIGOUT = 1;
 if exist('xippmex','file')==3
     try
         digout = xippmex();  % Initialize hardware interface
