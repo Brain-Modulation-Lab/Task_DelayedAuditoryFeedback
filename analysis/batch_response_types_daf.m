@@ -41,6 +41,7 @@ for iband = 1:nbands % run full analysis, compile subjects, save results for all
         op.sub = subs.sub{isub}
         
         [resp, trials, op] = response_types_daf(op);
+        subs.paths{isub} = op.paths; 
         savefile = [paths.results, filesep, op.sub '_responses_' op.resp_signal];
         save(savefile, 'trials','resp','op'); clear resp trials
     end

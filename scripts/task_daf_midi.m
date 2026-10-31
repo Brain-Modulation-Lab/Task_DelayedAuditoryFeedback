@@ -1,4 +1,4 @@
-function task_daf_MIDI(cfg)
+function task_daf_midi(cfg)
 % Runs the Delayed Auditory Feedback (DAF) task, controlling visuals, timing, logging,
 % and MIDI control of Eventide H90
 %

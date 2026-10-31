@@ -60,7 +60,7 @@ epochs.dur_fix('base') = 0.4;
 epochs.dur_fix('postbase') = 0.1;
     epochs.onset{'postbase'} = {'t_vis_stim_on',-0.1};          % spacer between baseline and vis stim on
     epochs.offset{'postbase'} = {'t_vis_stim_on',0};
-epochs.dur_fix('stim') = 2.6;
+epochs.dur_fix('stim') = 2; % jittered 1.5-2.5s between vis stim on and gobeep
     epochs.onset{'stim'} = 't_vis_stim_on'; 
     epochs.offset{'stim'} = 't_aud_go_on'; % stim doesn't actually disappear until end of trial, but we end 'stim epoch' at gobeep
 epochs.dur_fix('prep') = 0.8; % avg estimated speech reaction time
@@ -110,14 +110,6 @@ for ichan = 1:nchans
 end
     
 %% cleanup
-% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % elec_info_overlapping_resptable = elc_info(ismember(elc_info.chan,resp.chan),:); % include only electrodes analyzed for this task
-% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % 
-% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % add the following variables to the electrodes response table... use 'electrode' as key variable
-% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % info_vars_to_copy = {'chan','type','native_x','native_y','native_z',...
-% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %     'mni_x','mni_y','mni_z',...
-% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % 	'DISTAL_label_1','DISTAL_weight_1','DISTAL_label_2','DISTAL_weight_2','DISTAL_label_3','DISTAL_weight_3',...
-% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %     'HCPMMP1_label_1','HCPMMP1_weight_1','HCPMMP1_label_2','HCPMMP1_weight_2'};
-% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % resp = join(resp, elec_info_overlapping_resptable(:,info_vars_to_copy)); % add elc_info to resp
 resp.sub = cellstr(repmat(op.sub, nchans, 1));
 resp = movevars(resp,{'base','timecourse','stim','prep','speech'},'After','HCPMMP1_weight_2');
 resp = movevars(resp,{'sub','chan','HCPMMP1_label_1'},'Before',1);
@@ -125,6 +117,8 @@ resp = movevars(resp,{'sub','chan','HCPMMP1_label_1'},'Before',1);
 % right DBS was not recorded during the SEQ task in these subjects but remained in the channels  table - remove these chans if they're present
 resp = resp(~contains(resp.chan,'dbs_R'),:);
 
+paths.fieldtrip_ref = [paths.fieldtrip_data, filesep, 'sub-',op.sub, '_ses-',op.ses, '_task-',op.task, '_ft-raw-filt_ar-',op.art_crit, '_ref.mat']; 
+op.paths = paths; 
 op_out = op; 
 
 end
