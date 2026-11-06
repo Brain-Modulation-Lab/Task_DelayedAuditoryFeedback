@@ -14,7 +14,7 @@ op.threshold_method = 'EF';
 
 op.art_crit = 'G'; %%% maybe change / get rid of this parameter - confusing to have both G (manual art) and E/F (automatic art)
 
-op.skip_to_automatic_artifact_detection = 1; % if true, load pre-made wavpow fieldtrip files, and skip all steps before threshold-based artifact detection
+op.skip_to_automatic_artifact_detection = 0; % if true, load pre-made wavpow fieldtrip files, and skip all steps before threshold-based artifact detection
 
 % op.rereference_method = 'none';
 % op.rereference_method = 'CTAR';
@@ -22,12 +22,12 @@ op.skip_to_automatic_artifact_detection = 1; % if true, load pre-made wavpow fie
 
 op.rereference_method_by_eltype = ...
     {'ecog',    'CMR';...
-    'dbs',     '8chan_dbs_bipolar'};
+    'dbs',     '8chan_dbs_laplacian'};
 
 op.reref_extreme_trim_percent = 50; % during referencing, percentage of 'extreme' channels in group to trim 
 
-freq_bands_to_extract = {'beta','hg'}; 
-% freq_bands_to_extract = {'beta'}; 
+% freq_bands_to_extract = {'beta','hg'}; 
+freq_bands_to_extract = {'beta'}; 
 % freq_bands_to_extract = {'hg'}; 
 
 % ? not used ? 
@@ -54,7 +54,6 @@ for isub = 1:nsubs
 
     close all force
     % load fieldtrip raw and select ephys channels
-% % % % % % % % % % % % % % % % % % % %     set_project_specific_variables(); % get sub-specific info
     electrodes = bml_annot_read_tsv(paths.electrodes); 
 
     if ~op.skip_to_automatic_artifact_detection % do all pipeline steps; don't skip to artifact detection
@@ -118,7 +117,8 @@ for isub = 1:nsubs
             end
         end
 
-        % save
+        % add mapping back to original electrode labels, then save
+        D_ref = reref_chan_to_electrode_label(D_ref); 
         save([paths.ft_file_prefix,'raw-filt_ar-',op.art_crit,'_ref'],'D_ref','cfg_ref')
     %%
 
@@ -156,6 +156,7 @@ for isub = 1:nsubs
             cfg_wavpow.param = artparam;  
             D_wavpow_no_thresh_mask = multifreq_avg_power(cfg_wavpow, D_ref); % get power in band of interest
             cfg_wavpow.thisband = thisband; 
+            D_wavpow_no_thresh_mask = reref_chan_to_electrode_label(D_wavpow_no_thresh_mask); % add mapping from chans back to electrode labels
             save(wavpow_no_thresh_savename,'D_wavpow_no_thresh_mask','cfg_wavpow')
     
         % option below assumes that prior steps have already been run and that we don't want to rerun them
