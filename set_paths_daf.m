@@ -47,8 +47,6 @@ else % analysis computers - need to add more paths
      paths.der = [paths.data filesep 'derivatives'];
      paths.src = [paths.data filesep 'sourcedata'];
      paths.results = [paths.data, filesep, 'groupanalyses', filesep, 'task-daf'];
-% % % % %      PATH_SUB_MASTER_TABLE = 
-% % % %      PATH_STIM_INFO_TABLE = [paths.task, filep]; 
 
     % external toolboxes
      paths.ieeg_ft_funcs_am = [paths.code filesep 'ieeg_ft_funcs_am']; % ieeg processing code shared across AM projects
