@@ -22,8 +22,9 @@ op.sort_cond = 'delay'; op.sort_cond_vals = {0 50 228};
 op.freqs = round(logspace(log10(1), log10(150), 50),1); 
 
 % analyze coherence between these regions
-op.regions_to_analyze = {'SMC','IFG/IFS','MFG','Thal'}; 
-% op.regions_to_analyze = {'OFC','Thal'}; 
+% op.regions_to_analyze = {'IFG/IFS','Thal','STN'}; 
+op.regions_to_analyze = {'STG','MTG','SMC'}; 
+% op.regions_to_analyze = {'OFC','Thal'}; % small number of pairs - for running fast + debugging 
 
 
 event = {'t_prod_on'}; 

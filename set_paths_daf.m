@@ -47,8 +47,6 @@ else % analysis computers - need to add more paths
      paths.der = [paths.data filesep 'derivatives'];
      paths.src = [paths.data filesep 'sourcedata'];
      paths.results = [paths.data, filesep, 'groupanalyses', filesep, 'task-daf'];
-% % % % %      PATH_SUB_MASTER_TABLE = 
-% % % %      PATH_STIM_INFO_TABLE = [paths.task, filep]; 
 
     % external toolboxes
      paths.ieeg_ft_funcs_am = [paths.code filesep 'ieeg_ft_funcs_am']; % ieeg processing code shared across AM projects
@@ -129,6 +127,7 @@ if add_analysis_paths
             paths.preproc = [paths.der_sub, filesep, 'preproc']; 
             paths.fieldtrip_data = [paths.der_sub, filesep, 'fieldtrip']; 
             paths.electrodes = [paths.annot, filesep, 'sub-',op.sub, '_electrodes.tsv']; 
+            
     
             if isfield(op,'ses') % if session specified
                 paths.src_ses = [paths.src_sub, filesep,'ses-',op.ses]; 
@@ -136,6 +135,7 @@ if add_analysis_paths
                 paths.src_audio = [paths.src_ses, filesep, 'audio'];
                 paths.der_annot_trials = [paths.annot, filesep, 'sub-',op.sub, '_ses-',op.ses, '_task-',op.task, '_annot-trials.tsv']; 
                 paths.trials_beh = [paths.annot, filesep, 'sub-',op.sub, '_ses-',op.ses, '_task-',op.task, '_trials-beh.mat']; % behavioral annotations; .mat and not tsv because of complex data types
+                paths.disfluencies = [paths.annot, filesep, 'sub-',op.sub, '_ses-',op.ses, '_task-',op.task, '_disfluencies.tsv']; % each row of this is an event, not a trial; contains all manual annotations
                 paths.trials_audiofiles = [paths.trial_audio, filesep, 'sub-',op.sub, '_ses-',op.ses, '_task-',op.task, ...
                     '_recording-directionalmic_physio_audiofiles.tsv'];
                 paths.landmarks_file = [paths.annot filesep 'sub-' op.sub, '_ses-', op.ses,  '_annot-audio-landmarks.tsv']; 

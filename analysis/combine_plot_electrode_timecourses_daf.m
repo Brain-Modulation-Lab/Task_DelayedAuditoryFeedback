@@ -3,8 +3,8 @@
   %%% load resp_all_subjects first
   % loaded data must include resp, subs, and op (which includes epoch table that was used for time warping)
 % 
-% paths = set_paths_daf(); load([paths.results, filesep, 'resp_all_subjects_beta.mat']) % load data
-paths = set_paths_daf(); load([paths.results, filesep, 'resp_all_subjects_hg.mat'])
+paths = set_paths_daf(); load([paths.results, filesep, 'resp_all_subjects_beta.mat']) % load data
+% paths = set_paths_daf(); load([paths.results, filesep, 'resp_all_subjects_hg.mat'])
 
 % close all
 

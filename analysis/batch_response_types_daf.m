@@ -20,7 +20,7 @@ subnums = [...
     1057  
      ];
 
-% subnums = 1024;
+% subnums = 1057;
 
 
 
@@ -42,8 +42,8 @@ for iband = 1:nbands % run full analysis, compile subjects, save results for all
         
         [resp, trials, op] = response_types_daf(op);
         subs.paths{isub} = op.paths; 
-        savefile = [paths.results, filesep, op.sub '_responses_' op.resp_signal];
-        save(savefile, 'trials','resp','op'); clear resp trials
+        subs.paths{isub}.resp =  [paths.results, filesep, op.sub '_responses_' op.resp_signal, '.mat']; 
+        save(subs.paths{isub}.resp, 'trials','resp','op'); clear resp trials
     end
 
     
@@ -52,7 +52,7 @@ for iband = 1:nbands % run full analysis, compile subjects, save results for all
     resp_all = table; 
     for isub = 1:nsubs
         op.sub = subs.sub{isub};
-        load([paths.results, filesep, op.sub, '_responses_', op.resp_signal],'resp','trials','op')
+        load(subs.paths{isub}.resp,'resp','trials','op')
         resp_all = [resp_all; resp(~resp.bad_elc,:)];
         subs.trials{isub} = trials; 
     end

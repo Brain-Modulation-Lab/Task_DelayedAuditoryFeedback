@@ -23,8 +23,8 @@ op.sort_cond = 'delay'; op.sort_cond_vals = {0 50 228};
 op.sync_event = 't_prod_on'; 
 
 % this param specifies regions which both pair members must be included in (not just 1 pair mmber)
-% op.regions_to_analyze = {}; % plot all regions
-op.regions_to_analyze = {'IFG/IFS','Thal'}; 
+op.regions_to_analyze = {}; % plot all regions
+% op.regions_to_analyze = {'IFG/IFS','Thal'}; 
 % op.regions_to_analyze = {'IFG/IFS','STN','Thal','GP'}; 
 
 op.tuning_alpha = 0.05; 
@@ -46,6 +46,7 @@ op.freq_range = []; % plot all saved freqs
 %%%%% which formats to plot the data
 op.show_heatmap = 0; 
 op.show_canon_timecourses = 1;
+    op.single_timecourse_fig = 0; % only use this if only 1 freq band is being plotted 
 
 
 %%%%%%%%%%%% timecourse-specific params %%%%%%%%%%%
@@ -59,7 +60,7 @@ op.canon_bands = {...
 %     'Delta',[0.5 4],...
 %     'Theta', [4 8],... 
 %     'Alpha', [8 12],...
-%     'Beta', [12 30],...
+    'Beta', [12 30],...
 %     'Low_Gamma', [30 70],...
     'High_Gamma', [70 150],...
     };
