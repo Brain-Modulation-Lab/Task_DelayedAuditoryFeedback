@@ -79,7 +79,7 @@ op.electrodes_file = paths.electrodes; % provide electrodes file to append info 
 [resp, trials] = get_epoched_responses(D_wavpow,trials,op);
 
 
-%% test for response types 
+%% test for response types - organized by predefined epochs within every trial
 nchans = height(resp);
 for ichan = 1:nchans
     good_trials = ~isnan(resp.base{ichan}) & resp.base{ichan} ~= 0; % non-artifactual, non-zero-base trials for this channel
@@ -109,6 +109,19 @@ for ichan = 1:nchans
     end
 end
     
+%% disfluency-synced responses
+cfg = []; 
+cfg.event_types = {'sld_repetition','sld_prolongation','typical_disfluency','disfluency_resolution','error','slowing','distortion'}; % event types to get synced responses for
+cfg.sync_window_sec = [3 3]; 
+cfg.resptab_out_varname = 'disf'; % name of event-synced responses variable to add to resp table
+cfg.do_baselining = 1; %%% do baselining for these events using baselines from the preceding trial baseline, with the same baselining methods/parameters
+    cfg.epochs = op.epochs;
+    cfg.trials = trials; 
+    cfg.baseline_method = op.baseline_method;
+    cfg.max_timecourse_base_ratio = op.max_timecourse_base_ratio;
+disf_all_events = readtable(paths.disfluencies,'FileType','Text','Delimiter','tab'); %%% tsv with one row per event
+[resp, op.disf] = event_synced_responses(resp, D_wavpow, disf_all_events, cfg) ; 
+
 %% cleanup
 resp.sub = cellstr(repmat(op.sub, nchans, 1));
 resp = movevars(resp,{'base','timecourse','stim','prep','speech'},'After','HCPMMP1_weight_2');
