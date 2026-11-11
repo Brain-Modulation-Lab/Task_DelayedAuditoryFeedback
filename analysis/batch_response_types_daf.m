@@ -41,7 +41,7 @@ for iband = 1:nbands % run full analysis, compile subjects, save results for all
         op.sub = subs.sub{isub}
         
         [resp, trials, op] = response_types_daf(op);
-        subs.disf{isub} = op.disf; % add disfluency events table for this subject to the subject table
+        subs.speech{isub} = op.speech; % add speech_events table for this subject to the subject table
         subs.paths{isub} = op.paths; 
         subs.paths{isub}.resp =  [paths.results, filesep, op.sub '_responses_' op.resp_signal, '.mat']; 
         save(subs.paths{isub}.resp, 'trials','resp','op'); clear resp trials

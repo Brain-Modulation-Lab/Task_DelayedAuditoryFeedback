@@ -109,18 +109,18 @@ for ichan = 1:nchans
     end
 end
     
-%% disfluency-synced responses
+%% speech_events-synced responses
 cfg = []; 
-cfg.event_types = {'sld_repetition','sld_prolongation','typical_disfluency','disfluency_resolution','error','slowing','distortion'}; % event types to get synced responses for
-cfg.sync_window_sec = [3 3]; 
-cfg.resptab_out_varname = 'disf'; % name of event-synced responses variable to add to resp table
+cfg.event_types = {'sld_repetition','sld_prolongation','typical_disfluency','disfluency_resolution','error','slowing','distortion','word','syl','speech_epoch'}; % event types to get synced responses for
+cfg.sync_window_sec = [2 2]; 
+cfg.resptab_out_varname = 'speech'; % name of event-synced responses variable to add to resp table
 cfg.do_baselining = 1; %%% do baselining for these events using baselines from the preceding trial baseline, with the same baselining methods/parameters
     cfg.epochs = op.epochs;
     cfg.trials = trials; 
     cfg.baseline_method = op.baseline_method;
     cfg.max_timecourse_base_ratio = op.max_timecourse_base_ratio;
-disf_all_events = readtable(paths.disfluencies,'FileType','Text','Delimiter','tab'); %%% tsv with one row per event
-[resp, op.disf] = event_synced_responses(resp, D_wavpow, disf_all_events, cfg) ; 
+speech_events = readtable(paths.speech_events,'FileType','Text','Delimiter','tab'); %%% tsv with one row per event
+[resp, op.speech] = event_synced_responses(resp, D_wavpow, speech_events, cfg) ; 
 
 %% cleanup
 resp.sub = cellstr(repmat(op.sub, nchans, 1));

@@ -39,12 +39,18 @@ op.tuning_param = 'p_prod';
 % change so that each line lists columns of events table and then the value that must match in that column
 %%% eg only sld repetitions that get resolved.... or asr events that have a fluent event ID..... or just write the rules for how we define traces here and give the trace a name
 
-% cfg.event_types = {'sld_repetition','sld_prolongation','typical_disfluency','disfluency_resolution','error','slowing','distortion'};
-% op.event_types = {'sld_repetition','sld_prolongation','slowing','error','disfluency_resolution'}; 
-% op.event_types = {'sld_repetition','sld_prolongation','slowing','disfluency_resolution'}; 
-% op.event_types = {'sld_prolongation','slowing'}; 
-% op.event_types = {'sld_prolongation','typical_disfluency'}; 
-op.event_types = {'sld_repetition','disfluency_resolution'}; 
+
+%%%% set specification for traces to plot
+% event names used in DM1057 speech events table include: 'sld_repetition','sld_prolongation','typical_disfluency','disfluency_resolution','error','slowing','distortion'
+
+evspec = {...
+    {},         {{'type','sld_repetition'},{'delay',228}},  {};...
+    'sentence, delay=228', {{'type','speech_epoch'},{'delay',228}},      {};...
+    {},         {{'type','word'},{'delay',0}},                {};...
+    };
+
+op.trace_spec = table(evspec(:,1), evspec(:,2), evspec(:,3),'Variablename',{'name','spec','color'}); 
+
 
 % op.regions_to_plot  = {'SMC','IFG/IFS','Thal'};
 op.regions_to_plot = {}; % plot all regions
@@ -52,11 +58,11 @@ op.regions_to_plot = {}; % plot all regions
 % display params
 op.sync_window_sec = []; % if empty, use the full window saved in resp table
 op.smooth_windowsize_sec = 0.5; op.smooth_method = 'gaussian'; % Smoothing algorithm passed to MATLAB's smoothdata (e.g., 'gaussian', 'moving', 'lowess', 'sgolay').
-op.event_colors = 'lines'; % Specifies the colormap name string (e.g., 'lines', 'parula', 'turbo') or an $N_{\text{events}} \times 3$ RGB matrix for custom event trace colors.
+op.trace_colors = 'lines'; % default colormap (e.g., 'lines', 'parula', 'turbo') or RGB matrix for custom event trace colors.... overridden by evspec.color
 op.errorbar_alpha = 0.2; % Controls the transparency (FaceAlpha) of the shaded SEM error bar polygons.
 
 
 %% ============ CALL MAIN FUNCTION ============
-op.resptab_varname = 'disf'; % event-synced responses are in resp.disf and timing is in subs.disf
+op.resptab_varname = 'speech'; % event-synced responses are in resp.disf and timing is in subs.disf
 [synced_resp, op_out] = ...
     plot_event_synced_resp(resp, subs, op);

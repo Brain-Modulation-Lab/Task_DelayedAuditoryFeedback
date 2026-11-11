@@ -135,7 +135,7 @@ if add_analysis_paths
                 paths.src_audio = [paths.src_ses, filesep, 'audio'];
                 paths.der_annot_trials = [paths.annot, filesep, 'sub-',op.sub, '_ses-',op.ses, '_task-',op.task, '_annot-trials.tsv']; 
                 paths.trials_beh = [paths.annot, filesep, 'sub-',op.sub, '_ses-',op.ses, '_task-',op.task, '_trials-beh.mat']; % behavioral annotations; .mat and not tsv because of complex data types
-                paths.disfluencies = [paths.annot, filesep, 'sub-',op.sub, '_ses-',op.ses, '_task-',op.task, '_disfluencies.tsv']; % each row of this is an event, not a trial; contains all manual annotations
+                paths.speech_events = [paths.annot, filesep, 'sub-',op.sub, '_ses-',op.ses, '_task-',op.task, '_speech-events.tsv']; % each row of this is an event, not a trial; contains all manual annotations
                 paths.trials_audiofiles = [paths.trial_audio, filesep, 'sub-',op.sub, '_ses-',op.ses, '_task-',op.task, ...
                     '_recording-directionalmic_physio_audiofiles.tsv'];
                 paths.landmarks_file = [paths.annot filesep 'sub-' op.sub, '_ses-', op.ses,  '_annot-audio-landmarks.tsv']; 
